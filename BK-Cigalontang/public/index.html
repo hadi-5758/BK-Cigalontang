@@ -341,6 +341,36 @@
           </div>
         </div>
 
+        <!-- Konteks & Tantangan Terkini (untuk AI) -->
+        <div class="section-title">🔍 Konteks & Tantangan Terkini (untuk AI Gemini)</div>
+        <div class="form-info">
+          <strong>💡 Tips:</strong> Informasi ini membantu AI Gemini menghasilkan materi yang lebih mendalam dan sesuai dengan kondisi siswa Anda saat ini. Semakin detail, semakin relevan konten yang dihasilkan!
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="targetGrade">Target Grade/Kelas</label>
+            <select id="targetGrade" name="targetGrade">
+              <option value="">-- Isi Otomatis dari Sasaran Layanan --</option>
+              <option value="Kelas X">Kelas X</option>
+              <option value="Kelas XI">Kelas XI</option>
+              <option value="Kelas XII">Kelas XII</option>
+              <option value="X-XII">Semua Grade</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid full">
+          <div class="form-group">
+            <label for="currentChallenges">Tantangan/Kondisi Terkini Siswa (Opsional)</label>
+            <textarea id="currentChallenges" name="currentChallenges" placeholder="Contoh: Banyak siswa stress ujian, masalah bullying di media sosial, krisis identitas diri, kesulitan adaptasi sosial, dll. (tulis jika ada, kosongkan jika tidak)"></textarea>
+          </div>
+        </div>
+        <div class="form-grid full">
+          <div class="form-group">
+            <label for="recentIncidents">Insiden/Kasus Terkait (Opsional)</label>
+            <textarea id="recentIncidents" name="recentIncidents" placeholder="Contoh: Ada siswa drop-out gara-gara tekanan akademik, konflik antar siswa, dll. (tulis jika ada, kosongkan jika tidak)"></textarea>
+          </div>
+        </div>
+
         <!-- Pendekatan Konseling -->
         <div class="section-title">💡 G. Pendekatan & Teknik Konseling</div>
         <div class="form-grid">
@@ -403,6 +433,10 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
+      // Auto-fill targetGrade dari targetClass jika kosong
+      const targetGradeInput = document.getElementById('targetGrade').value ||
+        document.getElementById('targetClass').value;
+
       const formData = {
         counselorName: document.getElementById('counselorName').value,
         counselorNIP: document.getElementById('counselorNIP').value,
@@ -419,7 +453,10 @@
         issues: document.getElementById('issues').value,
         media: document.getElementById('media').value,
         tools: document.getElementById('tools').value,
-        implementationDate: document.getElementById('implementationDate').value
+        implementationDate: document.getElementById('implementationDate').value,
+        targetGrade: targetGradeInput,
+        currentChallenges: document.getElementById('currentChallenges').value,
+        recentIncidents: document.getElementById('recentIncidents').value
       };
 
       loadingDiv.style.display = 'block';

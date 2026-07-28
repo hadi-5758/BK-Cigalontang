@@ -34,7 +34,7 @@ const TUGAS_PERKEMBANGAN = {
 };
 
 // Function to generate material using Gemini
-async function generateMaterial(taskName, issues, counselingApproach) {
+async function generateMaterial(taskName, issues, counselingApproach, additionalContext = {}) {
   if (!genAI) {
     return getDefaultMaterial(taskName);
   }
@@ -42,40 +42,94 @@ async function generateMaterial(taskName, issues, counselingApproach) {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-    const prompt = `Buatkan materi ringkas untuk layanan bimbingan dan konseling dengan spesifikasi berikut:
+    const { targetGrade = 'X-XII', currentChallenges = '', recentIncidents = '' } = additionalContext;
+    const currentYear = new Date().getFullYear();
 
-Tugas Perkembangan: ${taskName}
-Topik/Isu: ${issues}
-Pendekatan: ${counselingApproach}
+    const systemPrompt = `Anda adalah seorang konselor berpengalaman di SMA Indonesia dengan 10+ tahun pengalaman.
+Tugas Anda: buat materi bimbingan yang KONTEKSTUAL dengan siswa generasi Z (2026), berbasis penelitian terkini,
+dan practical untuk diaplikasikan langsung di kelas.
 
-Format respons HARUS seperti ini (gunakan separator ===):
+PENTING:
+- Perhatikan ISU NYATA yang dihadapi siswa saat ini (digital stress, self-worth, pressure akademik)
+- Sertakan data/riset terkini yang relevan
+- Beri contoh kasus konkrit yang relatable untuk siswa usia SMA
+- Jangan hanya teori; fokus pada strategi action-oriented`;
 
-PENGERTIAN
-[Jelaskan pengertian dari tugas perkembangan ini dalam 2-3 paragraf]
+    const prompt = `Buatkan materi MENDALAM untuk layanan bimbingan konseling dengan spesifikasi berikut:
+
+## KONTEKS
+- Tugas Perkembangan: ${taskName}
+- Topik/Isu Spesifik: ${issues}
+- Target Grade: ${targetGrade}
+- Pendekatan: ${counselingApproach}
+- Tantangan Kini: ${currentChallenges || '(tidak disebutkan)'}
+- Insiden Terkait: ${recentIncidents || '(tidak ada)'}
+- Tahun Pelajaran: ${currentYear}/${currentYear + 1}
+
+## INSTRUKSI KONTEN
+
+1. KONTEKSTUALISASI (Pahami situasi siswa Gen Z 2026)
+2. DATA & RISET (Sertakan insight dari penelitian terkini tentang isu ini)
+3. IDENTIFIKASI MASALAH (Apa yang benar-benar dihadapi siswa? Jangan generik)
+4. STRATEGI BERBASIS BUKTI (Evidence-based approaches)
+5. AKTIVITAS PRAKTIS (Kegiatan konkrit yang bisa langsung diaplikasikan)
+
+## FORMAT WAJIB (Gunakan separator ===)
+
+PENGERTIAN & KONTEKS SAAT INI
+[3-4 paragraf: jelaskan konsep + situasi terkini siswa 2026 yang menghadapi issue ini]
 
 ===
 
-KARAKTERISTIK/CIRI-CIRI
-[Tuliskan 4-5 karakteristik penting sebagai bullet points]
+GEJALA/TANDA YANG PERLU DIPERHATIKAN
+[5-6 bullet: apa saja yang terlihat ketika siswa mengalami masalah ini?]
 
 ===
 
-MANFAAT/PENTINGNYA
-[Jelaskan 4-5 manfaat atau pentingnya aspek ini sebagai bullet points]
+DAMPAK JANGKA PANJANG (Jika tidak ditangani)
+[3-4 bullet: jelaskan konsekuensi psikologis, akademik, sosial]
 
 ===
 
-STRATEGI PENGEMBANGAN
-[Tuliskan 5-6 strategi/cara mengembangkan aspek ini sebagai bullet points]
+FAKTOR-FAKTOR RISIKO & PROTEKTIF
+Risiko: [3-4 bullet]
+Protektif: [3-4 bullet]
 
 ===
 
-TEKNIK LAYANAN BK
-[Tuliskan 4-5 teknik konseling yang bisa digunakan sebagai bullet points]
+STRATEGI PENGEMBANGAN (ACTION-ORIENTED)
+[6-8 bullet: strategi konkrit yang bisa siswa lakukan sendiri + guru BK fasilitasi]
 
-Respons harus dalam bahasa Indonesia, singkat, padat, dan mudah dipahami oleh siswa SMA.`;
+===
 
-    const result = await model.generateContent(prompt);
+TEKNIK LAYANAN BK YANG EFEKTIF
+[5-6 bullet: teknik konseling dengan penjelasan singkat cara implementasinya]
+
+===
+
+AKTIVITAS BIMBINGAN KELOMPOK (READY TO USE)
+[Sertakan 2-3 aktivitas siap pakai dengan langkah-langkah konkrit, durasi, dan alat yang diperlukan]
+
+===
+
+INDIKATOR KEBERHASILAN
+[4-5 bullet: apa yang bisa diobservasi sebagai tanda siswa berkembang positif]
+
+Respons HARUS dalam Bahasa Indonesia, praktis, dan mudah diaplikasikan oleh guru BK untuk siswa SMA.`;
+
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              text: systemPrompt + '\n\n' + prompt
+            }
+          ]
+        }
+      ]
+    });
+
     const response = await result.response;
     return response.text();
   } catch (error) {
@@ -200,20 +254,30 @@ function parseMaterial(materialText) {
   sections.forEach((section, index) => {
     const lines = section.split('\n').filter(l => l.trim());
 
-    lines.forEach((line) => {
+    lines.forEach((line, lineIndex) => {
       line = line.trim();
       if (line.startsWith('•') || line.startsWith('-')) {
+        // Bullet point
         paragraphs.push(new Paragraph({
           text: line.replace(/^[•\-]\s*/, ''),
           spacing: { after: 50 }
         }));
-      } else if (line.match(/^[A-Z]+(\s[A-Z]+)*$/)) {
+      } else if (line.match(/^[A-Z][A-Za-z\s&\/()\-\:]*[A-Z]$/) || line.match(/^[A-Z]+(\s[A-Z]+)*\:?$/)) {
+        // Header atau sub-header (uppercase dengan optional colon atau spaced words)
         paragraphs.push(new Paragraph({
           text: line,
           bold: true,
           spacing: { after: 100, before: 100 }
         }));
+      } else if (line.endsWith(':') && line.length > 0) {
+        // Sub-section label (e.g., "Risiko:", "Protektif:")
+        paragraphs.push(new Paragraph({
+          text: line,
+          bold: true,
+          spacing: { after: 50, before: 50 }
+        }));
       } else if (line.length > 0) {
+        // Regular paragraph
         paragraphs.push(new Paragraph({
           text: line,
           spacing: { after: 50 }
@@ -248,15 +312,22 @@ app.post('/api/generate-modul', async (req, res) => {
       issues,
       media,
       tools,
-      implementationDate
+      implementationDate,
+      targetGrade,
+      currentChallenges,
+      recentIncidents
     } = req.body;
 
     const taskName = TUGAS_PERKEMBANGAN[developmentalTask];
     const numSessionsInt = parseInt(numSessions) || 1;
     const durationPerSession = Math.ceil(parseInt(duration) / numSessionsInt);
 
-    // Generate material using Gemini
-    const materialText = await generateMaterial(taskName, issues, counselingApproach);
+    // Generate material using Gemini dengan konteks lengkap
+    const materialText = await generateMaterial(taskName, issues, counselingApproach, {
+      targetGrade: targetGrade || 'X-XII',
+      currentChallenges: currentChallenges || '',
+      recentIncidents: recentIncidents || ''
+    });
     const materialParagraphs = parseMaterial(materialText);
 
     const children = [];
