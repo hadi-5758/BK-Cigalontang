@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#111113">
+<title>Hadi Fitness — Fat Loss</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#111113;--bg2:#1C1C1E;--bg3:#2C2C2E;--bg4:#3A3A3C;
+  --accent:#3B82F6;--green:#22C55E;--orange:#F97316;--red:#EF4444;--purple:#A78BFA;--teal:#14B8A6;
+  --text:#F5F5F5;--muted:#9CA3AF;--border:rgba(255,255,255,0.1);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;display:flex;flex-direction:column;height:100dvh}
+/* TOPBAR */
+.topbar{background:var(--bg2);padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid var(--border);flex-shrink:0}
+.topbar-left h1{font-size:17px;font-weight:700}
+.topbar-left p{font-size:11px;color:var(--muted);margin-top:1px}
+.topbar-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white}
+/* SCREENS */
+.screens{flex:1;overflow:hidden;position:relative}
+.screen{position:absolute;inset:0;overflow-y:auto;padding:14px 14px 80px;display:none;-webkit-overflow-scrolling:touch}
+.screen.active{display:block}
+/* BOTTOM NAV */
+.bottom-nav{background:var(--bg2);border-top:0.5px solid var(--border);display:flex;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px 6px;cursor:pointer;border:none;background:none;color:var(--muted);gap:2px;transition:color 0.15s;min-height:52px}
+.nav-btn.active{color:var(--accent)}
+.nav-icon{font-size:20px;line-height:1}
+.nav-label{font-size:9px;font-weight:600;letter-spacing:0.02em}
+/* CARDS */
+.card{background:var(--bg2);border-radius:14px;padding:14px;margin-bottom:10px;border:0.5px solid var(--border)}
+.section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin:14px 0 8px}
+/* BADGES */
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+.badge-blue{background:rgba(59,130,246,0.15);color:#60A5FA}
+.badge-green{background:rgba(34,197,94,0.15);color:#4ADE80}
+.badge-orange{background:rgba(249,115,22,0.15);color:#FB923C}
+.badge-red{background:rgba(239,68,68,0.15);color:#F87171}
+.badge-purple{background:rgba(167,139,250,0.15);color:#C4B5FD}
+.badge-teal{background:rgba(20,184,166,0.15);color:#2DD4BF}
+/* STAT GRID */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.stat-card{background:var(--bg2);border-radius:12px;padding:12px;border:0.5px solid var(--border)}
+.stat-val{font-size:22px;font-weight:700}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:1px}
+.stat-sub{font-size:10px;margin-top:3px;color:var(--muted)}
+/* PROGRESS */
+.prog-bar{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-top:5px}
+.prog-fill{height:100%;border-radius:4px;transition:width 0.6s ease}
+/* DAY TABS */
+.day-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:10px}
+.day-tabs::-webkit-scrollbar{display:none}
+.day-tab{flex-shrink:0;font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;border:0.5px solid var(--border);cursor:pointer;background:transparent;color:var(--muted);white-space:nowrap;font-family:inherit}
+.day-tab.active{background:var(--accent);color:white;border-color:var(--accent)}
+/* EXERCISE CARDS */
+.ex-card{background:var(--bg2);border-radius:12px;margin-bottom:8px;border:0.5px solid var(--border);overflow:hidden}
+.ex-head{display:flex;align-items:center;gap:10px;padding:11px 13px;cursor:pointer}
+.ex-num{width:28px;height:28px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0}
+.ex-inf{flex:1}
+.ex-name{font-size:13px;font-weight:700}
+.ex-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.ex-arr{color:var(--muted);font-size:18px;transition:transform 0.2s}
+.ex-arr.open{transform:rotate(90deg)}
+.ex-body{border-top:0.5px solid var(--border);padding:12px 13px;background:rgba(255,255,255,0.02);display:none}
+.ex-body.open{display:block}
+.muscle-tag{display:inline-block;background:rgba(59,130,246,0.12);color:#60A5FA;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:8px}
+.steps-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.step-item{display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;line-height:1.5}
+.step-item:last-child{border-bottom:none}
+.step-dot{width:18px;height:18px;border-radius:50%;background:var(--accent);color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.mistake-box{background:rgba(239,68,68,0.08);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:11px;color:#FCA5A5;line-height:1.5;border-left:2px solid var(--red)}
+.mistake-lbl{font-size:10px;font-weight:700;color:#F87171;margin-bottom:3px}
+.vid-btn{display:flex;align-items:center;gap:7px;margin-top:10px;padding:9px 12px;background:rgba(239,68,68,0.1);border-radius:8px;font-size:12px;font-weight:700;color:#F87171;cursor:pointer;border:0.5px solid rgba(239,68,68,0.25);text-decoration:none;font-family:inherit}
+/* MEAL */
+.meal-block{margin-bottom:12px}
+.meal-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:6px;border-bottom:0.5px solid var(--border);margin-bottom:6px}
+.meal-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.meal-kcal{font-size:12px;color:var(--orange);font-weight:700}
+.food-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:0.5px solid rgba(255,255,255,0.05);font-size:12px}
+.food-row:last-child{border-bottom:none}
+.food-left{flex:1}
+.food-name{color:var(--text)}
+.food-portion{color:var(--muted);font-size:11px;margin-top:1px}
+.food-macro{color:var(--green);font-size:10px;white-space:nowrap;margin-left:8px;margin-top:2px}
+.meal-tip{background:rgba(34,197,94,0.08);border-radius:6px;padding:6px 8px;margin-top:6px;font-size:11px;color:#86EFAC;border-left:2px solid var(--green)}
+.macro-row{display:flex;gap:8px;margin-bottom:10px}
+.macro-chip{flex:1;background:var(--bg2);border-radius:10px;padding:8px;text-align:center;border:0.5px solid var(--border)}
+.macro-chip-val{font-size:15px;font-weight:700}
+.macro-chip-lbl{font-size:9px;color:var(--muted);margin-top:1px}
+/* HOME */
+.greeting{margin-bottom:12px}
+.greeting h2{font-size:22px;font-weight:800}
+.greeting p{font-size:12px;color:var(--muted);margin-top:2px}
+.alert-bar{background:rgba(239,68,68,0.1);border:0.5px solid rgba(239,68,68,0.25);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#FCA5A5;line-height:1.6}
+.today-card{background:linear-gradient(135deg,rgba(59,130,246,0.18),rgba(139,92,246,0.1));border:0.5px solid rgba(59,130,246,0.25);border-radius:14px;padding:14px;margin-bottom:10px}
+.today-label{font-size:10px;font-weight:700;color:#60A5FA;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.today-name{font-size:17px;font-weight:800;margin-bottom:4px}
+.today-meta{font-size:12px;color:var(--muted)}
+.water-wrap{margin-top:10px}
+.water-label{font-size:11px;color:var(--muted);margin-bottom:6px}
+.water-cups{display:flex;gap:6px;flex-wrap:wrap}
+.cup{width:34px;height:34px;border-radius:50%;background:var(--bg3);border:1.5px solid var(--border);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.cup.filled{background:rgba(59,130,246,0.25);border-color:var(--accent)}
+.target-bar{background:var(--bg2);border-radius:12px;padding:12px;margin-bottom:10px;border:0.5px solid var(--border)}
+.target-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.target-lbl{font-size:12px;font-weight:600}
+.target-val{font-size:12px;color:var(--muted)}
+/* PROGRESS TRACKER */
+.input-group{margin-bottom:10px}
+.input-lbl{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600}
+.input-row{display:flex;gap:8px;margin-bottom:10px}
+.inp{flex:1;background:var(--bg3);border:0.5px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:15px;font-family:inherit;-webkit-appearance:none}
+.inp:focus{outline:none;border-color:var(--accent)}
+.btn-primary{width:100%;background:var(--accent);color:white;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:16px}
+.btn-primary:active{opacity:0.8}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:0.5px solid var(--border)}
+.history-item:last-child{border-bottom:none}
+.hist-date{font-size:11px;color:var(--muted)}
+.hist-vals{text-align:right}
+.hist-weight{font-size:14px;font-weight:700}
+.hist-delta{font-size:11px;margin-top:1px}
+.delta-good{color:var(--green)}
+.delta-bad{color:var(--red)}
+/* WARMUP / COOLDOWN */
+.info-box{border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:12px;line-height:1.5}
+.warmup-box{background:rgba(249,115,22,0.08);color:#FDBA74;border-left:2px solid var(--orange)}
+.cooldown-box{background:rgba(20,184,166,0.08);color:#5EEAD4;border-left:2px solid var(--teal)}
+/* SECTION SUB LABELS */
+.section-sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:7px 11px;border-radius:8px;margin:12px 0 8px;display:flex;align-items:center;gap:6px}
+.section-sub.orange{background:rgba(249,115,22,0.12);color:#FB923C}
+.section-sub.blue{background:rgba(59,130,246,0.12);color:#60A5FA}
+.section-sub.teal{background:rgba(20,184,166,0.12);color:#2DD4BF}
+/* WU / CD CARD ACCENTS */
+.wu-card{border-color:rgba(249,115,22,0.3)}
+.cd-card{border-color:rgba(20,184,166,0.3)}
+.num-orange{background:rgba(249,115,22,0.15);color:#FB923C}
+.num-teal{background:rgba(20,184,166,0.15);color:#2DD4BF}
+/* TIPS */
+.tip-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.tip-card{background:var(--bg2);border-radius:12px;padding:12px;border:0.5px solid var(--border)}
+.tip-icon{font-size:20px;margin-bottom:6px}
+.tip-title{font-size:11px;font-weight:700;margin-bottom:3px}
+.tip-text{font-size:11px;color:var(--muted);line-height:1.4}
+/* RULE LIST */
+.rule-item{display:flex;gap:8px;padding:7px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;line-height:1.4}
+.rule-item:last-child{border-bottom:none}
+.rule-icon{flex-shrink:0;font-size:14px}
+/* GUIDE FILTER */
+.filter-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:10px}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-btn{flex-shrink:0;font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:0.5px solid var(--border);cursor:pointer;background:transparent;color:var(--muted);white-space:nowrap;font-family:inherit}
+.filter-btn.active{background:var(--purple);color:white;border-color:var(--purple)}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1 id="topTitle">Hadi Fitness</h1>
+    <p id="topSub">Fat Loss Program — April 2026</p>
+  </div>
+  <div class="topbar-avatar">H</div>
+</div>
+
+<!-- SCREENS -->
+<div class="screens">
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="greeting">
+      <h2 id="greetTxt">Selamat pagi, Hadi! 💪</h2>
+      <p id="greetDate"></p>
+    </div>
+    <div class="alert-bar">
+      ⚠️ <strong>Visceral Fat 20</strong> — zona berbahaya. Konsultasikan dengan dokter sebelum memulai intensitas tinggi. Program ini dirancang bertahap dan aman.
+    </div>
+    <div class="today-card">
+      <div class="today-label">Latihan hari ini</div>
+      <div class="today-name" id="todayName">Upper Push</div>
+      <div class="today-meta" id="todayMeta">Dada · Bahu · Trisep &nbsp;·&nbsp; 45–60 menit</div>
+      <div style="margin-top:10px">
+        <button class="btn-primary" style="margin:0;padding:9px 16px;border-radius:8px;width:auto;font-size:12px" onclick="goToWorkout()">Buka Jadwal →</button>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-val">104 <span style="font-size:13px;font-weight:500;color:var(--muted)">kg</span></div>
+        <div class="stat-lbl">Berat sekarang</div>
+        <div class="stat-sub" style="color:var(--orange)">Target: 90 kg (Juli)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" style="color:var(--red)">32.6<span style="font-size:13px">%</span></div>
+        <div class="stat-lbl">Body Fat</div>
+        <div class="stat-sub" style="color:var(--muted)">~34 kg lemak</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" style="color:var(--red)">20</div>
+        <div class="stat-lbl">Visceral Fat</div>
+        <div class="stat-sub" style="color:var(--red)">Berbahaya (normal &lt;9)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">2051</div>
+        <div class="stat-lbl">RMR (kcal/hari)</div>
+        <div class="stat-sub" style="color:var(--green)">Target makan: 1.700</div>
+      </div>
+    </div>
+    <div class="section-title">Target 3 Bulan</div>
+    <div class="target-bar">
+      <div class="target-row"><span class="target-lbl">Mei — target 99 kg</span><span class="target-val">-5 kg</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:35%;background:var(--accent)"></div></div>
+    </div>
+    <div class="target-bar" style="margin-top:-4px">
+      <div class="target-row"><span class="target-lbl">Juni — target 95 kg</span><span class="target-val">-9 kg</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:64%;background:var(--orange)"></div></div>
+    </div>
+    <div class="target-bar" style="margin-top:-4px">
+      <div class="target-row"><span class="target-lbl">Juli — target 90 kg</span><span class="target-val">-14 kg</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:100%;background:var(--green)"></div></div>
+    </div>
+    <div class="section-title">Tracker Air Minum</div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:700">Target: 8 gelas / hari</div>
+        <div style="font-size:12px;color:var(--muted)" id="waterCount">0 / 8 gelas</div>
+      </div>
+      <div class="water-cups" id="waterCups"></div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">Tap gelas untuk tandai sudah minum</div>
+    </div>
+    <div class="section-title">Tips Hari Ini</div>
+    <div class="tip-grid">
+      <div class="tip-card"><div class="tip-icon">🥩</div><div class="tip-title">Protein Dulu</div><div class="tip-text">Makan protein di setiap waktu makan. Min 30g/sajian.</div></div>
+      <div class="tip-card"><div class="tip-icon">💤</div><div class="tip-title">Tidur 7–8 Jam</div><div class="tip-text">Kurang tidur → kortisol naik → lemak perut susah turun.</div></div>
+      <div class="tip-card"><div class="tip-icon">🚰</div><div class="tip-title">Minum Air</div><div class="tip-text">500ml sebelum makan. Total 3–4 liter per hari.</div></div>
+      <div class="tip-card"><div class="tip-icon">⏰</div><div class="tip-title">Makan Malam</div><div class="tip-text">Stop makan sebelum jam 19.00 setiap malam.</div></div>
+    </div>
+  </div>
+
+  <!-- WORKOUT -->
+  <div class="screen" id="screen-workout">
+    <div class="section-title" style="margin-top:0">Jadwal Mingguan</div>
+    <div class="day-tabs" id="wkDayTabs"></div>
+    <div id="wkContent"></div>
+  </div>
+
+  <!-- PANDUAN -->
+  <div class="screen" id="screen-guide">
+    <div class="section-title" style="margin-top:0">Panduan Gerakan</div>
+    <div class="filter-row" id="guideFilter"></div>
+    <div id="guideContent"></div>
+  </div>
+
+  <!-- MAKAN -->
+  <div class="screen" id="screen-meal">
+    <div class="macro-row">
+      <div class="macro-chip"><div class="macro-chip-val" style="color:var(--accent)">1700</div><div class="macro-chip-lbl">kcal/hari</div></div>
+      <div class="macro-chip"><div class="macro-chip-val" style="color:var(--green)">155g</div><div class="macro-chip-lbl">Protein</div></div>
+      <div class="macro-chip"><div class="macro-chip-val" style="color:var(--orange)">165g</div><div class="macro-chip-lbl">Karbo</div></div>
+      <div class="macro-chip"><div class="macro-chip-val" style="color:var(--purple)">50g</div><div class="macro-chip-lbl">Lemak</div></div>
+    </div>
+    <div class="day-tabs" id="mealDayTabs"></div>
+    <div id="mealContent"></div>
+  </div>
+
+  <!-- PROGRES -->
+  <div class="screen" id="screen-progress">
+    <div class="section-title" style="margin-top:0">Catat Progres</div>
+    <div class="card">
+      <div class="input-row">
+        <div style="flex:1"><div class="input-lbl">Berat Badan (kg)</div><input class="inp" type="number" id="inpWeight" placeholder="cth: 103.5" step="0.1"></div>
+        <div style="flex:1"><div class="input-lbl">Body Fat (%)</div><input class="inp" type="number" id="inpFat" placeholder="cth: 31.8" step="0.1"></div>
+      </div>
+      <div class="input-row" style="margin-bottom:10px">
+        <div style="flex:1"><div class="input-lbl">Lingkar Pinggang (cm)</div><input class="inp" type="number" id="inpWaist" placeholder="cth: 100" step="0.5"></div>
+        <div style="flex:1"><div class="input-lbl">Visceral Fat</div><input class="inp" type="number" id="inpVF" placeholder="cth: 19" step="1"></div>
+      </div>
+      <button class="btn-primary" onclick="saveProgress()">💾 Simpan Catatan</button>
+    </div>
+    <div class="section-title">Progres ke Target</div>
+    <div class="card" id="progressChart">
+      <div style="font-size:12px;color:var(--muted);text-align:center;padding:10px">Belum ada data. Catat berat badan pertamamu!</div>
+    </div>
+    <div class="section-title">Riwayat</div>
+    <div class="card" id="historyList">
+      <div style="font-size:12px;color:var(--muted);text-align:center;padding:10px">Belum ada riwayat.</div>
+    </div>
+    <div style="margin-top:4px">
+      <button onclick="clearHistory()" style="background:none;border:0.5px solid rgba(239,68,68,0.3);color:#F87171;border-radius:8px;padding:8px 14px;font-size:11px;cursor:pointer;font-family:inherit;width:100%">Hapus Semua Riwayat</button>
+    </div>
+    <div class="section-title">Aturan Makan</div>
+    <div class="card">
+      <div class="rule-item"><span class="rule-icon">✅</span><span>Makan protein di SETIAP waktu makan (min 30g/sajian)</span></div>
+      <div class="rule-item"><span class="rule-icon">✅</span><span>Minum 500ml air sebelum makan — kenyang lebih lama</span></div>
+      <div class="rule-item"><span class="rule-icon">✅</span><span>Sarapan dalam 1 jam setelah bangun pagi</span></div>
+      <div class="rule-item"><span class="rule-icon">✅</span><span>Makan malam SEBELUM jam 19.00</span></div>
+      <div class="rule-item"><span class="rule-icon">❌</span><span>Hindari: nasi putih porsi besar, gorengan, minuman manis</span></div>
+      <div class="rule-item"><span class="rule-icon">❌</span><span>Jangan skip sarapan — malah bikin makan berlebihan</span></div>
+      <div class="rule-item"><span class="rule-icon">❌</span><span>Jangan makan di bawah 1500 kcal — otot ikut terbakar</span></div>
+    </div>
+  </div>
+
+</div><!-- end screens -->
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="showScreen('home',this)"><div class="nav-icon">🏠</div><div class="nav-label">Beranda</div></button>
+  <button class="nav-btn" onclick="showScreen('workout',this)"><div class="nav-icon">💪</div><div class="nav-label">Latihan</div></button>
+  <button class="nav-btn" onclick="showScreen('guide',this)"><div class="nav-icon">📖</div><div class="nav-label">Panduan</div></button>
+  <button class="nav-btn" onclick="showScreen('meal',this)"><div class="nav-icon">🍱</div><div class="nav-label">Makan</div></button>
+  <button class="nav-btn" onclick="showScreen('progress',this)"><div class="nav-icon">📊</div><div class="nav-label">Progres</div></button>
+</div>
+
+<script>
+// ========== DATA ==========
+const WK = [
+  {
+    name:'Senin',short:'Sen',type:'Upper Push',badges:['Dada','Bahu','Trisep'],duration:'45–60 mnt',color:'#3B82F6',
+    warmup:'5 mnt: 20x arm circles, 15x shoulder rolls, 20x jumping jack ringan, 10x push-up di dinding',
+    cooldown:'5 mnt: chest stretch di pintu, cross-arm shoulder stretch, trisep stretch',
+    exercises:[
+      {name:'Dumbbell Bench Press',sets:'4 set × 12 rep',rest:'Istirahat 60 dtk',weight:'8–12 kg/tangan',muscles:'Dada, Bahu depan, Trisep',
+       steps:['Berbaring di bench datar. Kaki menapak lantai rata, punggung menempel bench.','Pegang dumbbell di atas dada, siku 45° dari badan (bukan 90°).','Turunkan PERLAHAN 2–3 detik sampai sejajar dada. Rasakan regangan.','Dorong ke atas kuat 1 detik. Hampir menyentuh di atas tapi jangan benturan.','Jangan kunci siku penuh di atas — pertahankan sedikit tekukan.'],
+       mistakes:'❌ Siku terlalu lebar 90° → cedera bahu\n❌ Pantat terangkat → kurangi beban\n❌ Gerakan terlalu cepat → perbagus teknik dulu',
+       video:'https://www.youtube.com/results?search_query=cara+dumbbell+bench+press+benar+tutorial'},
+      {name:'Dumbbell Overhead Press',sets:'3 set × 12 rep',rest:'Istirahat 60 dtk',weight:'5–8 kg/tangan',muscles:'Deltoid, Upper Trapezius, Trisep',
+       steps:['Duduk di bench atau berdiri. Dumbbell setinggi bahu, telapak ke depan, siku sejajar bahu.','Dorong dumbbell ke atas secara vertikal sampai siku hampir lurus.','Turunkan perlahan 2 detik kembali ke posisi awal setinggi bahu.','Kencangkan core sepanjang gerakan untuk stabilkan punggung.','Tidak perlu menekuk lutut atau mengayun tubuh.'],
+       mistakes:'❌ Mendorong ke depan bukan ke atas → bahu tidak optimal\n❌ Punggung melengkung berlebihan → core harus kuat',
+       video:'https://www.youtube.com/results?search_query=cara+overhead+shoulder+press+dumbbell+benar'},
+      {name:'Lateral Raise',sets:'3 set × 15 rep',rest:'Istirahat 45 dtk',weight:'4–5 kg/tangan',muscles:'Medial Deltoid (bahu samping)',
+       steps:['Berdiri tegak, dumbbell di sisi tubuh, telapak ke dalam.','Angkat kedua lengan ke samping PERLAHAN sampai sejajar bahu.','Di atas: jempol sedikit menunduk (seperti menuang air) untuk aktifkan bahu samping.','Tahan sebentar, lalu turunkan perlahan 2–3 detik.','Gerakan slow dan controlled — ini latihan isolasi.'],
+       mistakes:'❌ Beban terlalu berat → pakai momentum\n❌ Angkat melebihi bahu → bahaya rotator cuff',
+       video:'https://www.youtube.com/results?search_query=cara+lateral+raise+dumbbell+benar'},
+      {name:'Incline Dumbbell Press',sets:'3 set × 12 rep',rest:'Istirahat 60 dtk',weight:'6–10 kg/tangan',muscles:'Dada atas, Bahu depan',
+       steps:['Atur bench miring 30–45°. Duduk dengan punggung menempel bench.','Angkat dumbbell ke posisi di atas dada bagian atas, siku 45° dari badan.','Turunkan perlahan ke samping dada atas, rasakan regangan dada atas.','Dorong kembali ke atas secara diagonal mengikuti sudut bench.','Sudut bench jangan lebih dari 45° — terlalu tegak jadi latihan bahu.'],
+       mistakes:'❌ Bench terlalu tegak (60°+) → berubah jadi overhead press\n❌ Siku terlalu lebar → sama seperti flat press, jaga di 45°',
+       video:'https://www.youtube.com/results?search_query=cara+incline+dumbbell+press+dada+atas'},
+      {name:'Tricep Overhead Extension',sets:'3 set × 15 rep',rest:'Istirahat 45 dtk',weight:'5 kg (1 dumbbell)',muscles:'Triceps Brachii',
+       steps:['Berdiri/duduk. Pegang 1 dumbbell dengan kedua tangan di atas kepala.','Siku lurus ke atas menghadap ke depan — JANGAN melebar ke samping.','Tekuk siku perlahan 2–3 detik, turunkan dumbbell ke belakang kepala.','Dorong kembali ke atas dengan meluruskan siku.','Upper arm (lengan atas) DIAM sepanjang gerakan — hanya forearm bergerak.'],
+       mistakes:'❌ Siku melebar ke samping → efektivitas hilang\n❌ Punggung melengkung → kurangi beban',
+       video:'https://www.youtube.com/results?search_query=cara+tricep+overhead+extension+dumbbell'},
+      {name:'Plank',sets:'3 set × 30 dtk (naik ke 45 dtk minggu 3)',rest:'Istirahat 45 dtk',weight:'Bodyweight',muscles:'Core, Lower Back, Bahu',
+       steps:['Posisi seperti push-up tapi bertumpu pada siku/lengan bawah. Siku tepat di bawah bahu.','Tubuh lurus sempurna dari kepala sampai tumit — seperti papan kayu kaku.','Kencangkan perut, bokong, dan paha bersamaan.','Leher netral — pandangan ke lantai 30cm di depan tangan.','Bernafas normal. Jangan biarkan pinggul naik atau turun.'],
+       mistakes:'❌ Pinggul naik → core tidak bekerja\n❌ Pinggul turun → tulang belakang tertekan, STOP\n❌ Menahan napas → turunkan durasi dulu',
+       video:'https://www.youtube.com/results?search_query=cara+plank+benar+pemula+core'}
+    ]
+  },
+  {
+    name:'Selasa',short:'Sel',type:'HIIT Cardio',badges:['Pembakaran Lemak'],duration:'25–40 mnt',color:'#EF4444',
+    warmup:'5 mnt: jalan di tempat 1 mnt, leg swings 10x/kaki, hip circles 10x, slow jumping jack 20x',
+    cooldown:'5 mnt: jalan santai, napas dalam 10x, stretching hamstring & hip flexor',
+    exercises:[
+      {name:'Jumping Jack',sets:'30 dtk ON / 30 dtk rest × 5',rest:'',weight:'Bodyweight',muscles:'Full body cardio, Calves, Shoulders',
+       steps:['Berdiri tegak, kaki rapat, tangan di sisi tubuh.','Lompat sambil buka kaki selebar bahu dan angkat kedua tangan ke atas sampai tepuk.','Lompat kembali ke posisi awal dalam 1 gerakan.','Pertahankan ritme konsisten. Kecepatan sedang — jaga HR 65–75%.','Mendarat lembut pada bola kaki, bukan hentam tumit ke lantai.'],
+       mistakes:'❌ Mendarat keras dengan tumit → cedera sendi\n❌ Terlalu cepat di awal → heartrate tidak terkontrol',
+       video:'https://www.youtube.com/results?search_query=cara+jumping+jack+benar+cardio+pemula'},
+      {name:'Mountain Climber',sets:'30 dtk ON / 30 dtk rest × 5',rest:'',weight:'Bodyweight',muscles:'Core, Hip Flexors, Bahu, Cardio',
+       steps:['Mulai posisi push-up — tangan lurus di bawah bahu, tubuh lurus.','Kencangkan core. Tarik lutut kanan ke dada secepat mungkin.','Kembalikan kaki kanan, langsung tarik lutut kiri ke dada.','Bergantian seperti "lari di tempat". Pinggul harus DATAR.','Semakin cepat semakin baik selama posisi terjaga.'],
+       mistakes:'❌ Bokong terangkat tinggi → core tidak bekerja\n❌ Hentakan keras ke lantai → kurangi kecepatan',
+       video:'https://www.youtube.com/results?search_query=cara+mountain+climber+benar+HIIT'},
+      {name:'Dumbbell Swing',sets:'20 rep × 4 set',rest:'Istirahat 45 dtk',weight:'8–10 kg',muscles:'Glutes, Hamstrings, Lower Back, Cardio',
+       steps:['Berdiri kaki selebar bahu. Pegang 1 dumbbell vertikal dengan kedua tangan.','Sedikit tekuk lutut, condongkan tubuh dari pinggul (hip hinge), dumbbell di antara kaki.','Dorong pinggul ke depan KUAT dan CEPAT — ini yang mengayun dumbbell, bukan tangan.','Biarkan dumbbell berayun ke atas sampai setinggi bahu. Tangan hanya pengarah.','Biarkan turun ke bawah, hip hinge lagi, langsung ayun lagi.'],
+       mistakes:'❌ Mengangkat dengan tangan/bahu → power HARUS dari pinggul!\n❌ Membungkuk dari punggung → bahaya cedera punggung bawah',
+       video:'https://www.youtube.com/results?search_query=cara+kettlebell+dumbbell+swing+benar+hip+hinge'},
+      {name:'Step-up ke Bench',sets:'12 rep/kaki × 3 set',rest:'Istirahat 45 dtk',weight:'4–5 kg/tangan (opsional)',muscles:'Quadriceps, Glutes, Hamstrings',
+       steps:['Berdiri di depan bench. Pegang dumbbell di tiap tangan (opsional awal).','Letakkan kaki kanan SEPENUHNYA di atas bench — jangan hanya ujung kaki.','Dorong dengan kaki KANAN (kaki di bench) untuk naik. Jangan tolak dari kaki bawah.','Berdiri tegak di atas bench, kaki kiri diangkat sebentar sejajar pinggul.','Turun perlahan dengan kontrol, kaki kiri dulu. Selesaikan semua rep, baru ganti kaki.'],
+       mistakes:'❌ Menolak dengan kaki bawah → tidak efektif\n❌ Lutut collapse ke dalam → aktifkan glutes, lutut searah jari kaki',
+       video:'https://www.youtube.com/results?search_query=cara+step+up+bench+dumbbell+benar'},
+      {name:'Burpee (Modifikasi)',sets:'8–10 rep × 3 set',rest:'Istirahat 60 dtk',weight:'Bodyweight',muscles:'Full Body, Cardio',
+       steps:['Berdiri tegak. Tekuk lutut, letakkan kedua tangan di lantai di depan kaki.','Melangkah (bukan lompat) ke belakang satu per satu sampai posisi push-up.','Lakukan 1x push-up (dianjurkan).','Langkahkan kaki kembali ke arah tangan satu per satu.','Berdiri tegak dan angkat tangan ke atas (atau jinjit kecil saja di Fase 1).'],
+       mistakes:'❌ Lompatan terlalu tinggi di awal → naikkan intensitas bertahap\n❌ Punggung melengkung di posisi push-up → core harus kencang',
+       video:'https://www.youtube.com/results?search_query=cara+burpee+modifikasi+pemula+step+by+step'}
+    ]
+  },
+  {
+    name:'Rabu',short:'Rab',type:'Upper Pull',badges:['Punggung','Bisep'],duration:'45–60 mnt',color:'#22C55E',
+    warmup:'5 mnt: cat-cow 10x, child\'s pose 30 dtk, arm circles besar 15x, face pull dengan handuk 15x',
+    cooldown:'5 mnt: stretching latissimus (tangan di atas condong ke samping), bisep stretch, stretching leher',
+    exercises:[
+      {name:'Dumbbell Bent-Over Row',sets:'4 set × 12 rep',rest:'Istirahat 60 dtk',weight:'10–14 kg/tangan',muscles:'Latissimus, Rhomboids, Rear Delt, Bisep',
+       steps:['Berdiri kaki selebar bahu. Tekuk tubuh ke depan 45° dari pinggul — punggung HARUS LURUS.','Lutut sedikit ditekuk. Dumbbell menggantung di bawah badan.','Tarik kedua dumbbell ke arah pinggang/sisi perut. Siku tarik ke belakang setinggi mungkin.','Di puncak: squeeze tulang belikat kuat 1 detik — bayangkan menjepit pensil.','Turunkan PERLAHAN 2–3 detik. Ini fase terpenting untuk membangun otot.'],
+       mistakes:'❌ Punggung membulat → STOP! Sangat berbahaya. Kurangi beban.\n❌ Menarik ke atas dada → berubah jadi upright row\n❌ Menggunakan momentum berayun → beban terlalu berat',
+       video:'https://www.youtube.com/results?search_query=cara+dumbbell+bent+over+row+punggung+benar'},
+      {name:'Barbell Row (SVRG)',sets:'3 set × 10 rep',rest:'Istirahat 75 dtk',weight:'15–20 kg total',muscles:'Latissimus, Mid Traps, Rhomboids, Bisep',
+       steps:['Setup barbell setinggi lutut. Berdiri di belakang, kaki selebar pinggul.','Tekuk ke depan 45° dari pinggul, punggung lurus, grip sedikit lebih lebar dari bahu.','Tarik barbell ke arah perut bawah/pusar. Siku bergerak ke atas dan ke belakang.','Squeeze tulang belikat saat barbell menyentuh perut. Tahan 1 detik.','Turunkan dengan kontrol penuh. Jangan banting ke lantai.'],
+       mistakes:'❌ Punggung membulat → paling berbahaya, langsung stop\n❌ Menarik ke dada bukan perut bawah → target otot berbeda',
+       video:'https://www.youtube.com/results?search_query=cara+barbell+bent+over+row+punggung+benar'},
+      {name:'Dumbbell Bicep Curl',sets:'3 set × 15 rep',rest:'Istirahat 45 dtk',weight:'5 kg/tangan',muscles:'Biceps Brachii',
+       steps:['Berdiri tegak, dumbbell di kedua tangan, telapak ke depan. Upper arm menempel di sisi tubuh.','Curl (angkat) dumbbell dengan melipat siku. Upper arm TIDAK BOLEH BERGERAK.','Angkat sampai dumbbell setinggi bahu, siku masih menekuk penuh.','Turunkan PERLAHAN 2–3 detik — ini bagian paling penting untuk bisep!','Bisa bergantian (alternating) atau bersamaan — bergantian lebih terkontrol.'],
+       mistakes:'❌ Siku berayun ke depan → bisep tidak terisolasi\n❌ Turun terlalu cepat → buang fase eksentrik terpenting\n❌ Bahu terangkat → kurangi beban',
+       video:'https://www.youtube.com/results?search_query=cara+bicep+curl+dumbbell+benar'},
+      {name:'Hammer Curl',sets:'3 set × 12 rep',rest:'Istirahat 45 dtk',weight:'5 kg/tangan',muscles:'Brachialis, Biceps, Brachioradialis',
+       steps:['Sama seperti bicep curl, TAPI telapak tangan menghadap ke DALAM (neutral grip) — seperti memegang palu.','Angkat dumbbell ke atas, upper arm tidak bergerak.','Posisi dumbbell vertikal seperti palu memukul ke atas.','Turunkan perlahan. Brachialis (di bawah bisep) yang paling bekerja.','Alternating atau bersamaan, keduanya boleh.'],
+       mistakes:'❌ Telapak berputar ke atas saat angkat → berubah jadi bicep curl biasa\n❌ Siku berayun ke depan → upper arm harus diam',
+       video:'https://www.youtube.com/results?search_query=cara+hammer+curl+dumbbell+benar'},
+      {name:'Rear Delt Fly',sets:'3 set × 15 rep',rest:'Istirahat 45 dtk',weight:'4 kg/tangan',muscles:'Posterior Deltoid, Rhomboids',
+       steps:['Duduk di ujung bench, condong ke depan 45°, dada hampir menyentuh paha.','Pegang dumbbell ringan di bawah, telapak menghadap ke dalam.','Angkat kedua tangan ke samping dengan siku sedikit menekuk — seperti kupu-kupu.','Angkat setinggi sejajar bahu, squeeze bahu belakang di puncak.','Turunkan perlahan. Gerakan kecil tapi sangat efektif untuk postur.'],
+       mistakes:'❌ Beban terlalu berat → pakai 4kg dengan gerakan perfect\n❌ Siku terlalu kaku lurus → sedikit tekuk siku\n❌ Angkat di atas bahu → tidak perlu, cukup sejajar bahu',
+       video:'https://www.youtube.com/results?search_query=cara+rear+delt+fly+dumbbell+bahu+belakang'},
+      {name:'Dead Bug',sets:'3 set × 10 rep/sisi',rest:'Istirahat 45 dtk',weight:'Bodyweight',muscles:'Deep Core, Transverse Abdominis, Lower Back',
+       steps:['Berbaring telentang. Angkat kedua tangan lurus ke atas. Angkat kedua kaki, lutut 90° di atas pinggang.','KUNCI: punggung bawah HARUS menempel lantai sepanjang gerakan!','Turunkan tangan kanan dan kaki kiri bersamaan mendekati lantai (tapi tidak menyentuh).','Kembali ke posisi awal dengan lambat. Lalu turunkan tangan kiri dan kaki kanan.','Gerak lambat dan terkontrol. Hembus nafas saat menurunkan.'],
+       mistakes:'❌ Punggung bawah terangkat dari lantai → STOP, kurangi range of motion\n❌ Terlalu cepat → ini latihan kontrol, bukan kecepatan',
+       video:'https://www.youtube.com/results?search_query=cara+dead+bug+exercise+core+benar'}
+    ]
+  },
+  {
+    name:'Kamis',short:'Kam',type:'Lower Body + Core',badges:['Kaki','Glutes','Core'],duration:'45–60 mnt',color:'#F97316',
+    warmup:'5 mnt: leg swings depan-belakang 10x/kaki, leg swings samping 10x/kaki, hip circles 10x, bodyweight squat ringan 15x',
+    cooldown:'5–7 mnt: stretching quadriceps, hamstring duduk, glutes (figure 4), hip flexor lunge',
+    exercises:[
+      {name:'Goblet Squat',sets:'4 set × 15 rep',rest:'Istirahat 60 dtk',weight:'10–12 kg (1 dumbbell)',muscles:'Quadriceps, Glutes, Inner Thighs, Core',
+       steps:['Berdiri kaki lebih lebar dari bahu, jari kaki keluar 30°. Pegang 1 dumbbell vertikal di depan dada.','Tekuk lutut dan turunkan tubuh seperti duduk ke kursi di belakang kamu. Punggung tegak!','Turunkan sampai paha sejajar lantai atau lebih dalam. Lutut harus ke arah jari kaki.','Dorong kembali ke atas dari tumit. Luruskan lutut dan pinggul bersamaan.','Di atas: jangan kunci lutut penuh, pertahankan sedikit tekukan.'],
+       mistakes:'❌ Lutut collapse ke dalam → bahaya! Lutut harus searah jari kaki\n❌ Tumit terangkat → beban pindah ke ujung kaki, bisa jatuh\n❌ Punggung membulat → dumbbell terlalu berat atau core lemah',
+       video:'https://www.youtube.com/results?search_query=cara+goblet+squat+dumbbell+benar+pemula'},
+      {name:'Romanian Deadlift (RDL)',sets:'4 set × 12 rep',rest:'Istirahat 75 dtk',weight:'20–25 kg (barbell SVRG)',muscles:'Hamstrings, Glutes, Lower Back, Core',
+       steps:['Berdiri dengan barbell di depan paha, kaki selebar pinggul, grip sedikit lebih lebar.','KUNCI: pinggul didorong ke BELAKANG saat condong ke depan. Ini HIP HINGE, bukan membungkuk!','Turunkan barbell sedekat mungkin dengan kaki, punggung HARUS LURUS. Rasakan tarikan di belakang paha.','Turunkan sampai bawah lutut atau sampai hamstring terasa kencang.','Dorong pinggul ke depan untuk kembali tegak. Bayangkan menutup pintu dengan bokong.'],
+       mistakes:'❌ Membungkuk dari punggung → SANGAT BERBAHAYA!\n❌ Menekuk lutut terlalu dalam → berubah jadi conventional deadlift\n❌ Barbell jauh dari kaki → beban punggung berlipat ganda',
+       video:'https://www.youtube.com/results?search_query=cara+romanian+deadlift+RDL+benar+hamstring'},
+      {name:'Reverse Lunge',sets:'3 set × 12 rep/kaki',rest:'Istirahat 60 dtk',weight:'5 kg/tangan',muscles:'Quadriceps, Glutes, Hamstrings, Balance',
+       steps:['Berdiri tegak, dumbbell di kedua tangan di sisi tubuh.','Langkahkan kaki kanan ke BELAKANG — ini reverse lunge.','Turunkan lutut kanan mendekati lantai. Lutut kiri (depan) membentuk sudut 90°.','Pastikan berat badan di kaki kiri (depan), jangan terdorong ke belakang.','Dorong dari kaki kiri untuk kembali berdiri. Kumpulkan kaki kanan. Lanjut.'],
+       mistakes:'❌ Lutut depan melewati jari kaki → pindahkan berat ke tumit\n❌ Badan condong ke depan → jaga punggung tegak',
+       video:'https://www.youtube.com/results?search_query=cara+reverse+lunge+dumbbell+benar+kaki'},
+      {name:'Sumo Squat',sets:'3 set × 15 rep',rest:'Istirahat 60 dtk',weight:'10 kg (1 dumbbell)',muscles:'Inner Thighs, Glutes, Quadriceps',
+       steps:['Berdiri kaki sangat lebar, jari kaki keluar 45°. Pegang 1 dumbbell vertikal di tengah.','Turunkan tubuh lurus ke bawah — pinggul turun di antara kaki. Lutut ke arah jari kaki.','Turunkan sampai paha sejajar lantai. Dumbbell bisa melewati antara kaki.','Dorong kembali ke atas dengan mendorong lutut ke luar (aktifkan inner thigh & glutes).','Squeeze bokong di posisi atas setiap rep.'],
+       mistakes:'❌ Kaki tidak cukup lebar → inner thigh tidak aktif\n❌ Lutut collapse ke dalam → dorong aktif ke luar\n❌ Badan condong ke depan → dumbbell terlalu berat',
+       video:'https://www.youtube.com/results?search_query=cara+sumo+squat+dumbbell+benar'},
+      {name:'Hip Thrust (di bench)',sets:'3 set × 15 rep',rest:'Istirahat 60 dtk',weight:'8–10 kg (di perut)',muscles:'Glutes, Hamstrings — sangat efektif untuk visceral fat',
+       steps:['Duduk di lantai dengan punggung atas bersandar di tepi bench (setinggi tulang belikat).','Letakkan dumbbell di pangkal paha. Pegang dengan kedua tangan agar tidak bergeser.','Dorong pinggul ke ATAS sampai tubuh lurus dari bahu ke lutut. Kencangkan bokong MAKSIMAL.','Tahan 1–2 detik di atas dengan squeeze bokong sekuat mungkin.','Turunkan perlahan, pinggul hampir menyentuh lantai, langsung dorong lagi.'],
+       mistakes:'❌ Pinggul tidak naik cukup tinggi → tidak efektif\n❌ Lutut collapse ke dalam → dorong lutut ke luar\n❌ Leher menekuk ke depan → kepala netral',
+       video:'https://www.youtube.com/results?search_query=cara+hip+thrust+bench+dumbbell+glutes+benar'},
+      {name:'Bicycle Crunch',sets:'3 set × 20 rep',rest:'Istirahat 45 dtk',weight:'Bodyweight',muscles:'Rectus Abdominis, Obliques, Hip Flexors',
+       steps:['Berbaring telentang. Tangan di belakang kepala (jangan tarik kepala), siku terbuka lebar.','Angkat bahu dari lantai sedikit. Angkat kedua kaki, lutut 90°.','Putar bahu kanan ke lutut kiri BERSAMAAN dengan meluruskan kaki kanan.','Ganti sisi: bahu kiri ke lutut kanan, luruskan kaki kiri. Seperti mengayuh sepeda.','PELAN DAN TERKONTROL — rotasi penuh di setiap rep.'],
+       mistakes:'❌ Menarik leher dengan tangan → cedera leher\n❌ Gerakan terlalu cepat → momentum menggantikan otot perut',
+       video:'https://www.youtube.com/results?search_query=cara+bicycle+crunch+benar+perut'}
+    ]
+  },
+  {
+    name:'Jumat',short:'Jum',type:'Full Body Circuit',badges:['Metabolik','Fat Burning'],duration:'30–45 mnt',color:'#A78BFA',
+    warmup:'3 mnt: jalan di tempat 30 dtk, arm swing besar 20x, hip rotation 10x, high knee pelan 20x, squat ringan 10x',
+    cooldown:'5 mnt: stretching menyeluruh — dada, punggung, hamstring, quadriceps, bahu. Napas dalam 10x',
+    exercises:[
+      {name:'Dumbbell Thruster (Squat+Press)',sets:'10 rep — dalam circuit × 3–4 ronde',rest:'Istirahat 90 dtk antar ronde',weight:'6–8 kg/tangan',muscles:'Full Body — Kaki, Glutes, Bahu, Trisep, Core',
+       steps:['Berdiri kaki selebar bahu, dumbbell di atas bahu setinggi telinga, telapak ke dalam.','Lakukan squat penuh — turunkan pinggul sampai paha sejajar lantai.','Saat mendorong naik dari squat, gunakan momentum untuk mendorong dumbbell ke atas.','Luruskan kaki DAN tangan ke atas bersamaan dalam 1 gerakan mulus.','Turunkan dumbbell ke bahu bersamaan dengan mulai squat berikutnya.'],
+       mistakes:'❌ Squat dan press terputus → harus 1 gerakan kontinu\n❌ Tidak squat dalam → kurangi beban\n❌ Punggung melengkung saat press → core harus kuat',
+       video:'https://www.youtube.com/results?search_query=cara+dumbbell+thruster+squat+press+full+body'},
+      {name:'Renegade Row',sets:'8 rep/tangan — dalam circuit',rest:'',weight:'5–6 kg/tangan',muscles:'Punggung, Bisep, Core (anti-rotation)',
+       steps:['Posisi push-up dengan tiap tangan memegang dumbbell. Kaki agak lebar untuk stabilitas.','KENCANGKAN CORE maksimal — tubuh harus seperti papan baja.','Tarik dumbbell kanan ke pinggang (row), siku ke atas. Tubuh tidak boleh berputar.','Kembalikan dumbbell ke lantai dengan kontrol. Ganti ke tangan kiri.','Boleh tambahkan 1x push-up di antara setiap row untuk intensitas lebih.'],
+       mistakes:'❌ Pinggul berotasi/berputar saat row → core tidak aktif\n❌ Kaki terlalu rapat → sulit menjaga keseimbangan\n❌ Dumbbell terlalu berat → tidak bisa kontrol rotasi',
+       video:'https://www.youtube.com/results?search_query=cara+renegade+row+dumbbell+benar+core'},
+      {name:'Romanian Deadlift (Circuit)',sets:'12 rep — dalam circuit',rest:'',weight:'10–12 kg/tangan',muscles:'Hamstrings, Glutes, Lower Back',
+       steps:['Sama persis seperti panduan Kamis — hip hinge, punggung lurus.','Dalam circuit, sedikit kurangi beban karena sudah kelelahan.','Fokus pada kualitas gerakan meski lelah — punggung TIDAK BOLEH rounded.','Versi dumbbell per tangan lebih mudah dikontrol dalam circuit.','Turunkan sampai bawah lutut, rasakan hamstring stretch, dorong pinggul naik.'],
+       mistakes:'❌ Terburu-buru karena circuit → kualitas lebih penting dari kecepatan\n❌ Skip jika sudah sangat lelah dan teknik rusak — keselamatan dulu',
+       video:'https://www.youtube.com/results?search_query=cara+romanian+deadlift+dumbbell+circuit'},
+      {name:'Push-up',sets:'10–15 rep — dalam circuit',rest:'',weight:'Bodyweight',muscles:'Dada, Trisep, Bahu depan, Core',
+       steps:['Tangan sedikit lebih lebar dari bahu, jari mengarah ke depan atau sedikit keluar.','Tubuh lurus dari kepala ke tumit. Core kencang.','Turunkan dada ke lantai — siku 45° dari badan (bukan 90° melebar).','Dada hampir menyentuh lantai, lalu dorong kembali ke atas.','Fase 1: boleh di lutut. Lebih baik 15 rep bagus dari lutut daripada 5 rep jelek.'],
+       mistakes:'❌ Bokong naik seperti gunung → jaga tubuh lurus\n❌ Siku melebar 90° → tekanan bahu berlebihan, jaga di 45°\n❌ Kepala menunduk → leher dan spine harus netral',
+       video:'https://www.youtube.com/results?search_query=cara+push+up+benar+teknik+pemula'},
+      {name:'Dumbbell Swing (Finisher)',sets:'15 rep — penutup circuit',rest:'',weight:'8 kg',muscles:'Glutes, Hamstrings, Posterior Chain, Cardio',
+       steps:['Sama seperti panduan Selasa. Dalam circuit ini adalah finisher membakar kalori ekstra.','Hip hinge kuat, dorong pinggul ke depan untuk mengayun dumbbell.','Ayun sampai setinggi dada, biarkan turun sendiri, langsung hip hinge lagi.','15 rep tanpa henti. Ini menghabiskan glikogen dan memicu fat burning.','Pernapasan: hembus nafas saat mendorong pinggul ke depan.'],
+       mistakes:'❌ Power dari tangan, bukan pinggul → gerakan akan cepat lelah dan tidak efektif\n❌ Tidak full hip extension di atas → tidak keluar tenaga maksimal',
+       video:'https://www.youtube.com/results?search_query=cara+dumbbell+swing+fat+loss+circuit'}
+    ]
+  },
+  {
+    name:'Sabtu',short:'Sab',type:'LISS Cardio',badges:['Jalan Cepat','Pembakaran Lemak'],duration:'30–45 mnt',color:'#14B8A6',
+    warmup:'Mulai dengan kecepatan sangat pelan selama 3 menit pertama sebagai pemanasan alami.',
+    cooldown:'5 mnt: jalan sangat santai, stretching betis, hamstring, hip flexor, dan punggung bawah',
+    exercises:[
+      {name:'Jalan Cepat (outdoor/treadmill)',sets:'30–45 menit non-stop',rest:'',weight:'Bodyweight',muscles:'Cardiovascular, Calves, Glutes, Core',
+       steps:['Target: cukup untuk berkeringat tapi masih bisa berbicara kalimat penuh. Ini zona 2 cardio.','Postur: kepala tegak, bahu rileks ke belakang, ayun tangan secara natural.','Target 5.000–7.000 langkah dalam sesi ini. Gunakan HP untuk mengukur.','Tanjakan kecil membakar 50% lebih banyak kalori — cari rute berbukit kecil.','Treadmill: incline 2–3% untuk simulasi jalan luar dan hindari knee stress.'],
+       mistakes:'❌ Terlalu cepat sampai tidak bisa ngobrol → turunkan pace\n❌ Postur bungkuk → perut tidak aktif, punggung bawah stress\n❌ Sesi terlalu pendek → minimum 20 menit untuk masuk zona fat burning',
+       video:'https://www.youtube.com/results?search_query=teknik+jalan+cepat+fat+burning+zona+2+cardio'},
+      {name:'Sepeda Statis',sets:'30–40 menit level sedang',rest:'',weight:'Bodyweight',muscles:'Quadriceps, Hamstrings, Glutes, Cardiovascular',
+       steps:['Atur ketinggian sadel: saat kaki di pedal bawah, lutut sedikit menekuk (tidak lurus penuh).','Target RPM: 70–90. Resistance yang membuat terasa ada hambatan tapi masih sustainable.','Postur: punggung tegak atau sedikit condong, bahu rileks, tidak bertumpu berat di setang.','Bernafas ritmis — sama seperti jalan: bisa berbicara kalimat pendek.','Pilihan terbaik untuk berat di atas 100kg — zero impact pada sendi.'],
+       mistakes:'❌ Sadel terlalu rendah → lutut overflexion, nyeri lutut\n❌ Resistance terlalu ringan → tidak masuk fat burn zone',
+       video:'https://www.youtube.com/results?search_query=cara+naik+sepeda+statis+benar+fat+burning'},
+      {name:'Naik-Turun Tangga',sets:'25–35 menit',rest:'',weight:'Bodyweight',muscles:'Glutes, Quadriceps, Calves, Cardiovascular',
+       steps:['Saat NAIK: injak seluruh kaki di anak tangga, dorong dari tumit → aktifkan glutes.','Saat TURUN: pelan dan terkontrol, jangan lompat. Ini latihan eksentrik untuk kaki.','Naik 2–3 lantai, turun, ulangi. Atau naik dengan ritme konstan jika tangga panjang.','Variasi: naik dua anak tangga sekaligus untuk lebih aktifkan glutes.','Gunakan pegangan jika perlu untuk keseimbangan di awal program.'],
+       mistakes:'❌ Naik dengan ujung kaki saja → betis overload, glutes tidak aktif\n❌ Turun terlalu cepat → risiko jatuh dan cedera',
+       video:'https://www.youtube.com/results?search_query=latihan+naik+turun+tangga+fat+loss+glutes'}
+    ]
+  },
+  {
+    name:'Minggu',short:'Min',type:'Rest & Recovery',badges:['Istirahat','Aktif Ringan'],duration:'Santai',color:'#9CA3AF',
+    warmup:'',cooldown:'',
+    exercises:[
+      {name:'Tidur Berkualitas 7–8 Jam',sets:'Setiap malam — wajib!',rest:'',weight:'—',muscles:'Seluruh tubuh & otak',
+       steps:['Tidur adalah LATIHAN PALING PENTING yang sering diabaikan. Growth hormone dirilis saat tidur.','Visceral fat sangat sensitif terhadap kortisol — kurang tidur → kortisol naik → lemak perut susah turun.','Target: tidur sebelum jam 23.00, bangun 6–7 jam kemudian. Konsisten tiap hari.','Hindari layar HP/TV 30 menit sebelum tidur. Kamar gelap dan sejuk = tidur lebih berkualitas.','Sleep apnea umum pada orang dengan visceral fat tinggi — konsultasi dokter jika sering mendengkur.'],
+       mistakes:'❌ Tidur larut tapi bangun siang → ritme sirkadian rusak, metabolisme terganggu\n❌ Makan berat sebelum tidur → tubuh tidak bisa recovery optimal',
+       video:'https://www.youtube.com/results?search_query=pentingnya+tidur+untuk+fat+loss+dan+pemulihan'},
+      {name:'Jalan Santai 15–20 Menit',sets:'Opsional — sore hari',rest:'',weight:'Bodyweight',muscles:'Active recovery',
+       steps:['Ini bukan latihan — ini aktif ringan (active recovery). Jangan sampai keluar keringat.','Jalan santai di taman, kompleks, atau mall sambil window shopping.','Bisa bareng keluarga atau sambil dengerin podcast/musik.','Gerak ringan ini membantu aliran darah ke otot yang pegal dari latihan seminggu.','Jika kaki/punggung sangat pegal, skip ini dan istirahat penuh.'],
+       mistakes:'❌ Berubah jadi jalan cepat → simpan energi untuk Senin\n❌ Memaksakan diri saat otot sangat pegal → dengerin tubuhmu',
+       video:'https://www.youtube.com/results?search_query=active+recovery+rest+day+pemulihan+aktif'},
+      {name:'Stretching & Foam Rolling',sets:'10–15 menit',rest:'',weight:'Bodyweight',muscles:'Seluruh kelompok otot',
+       steps:['Foam rolling: gulingkan pada betis, paha depan, paha belakang, punggung atas, IT band. 30–60 dtk/area.','Setelah rolling, lakukan stretching statis: tahan tiap posisi 20–30 detik, jangan bouncing.','Prioritaskan: hip flexor (sering tight karena duduk lama), hamstring, chest, upper back.','Pernapasan dalam saat stretching: tarik 4 dtk, tahan 2 dtk, hembus 6 dtk.','Tidak punya foam roller: pakai botol minum yang diisi air dan dibekukan.'],
+       mistakes:'❌ Skip stretching karena malas → otot memendek, risiko cedera naik\n❌ Stretching sampai terasa nyeri → target sensasi meregang nyaman, bukan nyeri',
+       video:'https://www.youtube.com/results?search_query=full+body+stretching+recovery+pemula+setelah+olahraga'}
+    ]
+  }
+];
+
+const MEALS = [
+  {name:'Senin',total:1695,meals:[
+    {icon:'☀',title:'Sarapan',kcal:410,items:[{n:'Oatmeal rolled oats',p:'60g kering',m:'P:11g C:40g L:6g'},{n:'Susu skim',p:'250ml',m:'P:9g C:12g L:0g'},{n:'Telur rebus (2 putih + 1 utuh)',p:'3 telur',m:'P:22g C:1g L:5g'},{n:'Pisang',p:'1 buah sedang',m:'P:1g C:27g L:0g'}],tip:'Masak oatmeal dengan air, tambahkan susu setelah matang agar tidak hilang gizinya.'},
+    {icon:'🕙',title:'Snack Pagi',kcal:155,items:[{n:'Tahu putih rebus',p:'2 potong besar (180g)',m:'P:15g C:3g L:7g'},{n:'Timun & tomat',p:'bebas',m:'P:1g C:5g L:0g'}],tip:'Makan snack ini 2 jam setelah sarapan, jangan tunggu lapar banget.'},
+    {icon:'🌞',title:'Makan Siang',kcal:510,items:[{n:'Nasi merah',p:'150g matang (1 centong)',m:'P:3g C:33g L:1g'},{n:'Ayam dada bakar tanpa kulit',p:'150g',m:'P:45g C:0g L:3g'},{n:'Tumis kangkung (1 sdt minyak)',p:'100g',m:'P:3g C:5g L:5g'},{n:'Lalapan bebas',p:'timun, tomat, kemangi',m:'P:1g C:5g L:0g'}],tip:'Ganti nasi putih ke nasi merah — GI lebih rendah, kenyang lebih lama.'},
+    {icon:'🕓',title:'Snack Sore',kcal:145,items:[{n:'Greek yogurt plain',p:'150g',m:'P:13g C:8g L:4g'},{n:'Kacang almond',p:'15 biji (18g)',m:'P:4g C:3g L:9g'}],tip:'Makan 1 jam sebelum latihan sore. Snack pre-workout terbaik!'},
+    {icon:'🌙',title:'Makan Malam',kcal:475,items:[{n:'Ikan kembung kukus/bakar',p:'200g',m:'P:38g C:0g L:8g'},{n:'Tempe bakar',p:'100g',m:'P:20g C:8g L:10g'},{n:'Sayur bening bayam + jagung',p:'200ml kuah + sayur',m:'P:4g C:12g L:1g'},{n:'Nasi merah',p:'100g matang (lebih sedikit)',m:'P:2g C:22g L:0g'}],tip:'Makan malam maksimal jam 19.00. Porsi karbo malam lebih kecil dari siang.'}
+  ]},
+  {name:'Selasa',total:1680,meals:[
+    {icon:'☀',title:'Sarapan',kcal:420,items:[{n:'Roti gandum 8 grain',p:'3 lembar',m:'P:9g C:42g L:3g'},{n:'Telur dadar (3 putih + 1 kuning)',p:'1 porsi',m:'P:22g C:1g L:5g'},{n:'Alpukat (opsional)',p:'1/4 buah',m:'P:1g C:3g L:4g'},{n:'Susu skim',p:'200ml',m:'P:7g C:10g L:0g'}],tip:'Masak telur dengan teflon tanpa minyak atau semprotan minyak tipis saja.'},
+    {icon:'🕙',title:'Snack Pagi',kcal:140,items:[{n:'Pisang',p:'1 buah',m:'P:1g C:27g L:0g'},{n:'Whey protein / susu skim',p:'1 scoop / 200ml',m:'P:20g C:3g L:1g'}],tip:'Cocok dimakan sebelum latihan HIIT hari Selasa.'},
+    {icon:'🌞',title:'Makan Siang',kcal:490,items:[{n:'Nasi merah',p:'150g matang',m:'P:3g C:33g L:1g'},{n:'Ayam suwir rebus (no kulit)',p:'150g',m:'P:40g C:0g L:4g'},{n:'Sup sayuran (wortel, buncis, kol)',p:'1 mangkuk',m:'P:3g C:12g L:1g'},{n:'Tahu goreng kulit (tanpa minyak banyak)',p:'1 potong',m:'P:8g C:2g L:4g'}],tip:'Ayam suwir rebus lebih rendah lemak dari ayam goreng. Bisa disiapkan sekaligus banyak di awal minggu.'},
+    {icon:'🕓',title:'Snack Sore',kcal:160,items:[{n:'Telur rebus',p:'2 butir',m:'P:12g C:1g L:10g'},{n:'Timun potong',p:'1 buah',m:'P:1g C:4g L:0g'}],tip:'Telur rebus adalah snack paling efisien — murah, high protein, mudah dibawa.'},
+    {icon:'🌙',title:'Makan Malam',kcal:470,items:[{n:'Lele bakar (tanpa tepung)',p:'200g',m:'P:35g C:0g L:9g'},{n:'Tempe orek tanpa gula',p:'75g',m:'P:13g C:7g L:7g'},{n:'Tumis brokoli bawang putih',p:'150g',m:'P:5g C:8g L:5g'},{n:'Nasi merah',p:'100g matang',m:'P:2g C:22g L:0g'}],tip:'Lele bakar tanpa tepung — protein tinggi, lemak sehat omega-3.'}
+  ]},
+  {name:'Rabu',total:1705,meals:[
+    {icon:'☀',title:'Sarapan',kcal:395,items:[{n:'Oatmeal + 1 sdm chia seed',p:'55g oat + 10g chia',m:'P:12g C:42g L:8g'},{n:'Putih telur orak-arik',p:'4 putih telur',m:'P:14g C:1g L:0g'},{n:'Susu skim + kayu manis',p:'250ml',m:'P:9g C:12g L:0g'}],tip:'Kayu manis bantu stabilkan gula darah dan tingkatkan sensitivitas insulin — bagus untuk visceral fat.'},
+    {icon:'🕙',title:'Snack Pagi',kcal:165,items:[{n:'Tahu + tempe rebus',p:'100g total',m:'P:18g C:5g L:8g'},{n:'Saus kacang tipis (1 sdt)',p:'5g',m:'P:1g C:1g L:3g'}],tip:'Tempe + tahu = kombinasi protein nabati terlengkap.'},
+    {icon:'🌞',title:'Makan Siang',kcal:520,items:[{n:'Nasi merah',p:'150g matang',m:'P:3g C:33g L:1g'},{n:'Dada ayam bumbu kuning (no santan)',p:'150g',m:'P:42g C:3g L:4g'},{n:'Capcay sayur (min minyak)',p:'150g',m:'P:4g C:10g L:3g'},{n:'Perasan jeruk nipis',p:'1 buah',m:'P:0g C:3g L:0g'}],tip:'Bumbu kuning tanpa santan sangat lezat. Kunci: banyak kunyit, lengkuas, serai.'},
+    {icon:'🕓',title:'Snack Sore',kcal:135,items:[{n:'Apel merah',p:'1 buah sedang',m:'P:0g C:25g L:0g'},{n:'Kacang almond',p:'10 biji',m:'P:3g C:2g L:6g'}],tip:'Apel + kacang = serat + lemak sehat. Kenyang sampai makan malam.'},
+    {icon:'🌙',title:'Makan Malam',kcal:490,items:[{n:'Tuna kaleng dalam air (tiriskan)',p:'185g (1 kaleng)',m:'P:43g C:0g L:2g'},{n:'Tempe kukus',p:'100g',m:'P:20g C:8g L:10g'},{n:'Sayur bening labu siam',p:'200ml',m:'P:2g C:8g L:0g'},{n:'Nasi merah',p:'80g matang',m:'P:2g C:18g L:0g'}],tip:'Tuna kaleng alternatif murah dan praktis. Pilih "in water" bukan "in oil".'}
+  ]},
+  {name:'Kamis',total:1690,meals:[
+    {icon:'☀',title:'Sarapan',kcal:410,items:[{n:'Nasi merah + telur ceplok (no minyak)',p:'100g nasi + 2 telur',m:'P:18g C:25g L:10g'},{n:'Tumis tauge sebentar',p:'100g',m:'P:3g C:6g L:1g'},{n:'Teh hijau tanpa gula',p:'1 gelas',m:'P:0g C:0g L:0g'}],tip:'Sarapan nasi merah tidak masalah — carbo pagi dibakar sepanjang hari.'},
+    {icon:'🕙',title:'Snack Pagi',kcal:150,items:[{n:'Greek yogurt plain',p:'150g',m:'P:13g C:8g L:4g'},{n:'Stroberi / blueberry',p:'50g',m:'P:0g C:7g L:0g'}],tip:'Buah beri tinggi antioksidan, bagus melawan inflamasi akibat visceral fat tinggi.'},
+    {icon:'🌞',title:'Makan Siang',kcal:500,items:[{n:'Nasi merah',p:'150g matang',m:'P:3g C:33g L:1g'},{n:'Pepes ikan (no minyak)',p:'200g',m:'P:38g C:1g L:6g'},{n:'Oseng tempe kacang panjang',p:'100g',m:'P:15g C:10g L:5g'}],tip:'Pepes adalah teknik masak terbaik — no minyak, full flavor, nutrisi terjaga.'},
+    {icon:'🕓',title:'Snack Sore',kcal:145,items:[{n:'Susu skim',p:'300ml',m:'P:10g C:15g L:0g'},{n:'Telur rebus',p:'2 butir',m:'P:12g C:1g L:10g'}],tip:'Pre-workout untuk latihan lower body Kamis. Makan 45–60 menit sebelum.'},
+    {icon:'🌙',title:'Makan Malam',kcal:485,items:[{n:'Ayam dada kukus',p:'150g',m:'P:42g C:0g L:3g'},{n:'Tumis buncis + wortel (1 sdt minyak zaitun)',p:'150g',m:'P:3g C:10g L:5g'},{n:'Sup tahu putih',p:'2 potong + kuah',m:'P:14g C:3g L:6g'},{n:'Nasi merah',p:'80g matang',m:'P:2g C:18g L:0g'}],tip:'Ayam kukus paling bersih kalorinya. Kasih perasan lemon + garam untuk rasa.'}
+  ]},
+  {name:'Jumat',total:1710,meals:[
+    {icon:'☀',title:'Sarapan',kcal:425,items:[{n:'Oatmeal',p:'60g kering',m:'P:10g C:40g L:6g'},{n:'Protein shake / susu skim',p:'1 scoop / 250ml',m:'P:22g C:5g L:2g'},{n:'Pisang (pre-workout)',p:'1 buah',m:'P:1g C:27g L:0g'}],tip:'Jumat ada Full Body Circuit — sarapan yang lebih carbo untuk energi latihan.'},
+    {icon:'🕙',title:'Snack Pagi',kcal:145,items:[{n:'Tahu + tempe rebus',p:'150g total',m:'P:22g C:6g L:9g'}],tip:'Simpel tapi powerful. Bisa dibawa dalam kotak makan.'},
+    {icon:'🌞',title:'Makan Siang',kcal:505,items:[{n:'Nasi merah',p:'150g matang',m:'P:3g C:33g L:1g'},{n:'Rendang ayam versi rendah santan',p:'120g',m:'P:35g C:4g L:8g'},{n:'Lalapan + sambal tomat',p:'bebas',m:'P:1g C:5g L:0g'},{n:'Sayur lodeh (tanpa santan kental)',p:'1 mangkuk',m:'P:4g C:8g L:3g'}],tip:'Rendang boleh! Tapi versi rendah santan. Ganti kelapa parut dengan air kaldu ayam.'},
+    {icon:'🕓',title:'Snack (Post-Workout)',kcal:160,items:[{n:'Pisang',p:'1 buah',m:'P:1g C:27g L:0g'},{n:'Whey protein / telur rebus',p:'1 scoop / 2 telur',m:'P:20g C:2g L:5g'}],tip:'Post-workout window 30 menit — waktu terbaik makan karbo + protein untuk recovery.'},
+    {icon:'🌙',title:'Makan Malam',kcal:475,items:[{n:'Ikan bakar sambal dabu-dabu',p:'200g',m:'P:40g C:3g L:8g'},{n:'Tumis kangkung terasi',p:'150g',m:'P:4g C:6g L:3g'},{n:'Tahu bacem (no gula berlebih)',p:'100g',m:'P:10g C:5g L:5g'},{n:'Nasi merah',p:'80g matang',m:'P:2g C:18g L:0g'}],tip:'Jumat malam boleh sedikit lebih enak sebagai reward — tetap dalam porsi yang benar.'}
+  ]},
+  {name:'Sabtu',total:1695,meals:[
+    {icon:'☀',title:'Sarapan',kcal:400,items:[{n:'Roti gandum + selai almond (tipis)',p:'3 lembar + 1 sdm',m:'P:12g C:42g L:10g'},{n:'Telur rebus',p:'2 butir',m:'P:12g C:1g L:10g'},{n:'Susu skim',p:'200ml',m:'P:7g C:10g L:0g'}],tip:'Selai kacang almond (bukan selai kacang biasa dengan gula) sumber lemak sehat.'},
+    {icon:'🕙',title:'Snack Pagi',kcal:155,items:[{n:'Greek yogurt + madu (1/2 sdt)',p:'150g',m:'P:13g C:10g L:4g'},{n:'Pepaya potong',p:'100g',m:'P:1g C:10g L:0g'}],tip:'Papain dalam pepaya bantu pencernaan protein. Bagus untuk gut health.'},
+    {icon:'🌞',title:'Makan Siang',kcal:520,items:[{n:'Nasi merah',p:'150g matang',m:'P:3g C:33g L:1g'},{n:'Soto ayam kuah bening (+ ayam 100g)',p:'1 mangkuk',m:'P:32g C:8g L:5g'},{n:'Tempe goreng tipis (min minyak)',p:'75g',m:'P:12g C:5g L:6g'},{n:'Perkedel singkong (opsional 1 bj)',p:'50g',m:'P:2g C:12g L:2g'}],tip:'Soto ayam kuah bening = comfort food rendah kalori. Hindari yang pakai santan.'},
+    {icon:'🕓',title:'Snack Sore',kcal:145,items:[{n:'Telur rebus',p:'2 butir',m:'P:12g C:1g L:10g'},{n:'Alpukat',p:'1/3 buah',m:'P:1g C:3g L:5g'}],tip:'Lemak sehat alpukat bagus untuk menurunkan kolesterol LDL.'},
+    {icon:'🌙',title:'Makan Malam',kcal:475,items:[{n:'Daging sapi has dalam rebus/bakar',p:'120g',m:'P:36g C:0g L:8g'},{n:'Tumis jamur + brokoli',p:'150g',m:'P:5g C:8g L:3g'},{n:'Sup tahu + wortel',p:'1 mangkuk',m:'P:10g C:8g L:4g'},{n:'Nasi merah',p:'80g matang',m:'P:2g C:18g L:0g'}],tip:'Sabtu makan daging sapi boleh — pilih has dalam atau sirloin yang rendah lemak.'}
+  ]},
+  {name:'Minggu',total:1800,meals:[
+    {icon:'☀',title:'Sarapan (santai)',kcal:450,items:[{n:'Nasi goreng putih (min kecap & minyak)',p:'150g + 2 telur',m:'P:20g C:38g L:12g'},{n:'Lalapan + acar timun',p:'bebas',m:'P:1g C:4g L:0g'},{n:'Teh tarik (no gula)',p:'1 gelas',m:'P:3g C:4g L:2g'}],tip:'Nasi goreng putih dengan minyak sedikit tetap aman — kuncinya di porsi.'},
+    {icon:'🕙',title:'Snack Pagi',kcal:160,items:[{n:'Buah potong campur',p:'200g (semangka, melon, pepaya)',m:'P:2g C:30g L:0g'},{n:'Tahu sutra',p:'100g',m:'P:8g C:2g L:4g'}],tip:'Hari istirahat, kebutuhan kalori sedikit lebih rendah.'},
+    {icon:'🌞',title:'Makan Siang (keluarga)',kcal:540,items:[{n:'Nasi merah / nasi putih (1 centong)',p:'150g matang',m:'P:3g C:33g L:1g'},{n:'Ikan goreng/bakar (pilih bakar)',p:'200g',m:'P:40g C:0g L:8g'},{n:'Sayur tumis (apapun yang ada)',p:'150g',m:'P:3g C:8g L:4g'},{n:'Sambal terasi',p:'1 sdt',m:'P:0g C:2g L:0g'}],tip:'Makan bersama keluarga penting untuk mental health. Nikmati, tapi kontrol porsi nasi.'},
+    {icon:'🕓',title:'Snack Sore',kcal:145,items:[{n:'Kacang rebus (kacang tanah/edamame)',p:'50g',m:'P:7g C:8g L:7g'},{n:'Jeruk manis',p:'2 buah',m:'P:1g C:21g L:0g'}],tip:'Kacang rebus jauh lebih sehat dari kacang goreng. Edamame = superfood protein nabati.'},
+    {icon:'🌙',title:'Makan Malam',kcal:505,items:[{n:'Ayam bakar kecap (kecap sedikit)',p:'150g',m:'P:40g C:6g L:5g'},{n:'Sup sayur (no lemak berlebih)',p:'1 mangkuk besar',m:'P:15g C:10g L:8g'},{n:'Nasi merah',p:'100g matang',m:'P:2g C:22g L:0g'}],tip:'Akhiri minggu dengan makan enak tapi tetap dalam track. Senin mulai lagi dengan penuh semangat!'}
+  ]}
+];
+
+// ========== WARMUP DATA ==========
+const WARMUP = [
+  // Day 0 – Senin: Upper Push
+  [
+    {name:'Jumping Jack Ringan',dur:'20 repetisi',purpose:'Naikkan detak jantung & suhu tubuh',
+     steps:['Berdiri tegak, kaki rapat. Lompat kecil sambil buka kaki selebar bahu dan angkat tangan ke atas.','Kecepatan 50% — ini pemanasan, bukan sprint. Pendaratan lembut di bola kaki.','Bernafas rileks dan ritmis. Cukup sampai terasa sedikit hangat, tidak perlu berkeringat.'],
+     video:'https://www.youtube.com/results?search_query=jumping+jack+warm+up+pemanasan'},
+    {name:'Arm Circles',dur:'15x ke depan + 15x ke belakang',purpose:'Mobilisasi & hangatkan sendi bahu',
+     steps:['Rentangkan kedua tangan ke samping setinggi bahu.','Putar lingkaran kecil ke depan 15x, lalu arah ke belakang 15x.','Dari lingkaran kecil bertahap ke lingkaran besar. Sendi bahu harus terasa memanas dan longgar.'],
+     video:'https://www.youtube.com/results?search_query=arm+circles+shoulder+warm+up'},
+    {name:'Shoulder Rolls',dur:'15x ke depan + 15x ke belakang',purpose:'Mobilisasi upper trapezius & leher',
+     steps:['Berdiri tegak, lengan rileks di sisi tubuh.','Angkat bahu → dorong ke belakang → turunkan → ayun ke depan. Satu lingkaran penuh.','Lakukan perlahan dan penuh. Rasakan regangan di bahu, leher, dan punggung atas.'],
+     video:'https://www.youtube.com/results?search_query=shoulder+rolls+warm+up+upper+back'},
+    {name:'Wall Push-up Ringan',dur:'15 repetisi',purpose:'Aktivasi dada & trisep sebelum bench press',
+     steps:['Berdiri ~70cm dari dinding. Letakkan tangan di dinding setinggi bahu, selebar bahu.','Condongkan badan ke depan perlahan, dada hampir menyentuh dinding, siku di sudut 45°.','Dorong kembali ke posisi awal. Ini "bench press di dinding" — aktifkan otot tanpa beban berat.'],
+     video:'https://www.youtube.com/results?search_query=wall+push+up+warm+up+chest+activation'},
+    {name:'Handuk Pull-Apart',dur:'15 repetisi',purpose:'Aktivasi rotator cuff & stabilisator bahu',
+     steps:['Pegang handuk lebar dengan kedua tangan di depan dada, jarak selebar bahu.','Tarik handuk ke luar — rentangkan tangan ke samping sejauh mungkin seperti membuka tirai.','Tahan di lebar maksimal 1 detik, kembali ke depan. Rasakan squeeze di punggung atas.'],
+     video:'https://www.youtube.com/results?search_query=band+pull+apart+towel+warm+up+shoulder'}
+  ],
+  // Day 1 – Selasa: HIIT
+  [
+    {name:'Jalan di Tempat',dur:'1 menit',purpose:'Aktifkan sirkulasi darah secara bertahap',
+     steps:['Berdiri tegak, mulai angkat kaki bergantian perlahan — seperti berjalan di tempat.','Ayun tangan secara natural mengikuti ritme kaki. Semakin lama semakin cepat.','Tingkatkan kecepatan bertahap tiap 20 detik. Ini transisi lembut sebelum intensitas tinggi.'],
+     video:'https://www.youtube.com/results?search_query=marching+in+place+warm+up+HIIT'},
+    {name:'Leg Swings Depan-Belakang',dur:'10x tiap kaki',purpose:'Mobilisasi sendi pinggul anterior-posterior',
+     steps:['Pegang dinding untuk keseimbangan. Berdiri tegak di satu kaki.','Ayun kaki yang lain ke depan setinggi nyaman, lalu ke belakang. Gerakan bebas seperti pendulum.','10 ayunan kaki kanan, lanjut 10 kaki kiri. Kaki yang diayun rileks, tidak kaku.'],
+     video:'https://www.youtube.com/results?search_query=leg+swings+forward+backward+hip+mobility+warm+up'},
+    {name:'Leg Swings Samping',dur:'10x tiap kaki',purpose:'Mobilisasi sendi pinggul lateral',
+     steps:['Pegang dinding, tubuh menghadap ke depan. Ayun kaki ke samping setinggi nyaman.','Ayun ke tengah (sedikit melewati kaki satunya) lalu ke samping lagi.','Gerak bebas dan rileks. Ini buka sendi pinggul yang sering kaku akibat banyak duduk.'],
+     video:'https://www.youtube.com/results?search_query=lateral+leg+swings+hip+warm+up'},
+    {name:'Hip Circles',dur:'10x tiap arah',purpose:'Mobilisasi rotasi penuh sendi pinggul',
+     steps:['Berdiri kaki selebar bahu, tangan di pinggang.','Putar pinggul membentuk lingkaran besar ke kanan 10x, lalu ke kiri 10x.','Semakin besar lingkarannya semakin baik. Seperti gerakan hula hoop.'],
+     video:'https://www.youtube.com/results?search_query=hip+circles+warm+up+mobility+hula+hoop'},
+    {name:'Slow Jumping Jack',dur:'20 repetisi (sangat pelan)',purpose:'Koordinasi & hangatkan seluruh tubuh sebelum HIIT',
+     steps:['Jumping jack tapi sangat lambat — 2 detik buka, 2 detik tutup.','Tarik napas saat buka, hembus saat tutup. Fokus pada ritme pernapasan.','Ini jembatan dari istirahat ke intensitas HIIT. Jangan langsung langsung lari kencang.'],
+     video:'https://www.youtube.com/results?search_query=slow+jumping+jack+warm+up+beginner+HIIT'}
+  ],
+  // Day 2 – Rabu: Upper Pull
+  [
+    {name:'Cat-Cow Stretch',dur:'10 repetisi',purpose:'Mobilisasi tulang belakang & aktivasi core ringan',
+     steps:['Berlutut dengan tangan dan lutut di lantai. Tangan di bawah bahu, lutut di bawah pinggul.','CAT: bulatkan punggung ke atas seperti kucing marah, kepala menunduk, hembus nafas.','COW: lengkungkan punggung ke bawah, kepala dan ekor naik, tarik nafas. Ulangi bergantian perlahan.'],
+     video:'https://www.youtube.com/results?search_query=cat+cow+stretch+warm+up+spine+mobility'},
+    {name:"Child's Pose",dur:'30 detik',purpose:'Regangkan latissimus & thoracic spine sebelum latihan',
+     steps:['Berlutut, duduk ke arah tumit, rentangkan kedua tangan lurus ke depan di lantai.','Kepala menyentuh lantai (atau mendekati), dada diturunkan perlahan.','Bernafas dalam. Setiap hembus nafas biarkan punggung atas lebih rileks dan terbuka.'],
+     video:'https://www.youtube.com/results?search_query=child+pose+back+warm+up+latissimus'},
+    {name:'Arm Circles Besar',dur:'15x ke depan + 15x ke belakang',purpose:'Hangatkan sendi bahu & rotator cuff',
+     steps:['Rentangkan kedua tangan ke samping. Mulai dengan lingkaran kecil.','Perlahan perbesar lingkaran sampai tangan hampir menyentuh lantai dan langit-langit.','15 lingkaran ke depan, lalu 15 ke belakang. Bahu harus terasa panas dan longgar.'],
+     video:'https://www.youtube.com/results?search_query=arm+circles+large+shoulder+mobility+warm+up'},
+    {name:'Face Pull dengan Handuk',dur:'15 repetisi',purpose:'Aktivasi rear delt & rhomboids sebelum rowing',
+     steps:['Pegang handuk dengan kedua tangan selebar bahu, setinggi wajah, lengan lurus.','Tarik handuk ke arah wajah — siku keluar ke samping menuju telinga.','Tahan 1 detik di posisi tarik, kembalikan perlahan. Rasakan squeeze di belakang bahu.'],
+     video:'https://www.youtube.com/results?search_query=face+pull+with+towel+rear+delt+activation+warm+up'},
+    {name:'Shoulder Dislocate Handuk',dur:'10 repetisi',purpose:'Mobilitas bahu 180° — persiapkan sendi untuk row & pull',
+     steps:['Pegang handuk sangat lebar (2x lebar bahu). Tangan di depan tubuh setinggi pinggul.','Angkat tangan ke atas kepala dan lanjutkan melewati ke belakang tubuh dalam satu busur.','Jika terasa tertahan, perlebar pegangan. Jangan paksakan. Ulangi balik dari belakang ke depan.'],
+     video:'https://www.youtube.com/results?search_query=shoulder+dislocate+towel+mobility+warm+up'}
+  ],
+  // Day 3 – Kamis: Lower Body
+  [
+    {name:'Leg Swings Depan-Belakang',dur:'10x tiap kaki',purpose:'Mobilisasi hip flexor & hamstrings',
+     steps:['Pegang dinding untuk keseimbangan. Ayun kaki ke depan setinggi nyaman, lalu ke belakang.','Gerak bebas dan rileks seperti pendulum. Kaki yang diayun tidak kaku.','10 ayunan kaki kanan, lanjut 10 kaki kiri.'],
+     video:'https://www.youtube.com/results?search_query=leg+swings+forward+backward+warm+up+leg+day'},
+    {name:'Leg Swings Samping',dur:'10x tiap kaki',purpose:'Buka sendi pinggul lateral sebelum squat & lunge',
+     steps:['Pegang dinding, ayun kaki ke samping lalu ke tengah melewati kaki satunya.','Range of motion: setinggi yang nyaman tanpa badan ikut condong.','Ini khusus membuka adductor & abductor yang bekerja keras dalam squat.'],
+     video:'https://www.youtube.com/results?search_query=lateral+leg+swings+hip+flexor+warm+up+squat'},
+    {name:'Hip Circles',dur:'10x tiap arah',purpose:'Mobilisasi penuh sendi pinggul 360°',
+     steps:['Berdiri kaki selebar bahu, tangan di pinggang.','Putar pinggul membentuk lingkaran besar ke kanan 10x, lalu ke kiri 10x.','Semakin besar lingkaran semakin baik. Ini aktifkan semua otot rotator pinggul.'],
+     video:'https://www.youtube.com/results?search_query=hip+circles+warm+up+leg+day'},
+    {name:'Bodyweight Squat Ringan',dur:'15 repetisi (sangat pelan)',purpose:'Aktivasi quad, glutes, core sebelum beban berat',
+     steps:['Kaki selebar bahu, jari keluar sedikit. Turunkan sangat perlahan 3–4 detik, naik 1 detik.','Fokus bukan kecepatan tapi FEEL: rasakan glutes aktif, lutut searah jari kaki.','Ini "test drive" sebelum ditambah beban. Perhatikan area yang terasa kaku.'],
+     video:'https://www.youtube.com/results?search_query=bodyweight+squat+slow+warm+up+activation'},
+    {name:'Hip Hinge Ringan (Tanpa Beban)',dur:'10 repetisi',purpose:'Aktivasi hamstrings & lower back sebelum RDL',
+     steps:['Berdiri tegak, kaki selebar pinggul, tangan di pinggang.','Dorong pinggul ke belakang perlahan sambil condong ke depan — punggung tetap lurus.','Rasakan tarikan di belakang paha (hamstrings). Kembali tegak dengan dorong pinggul ke depan. Ini gerakan inti RDL tanpa beban.'],
+     video:'https://www.youtube.com/results?search_query=hip+hinge+bodyweight+warm+up+RDL+preparation'}
+  ],
+  // Day 4 – Jumat: Full Body Circuit
+  [
+    {name:'Jalan di Tempat + Arm Swing',dur:'30 detik',purpose:'Aktifkan seluruh tubuh secara bersamaan',
+     steps:['Jalan di tempat sambil ayun kedua tangan besar ke depan dan ke belakang.','Tingkatkan kecepatan bertahap setiap 10 detik.','Bernafas dalam. Persiapkan mental untuk circuit yang intens.'],
+     video:'https://www.youtube.com/results?search_query=marching+arm+swing+warm+up+full+body+circuit'},
+    {name:'Hip Rotation',dur:'10x tiap arah',purpose:'Mobilisasi pinggul & lower back sebelum circuit',
+     steps:['Berdiri kaki selebar bahu, tangan di pinggang.','Putar pinggul membentuk lingkaran besar ke kanan 10x, lalu ke kiri 10x.','Bagian atas tubuh relatif diam, hanya pinggang ke bawah yang berputar.'],
+     video:'https://www.youtube.com/results?search_query=hip+rotation+warm+up+mobility+circuit'},
+    {name:'High Knee Pelan',dur:'20 repetisi (10/kaki)',purpose:'Aktivasi hip flexors & naikkan heart rate bertahap',
+     steps:['Berdiri tegak. Angkat lutut kanan ke atas setinggi pinggang, lalu turunkan.','Ganti ke lutut kiri. Bergantian perlahan 20 total.','Postur tegak, core kencang. Ini juga melatih keseimbangan.'],
+     video:'https://www.youtube.com/results?search_query=high+knees+slow+warm+up+circuit+training'},
+    {name:'Arm Circles + Shoulder Shrugs',dur:'15x circles + 10x shrugs',purpose:'Hangatkan bahu untuk pressing & rowing',
+     steps:['Arm circles 15x ke depan dan belakang terlebih dahulu.','Lanjut: angkat kedua bahu setinggi mungkin ke telinga, tahan 1 detik, turunkan cepat. 10 rep.','Shrugs mengaktifkan upper trap dan menstabilkan sendi bahu sebelum circuit.'],
+     video:'https://www.youtube.com/results?search_query=arm+circles+shoulder+shrugs+warm+up+full+body'},
+    {name:'Bodyweight Squat + Arm Reach',dur:'10 repetisi',purpose:'Aktivasi full body dalam 1 gerakan — persiapkan Thruster',
+     steps:['Squat sambil kedua tangan menyentuh lantai di depan kaki.','Saat berdiri, rentangkan kedua tangan ke atas setinggi mungkin.','1 gerakan kontinu ke bawah dan ke atas. Ini mempersiapkan tubuh untuk Thruster.'],
+     video:'https://www.youtube.com/results?search_query=squat+arm+reach+warm+up+full+body+thruster'}
+  ],
+  // Day 5 – Sabtu: LISS
+  [
+    {name:'Jalan Sangat Pelan',dur:'3 menit',purpose:'Transisi lembut dari istirahat ke aktivitas',
+     steps:['Mulai berjalan dengan kecepatan sangat santai — lebih lambat dari kecepatan normalmu.','Fokus pada napas: 4 langkah tarik nafas, 4 langkah hembus. Ritme jalan = ritme nafas.','Setelah 3 menit, kecepatan bisa ditingkatkan ke pace LISS normal.'],
+     video:'https://www.youtube.com/results?search_query=walking+warm+up+zone+2+cardio+pace'},
+    {name:'Ankle Circles',dur:'10x tiap arah tiap kaki',purpose:'Mobilisasi pergelangan kaki sebelum berjalan jauh',
+     steps:['Berdiri satu kaki, pegang dinding. Angkat kaki lainnya sedikit dari lantai.','Putar pergelangan kaki membentuk lingkaran ke dalam 10x, lalu ke luar 10x.','Selesaikan kaki kanan, lanjut kaki kiri. Penting untuk mencegah ankle sprain.'],
+     video:'https://www.youtube.com/results?search_query=ankle+circles+warm+up+walking+running'},
+    {name:'Hip Circles Ringan',dur:'10x tiap arah',purpose:'Buka pinggul sebelum berjalan jarak jauh',
+     steps:['Tangan di pinggang, kaki selebar bahu.','Putar pinggul membentuk lingkaran santai ke kanan 10x, lalu ke kiri 10x.','Mencegah kekakuan pinggul yang sering muncul saat berjalan panjang.'],
+     video:'https://www.youtube.com/results?search_query=hip+circles+warm+up+walking+preparation'},
+    {name:'Calf Raises Ringan',dur:'15 repetisi',purpose:'Aktivasi betis — pompa darah ke kaki sebelum LISS',
+     steps:['Berdiri tegak, kaki rapat. Angkat tumit sampai berjinjit, tahan 1 detik.','Turunkan perlahan. Betis adalah "jantung kedua" — pompa darah saat berjalan.','Boleh pegang dinding untuk keseimbangan.'],
+     video:'https://www.youtube.com/results?search_query=calf+raises+warm+up+walking+activation'}
+  ],
+  // Day 6 – Minggu: Rest
+  [
+    {name:'Pernapasan Diafragma',dur:'10 napas dalam',purpose:'Aktifkan parasimpatis untuk pemulihan optimal',
+     steps:['Berbaring atau duduk nyaman. Satu tangan di dada, satu di perut.','Tarik napas dalam 4 detik — perut (bukan dada) yang mengembang. Tangan perut naik.','Tahan 2 detik, hembus 6 detik. Nafas keluar lebih panjang = perintah rileksasi ke otak.'],
+     video:'https://www.youtube.com/results?search_query=deep+diaphragm+breathing+recovery+relax+parasympathetic'},
+    {name:'Neck Rolls Lembut',dur:'5x tiap arah',purpose:'Lepaskan ketegangan leher & upper trap setelah seminggu latihan',
+     steps:['Duduk tegak, bahu rileks. Miringkan kepala ke kanan — telinga mendekati bahu.','Putar kepala perlahan ke depan (dagu ke dada) lalu ke kiri. Setengah lingkaran saja.','Jangan putar ke belakang. 5x ke kanan, 5x ke kiri. Sangat pelan, nikmati regangan.'],
+     video:'https://www.youtube.com/results?search_query=neck+rolls+gentle+recovery+rest+day'},
+    {name:"Cat-Cow Ringan",dur:'10 repetisi (sangat pelan)',purpose:'Mobilisasi tulang belakang & recovery punggung setelah seminggu latihan',
+     steps:['Berlutut dengan tangan dan lutut di lantai.','Cat-Cow seperti hari Rabu, tapi LEBIH PELAN. Tiap posisi tahan 2–3 detik.','Fokus pada rasa: mana bagian punggung yang masih kaku? Berikan perhatian ekstra di sana.'],
+     video:'https://www.youtube.com/results?search_query=cat+cow+gentle+sunday+recovery+rest+day'}
+  ]
+];
+
+// ========== COOLDOWN DATA ==========
+const COOLDOWN = [
+  // Day 0 – Senin: Upper Push
+  [
+    {name:'Doorway Chest Stretch',dur:'30 detik × 2 kali',purpose:'Regangkan pectoralis yang sudah bekerja keras',
+     steps:['Berdiri di depan pintu. Letakkan lengan bawah di kusen, siku setinggi bahu (90°).','Condongkan badan perlahan ke depan sampai terasa tarikan nyaman di dada.','Tahan 30 detik, rileks sebentar, lalu ulangi. Versi 2: angkat siku lebih tinggi untuk regangkan dada atas.'],
+     video:'https://www.youtube.com/results?search_query=doorway+chest+stretch+cool+down+pectoral'},
+    {name:'Cross-Arm Shoulder Stretch',dur:'30 detik tiap sisi',purpose:'Regangkan posterior deltoid & kapsul sendi bahu',
+     steps:['Berdiri tegak. Tarik lengan kanan lurus melintasi dada menggunakan tangan kiri di atas siku.','Jaga bahu kanan turun (tidak terangkat). Dorong lengan semakin dekat ke dada.','Tahan 30 detik. Rasakan tarikan di belakang bahu kanan. Ganti sisi.'],
+     video:'https://www.youtube.com/results?search_query=cross+arm+shoulder+stretch+cool+down+posterior+delt'},
+    {name:'Tricep Stretch Overhead',dur:'30 detik tiap sisi',purpose:'Regangkan triceps setelah extension & pressing',
+     steps:['Angkat lengan kanan lurus ke atas. Tekuk siku, turunkan tangan ke belakang kepala.','Gunakan tangan kiri untuk mendorong siku kanan sedikit ke bawah dan ke dalam.','Tahan 30 detik. Rasakan tarikan di belakang-atas lengan (trisep). Ganti sisi.'],
+     video:'https://www.youtube.com/results?search_query=tricep+overhead+stretch+cool+down+after+workout'},
+    {name:'Neck Side Stretch',dur:'20 detik × 3 arah',purpose:'Lepaskan ketegangan upper trapezius & leher',
+     steps:['Duduk atau berdiri tegak. Miringkan kepala ke kanan — telinga mendekati bahu.','Biarkan berat kepala sendiri yang meregangkan. Tidak perlu tarik dengan tangan.','Tahan 20 detik kanan, tengah, kiri. Akhiri dengan dagu ke dada 20 detik.'],
+     video:'https://www.youtube.com/results?search_query=neck+side+stretch+upper+trapezius+cool+down'},
+    {name:'Napas Dalam (Wajib!)',dur:'10 napas perlahan',purpose:'Turunkan heart rate & kortisol, aktifkan proses recovery',
+     steps:['Berbaring atau duduk nyaman. Tutup mata.','Tarik napas dalam 4 detik, tahan 2 detik, hembus 6 detik.','Setiap hembusan = perintah ke sistem saraf untuk masuk mode recovery. Jangan pernah skip ini.'],
+     video:'https://www.youtube.com/results?search_query=cool+down+deep+breathing+recovery+after+upper+body+workout'}
+  ],
+  // Day 1 – Selasa: HIIT
+  [
+    {name:'Jalan Santai',dur:'2–3 menit',purpose:'Turunkan heart rate secara bertahap — JANGAN langsung berhenti!',
+     steps:['Setelah HIIT, JANGAN langsung duduk atau berbaring. Ini sangat penting untuk jantung!','Jalan pelan-pelan di tempat atau keliling ruangan. Kecepatan sangat santai.','Detak jantung harus turun ke bawah 100 bpm sebelum stretching. Sekitar 2–3 menit.'],
+     video:'https://www.youtube.com/results?search_query=cool+down+walking+after+HIIT+heart+rate+recovery'},
+    {name:'Napas Dalam Terkontrol',dur:'10 siklus napas',purpose:'Reset sistem saraf dari mode fight-or-flight ke recovery',
+     steps:['Berdiri atau duduk. Letakkan satu tangan di dada dan satu di perut.','Tarik napas dalam 4 detik melalui hidung (perut mengembang). Tahan 2 detik.','Hembus perlahan 8 detik melalui mulut. Nafas keluar = dua kali lebih panjang dari masuk.'],
+     video:'https://www.youtube.com/results?search_query=controlled+breathing+cool+down+after+HIIT+box+breathing'},
+    {name:'Hamstring Stretch Duduk',dur:'45 detik tiap kaki',purpose:'Regangkan hamstrings yang keras bekerja saat HIIT',
+     steps:['Duduk di lantai, kaki kanan lurus ke depan, kaki kiri ditekuk ke dalam.','Condongkan badan ke depan dari pinggul (bukan membungkuk punggung) ke arah kaki kanan.','Tangan pegang kaki atau betis. Tahan 45 detik, rasakan tarikan di belakang paha.'],
+     video:'https://www.youtube.com/results?search_query=seated+hamstring+stretch+cool+down+HIIT+cardio'},
+    {name:'Hip Flexor Lunge Stretch',dur:'45 detik tiap sisi',purpose:'Regangkan hip flexors yang kencang setelah jumping & sprinting',
+     steps:['Berlutut satu lutut (kaki kanan di belakang lutut menempel lantai, kaki kiri di depan 90°).','Dorong pinggul ke depan perlahan sampai terasa tarikan di bagian depan paha kanan.','Tangan di lutut kiri untuk keseimbangan. Tahan 45 detik. Ganti sisi.'],
+     video:'https://www.youtube.com/results?search_query=hip+flexor+lunge+stretch+cool+down+after+HIIT+cardio'}
+  ],
+  // Day 2 – Rabu: Upper Pull
+  [
+    {name:'Latissimus Side Bend Stretch',dur:'30 detik tiap sisi',purpose:'Regangkan lat yang habis bekerja rowing & pulling',
+     steps:['Berdiri tegak. Angkat tangan kanan lurus ke atas, condongkan tubuh ke kiri.','Rasakan regangan dari pinggul sampai ketiak (seluruh sisi kanan, terutama latissimus).','Tahan 30 detik. Semakin condong = lebih dalam. Ganti sisi.'],
+     video:'https://www.youtube.com/results?search_query=latissimus+dorsi+side+bend+stretch+cool+down+back+day'},
+    {name:'Bicep Wall Stretch',dur:'30 detik tiap sisi',purpose:'Regangkan biceps & forearm setelah banyak curling',
+     steps:['Berdiri di samping dinding. Letakkan tangan kanan di dinding setinggi bahu, telapak menghadap ke atas.','Putar tubuh perlahan ke kiri (menjauh dari dinding) sampai terasa tarikan di bisep.','Tahan 30 detik. Ganti sisi. Ini terasa sangat lega setelah bicep curl banyak.'],
+     video:'https://www.youtube.com/results?search_query=bicep+wall+stretch+cool+down+after+pull+day'},
+    {name:"Child's Pose Extended",dur:'45 detik',purpose:"Release punggung atas, lat, dan bahu setelah upper pull",
+     steps:['Berlutut, duduk ke arah tumit. Rentangkan kedua tangan lurus ke depan sejauh mungkin.','Kepala di antara lengan mendekati lantai. Dada turun. Bernafas dalam.','Setiap hembus nafas, punggung atas semakin rileks. Posisi recovery terbaik setelah upper pull.'],
+     video:'https://www.youtube.com/results?search_query=extended+childs+pose+cool+down+back+lat+stretch'},
+    {name:'Upper Trap & Neck Stretch',dur:'20 detik × 3 arah',purpose:'Lepaskan ketegangan leher & upper trap setelah rowing berat',
+     steps:['Duduk atau berdiri. Miringkan kepala ke kanan. Tangan kanan boleh sedikit bantu menarik.','Tahan 20 detik kanan → tengah → kiri.','Akhiri dengan dagu ke dada 20 detik untuk meregangkan ligamen posterior leher.'],
+     video:'https://www.youtube.com/results?search_query=upper+trapezius+neck+stretch+cool+down+upper+back'}
+  ],
+  // Day 3 – Kamis: Lower Body
+  [
+    {name:'Quadriceps Stretch Berdiri',dur:'30 detik tiap kaki',purpose:'Regangkan quad yang habis bekerja keras dalam squat & lunge',
+     steps:['Berdiri satu kaki, pegang dinding. Tekuk kaki kanan ke belakang, pegang pergelangan kaki.','Dorong pinggul ke depan DAN tarik kaki ke arah bokong — keduanya bersamaan.','Lutut kanan sejajar atau di belakang lutut kiri. Tahan 30 detik. Ganti kaki.'],
+     video:'https://www.youtube.com/results?search_query=standing+quad+stretch+cool+down+leg+day+squat'},
+    {name:'Hamstring Stretch Duduk',dur:'45 detik tiap kaki',purpose:'Regangkan hamstrings setelah RDL & hip thrust',
+     steps:['Duduk di lantai, kaki kanan lurus, kaki kiri ditekuk ke dalam.','Condong dari pinggul ke arah kaki kanan — bukan membungkuk punggung.','Tangan pegang kaki atau betis. Rasakan tarikan dalam di belakang paha. Tahan 45 detik.'],
+     video:'https://www.youtube.com/results?search_query=seated+hamstring+stretch+cool+down+after+deadlift+leg+day'},
+    {name:'Figure 4 Glutes Stretch',dur:'45 detik tiap sisi',purpose:'Regangkan glutes & piriformis setelah hip thrust & squat',
+     steps:['Berbaring telentang. Tekuk kedua lutut, kedua kaki di lantai.','Letakkan pergelangan kaki kanan di atas lutut kiri — posisi seperti angka 4.','Tarik kaki kiri ke arah dada — semakin dekat, semakin dalam regangan di bokong kanan. Ganti.'],
+     video:'https://www.youtube.com/results?search_query=figure+4+glute+stretch+piriformis+cool+down+hip+thrust'},
+    {name:'Hip Flexor Lunge Stretch',dur:'45 detik tiap sisi',purpose:'Regangkan hip flexors yang kencang setelah squat & lunge',
+     steps:['Berlutut satu lutut. Kaki kanan di belakang (lutut di lantai), kaki kiri 90° di depan.','Dorong pinggul ke depan sambil tegakkan badan. Rasakan tarikan di depan paha kanan.','Optional: angkat tangan kanan ke atas untuk tambahan regangan lateral. Tahan 45 detik.'],
+     video:'https://www.youtube.com/results?search_query=hip+flexor+lunge+stretch+cool+down+after+leg+day'},
+    {name:'Supine Spinal Twist',dur:'30 detik tiap sisi',purpose:'Release lower back & obliques setelah core work & bicycle crunch',
+     steps:['Berbaring telentang. Tekuk lutut kanan, jatuhkan ke kiri melewati badan. Tangan kanan ke samping.','Putar kepala ke kanan. Bahu kanan tetap menempel lantai. Biarkan gravitasi bekerja.','Tahan 30 detik, rasakan release di punggung bawah. Ganti sisi.'],
+     video:'https://www.youtube.com/results?search_query=supine+spinal+twist+cool+down+lower+back+core+day'}
+  ],
+  // Day 4 – Jumat: Full Body Circuit
+  [
+    {name:'Chest Stretch di Pintu',dur:'30 detik × 2',purpose:'Regangkan dada setelah pressing & push-up dalam circuit',
+     steps:['Berdiri di depan pintu, letakkan lengan bawah di kusen, siku setinggi bahu.','Condongkan badan ke depan perlahan. Tahan 30 detik. Ulangi.','Variasi: angkat siku lebih tinggi (setinggi kepala) untuk regangkan porsi atas dada.'],
+     video:'https://www.youtube.com/results?search_query=doorway+chest+stretch+cool+down+after+circuit+push+ups'},
+    {name:"Child's Pose + Side Reach",dur:'45 detik tiap sisi',purpose:'Release punggung, lat, dan bahu setelah full body circuit',
+     steps:["Mulai child's pose: berlutut, tangan jauh ke depan, kepala di lantai.",'Geser kedua tangan ke kanan sejauh mungkin — regangkan sisi kiri (lat & serratus).','Tahan 45 detik, kembali tengah, geser ke kiri. Nafas dalam sepanjang stretch.'],
+     video:'https://www.youtube.com/results?search_query=child+pose+side+reach+stretch+cool+down+full+body'},
+    {name:'Hamstring Stretch Duduk',dur:'45 detik tiap kaki',purpose:'Regangkan hamstrings setelah circuit yang intens',
+     steps:['Duduk di lantai, kaki kanan lurus ke depan, kaki kiri ditekuk ke dalam.','Condong dari pinggul ke depan, punggung tetap relatif lurus.','Tahan 45 detik, ganti. Full circuit circuit benar-benar menguras hamstrings — jangan skip.'],
+     video:'https://www.youtube.com/results?search_query=seated+hamstring+stretch+cool+down+after+full+body+circuit'},
+    {name:'Shoulder Cross-Body Stretch',dur:'30 detik tiap sisi',purpose:'Release bahu setelah pressing, rowing, dan swings',
+     steps:['Tarik lengan kanan lurus melintasi dada dengan bantuan tangan kiri di atas siku.','Bahu kanan jangan terangkat. Dorong semakin dekat ke dada. Tahan 30 detik, ganti.','Post-workout terbaik untuk bahu setelah circuit yang penuh gerakan bahu.'],
+     video:'https://www.youtube.com/results?search_query=cross+body+shoulder+stretch+cool+down+full+body+circuit'},
+    {name:'Napas Dalam + Body Scan',dur:'10 napas (2–3 menit)',purpose:'Turunkan adrenalin & mulai proses recovery otot',
+     steps:['Berbaring atau duduk nyaman. Tutup mata. Tarik napas 4 dtk → tahan 2 dtk → hembus 6 dtk.','Ulangi 10 kali dengan fokus penuh pada hembusan nafas.','Body scan: perhatikan tiap bagian tubuh dari kaki ke kepala. Mana paling pegal? Itu yang perlu ekstra istirahat.'],
+     video:'https://www.youtube.com/results?search_query=cool+down+breathing+body+scan+recovery+after+circuit+workout'}
+  ],
+  // Day 5 – Sabtu: LISS
+  [
+    {name:'Calf Stretch di Dinding',dur:'30 detik tiap variasi tiap kaki',purpose:'Regangkan betis yang bekerja sepanjang sesi LISS',
+     steps:['Berdiri menghadap dinding, tangan di dinding. Langkahkan kaki kanan ke belakang.','Tekan tumit kaki kanan ke lantai — lutut kanan lurus. Rasakan tarikan di betis bawah.','Untuk betis atas: tekuk sedikit lutut kanan. Tahan 30 detik tiap variasi, ganti kaki.'],
+     video:'https://www.youtube.com/results?search_query=calf+stretch+wall+cool+down+after+walking+running'},
+    {name:'Hamstring Stretch Duduk',dur:'45 detik tiap kaki',purpose:'Regangkan hamstrings yang memendek setelah berjalan jauh',
+     steps:['Duduk di lantai atau bangku. Kaki kanan lurus ke depan, kaki kiri ditekuk.','Condong perlahan dari pinggul ke depan, tangan ke arah kaki.','45 detik, ganti. Jalan jauh secara konsisten memendekkan hamstrings.'],
+     video:'https://www.youtube.com/results?search_query=seated+hamstring+stretch+cool+down+after+walking+LISS'},
+    {name:'Hip Flexor Lunge Stretch',dur:'30 detik tiap sisi',purpose:'Regangkan hip flexors yang kencang setelah jalan panjang',
+     steps:['Berlutut satu lutut di lantai (kanan di belakang, kiri di depan).','Dorong pinggul ke depan perlahan, badan tegak. Tahan 30 detik.','Berjalan panjang memendekkan hip flexors — menyebabkan nyeri punggung bawah jika tidak di-stretch.'],
+     video:'https://www.youtube.com/results?search_query=hip+flexor+lunge+stretch+after+walking+cool+down+LISS'},
+    {name:"Lower Back Child's Pose",dur:'45 detik',purpose:'Release punggung bawah yang lelah setelah berjalan',
+     steps:['Berlutut, duduk ke arah tumit. Rentangkan tangan lurus ke depan. Kepala di lantai.','Bernafas dalam. Setiap hembus nafas biarkan punggung bawah semakin memanjang dan rileks.','Ini posisi paling restoratif untuk punggung setelah aktivitas apapun.'],
+     video:'https://www.youtube.com/results?search_query=childs+pose+lower+back+stretch+cool+down+walking+recovery'}
+  ],
+  // Day 6 – Minggu: Rest
+  [
+    {name:'Full Body Stretching Statis',dur:'20–30 detik tiap gerakan',purpose:'Recovery aktif — jaga fleksibilitas & aliran darah ke otot',
+     steps:['Tidak ada urutan wajib — mulai dari bagian yang paling terasa pegal.','Tahan tiap posisi 20–30 detik. TIDAK ada bouncing. Bernafas dalam.','Prioritaskan: chest, hip flexor, hamstring, quad, lat. 1 set tiap bagian sudah cukup.'],
+     video:'https://www.youtube.com/results?search_query=full+body+stretching+rest+day+recovery+flexibility'},
+    {name:'Foam Rolling / Pijat Mandiri',dur:'30–60 detik tiap area',purpose:'Myofascial release — kurangi nyeri otot (DOMS) setelah seminggu latihan',
+     steps:['Gulingkan pada: betis → paha depan → IT band (sisi paha) → punggung atas.','Saat menemukan titik nyeri, BERHENTI dan tahan 30–60 detik sampai nyeri berkurang.','Tidak punya foam roller: pakai botol plastik keras berisi air, atau minta pijat.'],
+     video:'https://www.youtube.com/results?search_query=foam+rolling+full+body+recovery+rest+day+DOMS+muscle+soreness'},
+    {name:'Napas Dalam 4-7-8',dur:'5–10 siklus',purpose:'Aktifkan parasimpatis, turunkan kortisol, percepat recovery seminggu',
+     steps:['Duduk nyaman atau berbaring. Kosongkan paru-paru sepenuhnya dulu.','Tarik napas 4 detik → tahan 7 detik → hembus sangat perlahan 8 detik.','Ini teknik pernapasan untuk recovery cepat. Sangat efektif turunkan stres dan kortisol.'],
+     video:'https://www.youtube.com/results?search_query=4+7+8+breathing+technique+recovery+cortisol+reduce+sleep'}
+  ]
+];
+
+// ========== STATE ==========
+let currentWkDay = 0;
+let currentMealDay = 0;
+let guideFilter = 'Semua';
+let waterFilled = 0;
+const today = new Date();
+
+// ========== INIT ==========
+function init(){
+  updateGreeting();
+  renderWaterCups();
+  renderWkTabs();
+  renderWkDay(currentWkDay);
+  renderMealTabs();
+  renderMealDay(currentMealDay);
+  renderGuide();
+  renderProgress();
+  // auto-select today's workout tab
+  const dow = today.getDay(); // 0=Sun, 1=Mon...
+  const map = [6,0,1,2,3,4,5]; // Sun=6(rest), Mon=0, etc
+  currentWkDay = map[dow];
+  renderWkTabs();
+  renderWkDay(currentWkDay);
+  currentMealDay = map[dow];
+  renderMealTabs();
+  renderMealDay(currentMealDay);
+  // water from localStorage
+  const saved = localStorage.getItem('water_'+today.toDateString());
+  if(saved) { waterFilled = parseInt(saved); renderWaterCups(); }
+}
+
+function updateGreeting(){
+  const h = today.getHours();
+  const greet = h<11?'Selamat pagi':h<15?'Selamat siang':h<18?'Selamat sore':'Selamat malam';
+  document.getElementById('greetTxt').textContent = greet+', Hadi! 💪';
+  const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+  document.getElementById('greetDate').textContent = days[today.getDay()]+', '+today.getDate()+' '+months[today.getMonth()]+' '+today.getFullYear();
+  // today workout
+  const dow = today.getDay();
+  const map = [6,0,1,2,3,4,5];
+  const d = WK[map[dow]];
+  document.getElementById('todayName').textContent = d.type;
+  document.getElementById('todayMeta').textContent = d.badges.join(' · ')+' · '+d.duration;
+}
+
+// ========== WATER ==========
+function renderWaterCups(){
+  const el = document.getElementById('waterCups');
+  let h='';
+  for(let i=0;i<8;i++) h+=`<div class="cup${i<waterFilled?' filled':''}" onclick="toggleCup(${i})">💧</div>`;
+  el.innerHTML=h;
+  document.getElementById('waterCount').textContent=waterFilled+' / 8 gelas';
+}
+function toggleCup(i){
+  waterFilled = (i<waterFilled)?i:(i+1);
+  localStorage.setItem('water_'+today.toDateString(), waterFilled);
+  renderWaterCups();
+}
+
+// ========== WORKOUT ==========
+function renderWkTabs(){
+  const el = document.getElementById('wkDayTabs');
+  el.innerHTML = WK.map((d,i)=>`<button class="day-tab${i===currentWkDay?' active':''}" onclick="selectWkDay(${i})">${d.short}</button>`).join('');
+}
+function selectWkDay(i){ currentWkDay=i; renderWkTabs(); renderWkDay(i); }
+function renderWkDay(i){
+  const d = WK[i];
+  const wu = WARMUP[i]||[];
+  const cd = COOLDOWN[i]||[];
+  let h = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">`;
+  h += `<div style="font-size:16px;font-weight:800;color:${d.color}">${d.type}</div>`;
+  d.badges.forEach(b=>h+=`<span class="badge badge-blue">${b}</span>`);
+  h += `<span style="margin-left:auto;font-size:11px;color:var(--muted)">${d.duration}</span></div>`;
+
+  // ── WARMUP ──
+  if(wu.length){
+    h += `<div class="section-sub orange">🔥 Pemanasan (5–7 Menit)</div>`;
+    wu.forEach((ex,j)=>{
+      h+=`<div class="ex-card wu-card"><div class="ex-head" onclick="toggleEx('wu${i}_${j}')">
+        <div class="ex-num num-orange">W${j+1}</div>
+        <div class="ex-inf"><div class="ex-name">${ex.name}</div>
+        <div class="ex-meta">${ex.dur} · <span style="color:var(--orange);font-style:italic">${ex.purpose}</span></div></div>
+        <div class="ex-arr" id="arr_wu${i}_${j}">›</div>
+      </div>
+      <div class="ex-body" id="wu${i}_${j}">
+        <div class="steps-lbl">Cara melakukan</div>
+        <div class="step-list">`;
+      ex.steps.forEach((s,k)=>h+=`<div class="step-item"><div class="step-dot" style="background:var(--orange)">${k+1}</div><div>${s}</div></div>`);
+      h+=`</div>
+        <a class="vid-btn" style="background:rgba(249,115,22,0.1);color:#FB923C;border-color:rgba(249,115,22,0.3)" href="${ex.video}" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#FB923C"><path d="M23.5 6.3a3 3 0 0 0-2.1-2.1C19.5 3.8 12 3.8 12 3.8s-7.5 0-9.4.5A3 3 0 0 0 .5 6.3 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.7 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.7zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+          Tonton video tutorial di YouTube
+        </a></div></div>`;
+    });
+  }
+
+  // ── MAIN EXERCISES ──
+  h += `<div class="section-sub blue">💪 Latihan Utama</div>`;
+  d.exercises.forEach((ex,j)=>{
+    h+=`<div class="ex-card"><div class="ex-head" onclick="toggleEx('ex${i}_${j}')">
+      <div class="ex-num" style="color:${d.color}">${j+1}</div>
+      <div class="ex-inf"><div class="ex-name">${ex.name}</div>
+      <div class="ex-meta">${ex.sets}${ex.weight?' · '+ex.weight:''}</div></div>
+      <div class="ex-arr" id="arr_ex${i}_${j}">›</div>
+    </div>
+    <div class="ex-body" id="ex${i}_${j}">
+      <div style="margin-bottom:8px"><span class="muscle-tag">${ex.muscles}</span></div>
+      <div class="steps-lbl">Cara melakukan</div>
+      <div class="step-list">`;
+    ex.steps.forEach((s,k)=>h+=`<div class="step-item"><div class="step-dot">${k+1}</div><div>${s}</div></div>`);
+    h+=`</div><div class="mistake-box"><div class="mistake-lbl">Kesalahan umum</div>${ex.mistakes.replace(/\n/g,'<br>')}</div>
+      <a class="vid-btn" href="${ex.video}" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F87171"><path d="M23.5 6.3a3 3 0 0 0-2.1-2.1C19.5 3.8 12 3.8 12 3.8s-7.5 0-9.4.5A3 3 0 0 0 .5 6.3 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.7 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.7zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+        Tonton video tutorial di YouTube
+      </a></div></div>`;
+  });
+
+  // ── COOLDOWN ──
+  if(cd.length){
+    h += `<div class="section-sub teal">❄️ Pendinginan (5–10 Menit)</div>`;
+    cd.forEach((ex,j)=>{
+      h+=`<div class="ex-card cd-card"><div class="ex-head" onclick="toggleEx('cd${i}_${j}')">
+        <div class="ex-num num-teal">C${j+1}</div>
+        <div class="ex-inf"><div class="ex-name">${ex.name}</div>
+        <div class="ex-meta">${ex.dur} · <span style="color:var(--teal);font-style:italic">${ex.purpose}</span></div></div>
+        <div class="ex-arr" id="arr_cd${i}_${j}">›</div>
+      </div>
+      <div class="ex-body" id="cd${i}_${j}">
+        <div class="steps-lbl">Cara melakukan</div>
+        <div class="step-list">`;
+      ex.steps.forEach((s,k)=>h+=`<div class="step-item"><div class="step-dot" style="background:var(--teal)">${k+1}</div><div>${s}</div></div>`);
+      h+=`</div>
+        <a class="vid-btn" style="background:rgba(20,184,166,0.1);color:#2DD4BF;border-color:rgba(20,184,166,0.3)" href="${ex.video}" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#2DD4BF"><path d="M23.5 6.3a3 3 0 0 0-2.1-2.1C19.5 3.8 12 3.8 12 3.8s-7.5 0-9.4.5A3 3 0 0 0 .5 6.3 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.7 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.7zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+          Tonton video tutorial di YouTube
+        </a></div></div>`;
+    });
+  }
+
+  document.getElementById('wkContent').innerHTML = h;
+}
+function toggleEx(id){
+  const el = document.getElementById(id);
+  const arr = document.getElementById('arr_'+id);
+  const open = el.classList.toggle('open');
+  arr.classList.toggle('open', open);
+  if(open) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ========== GUIDE ==========
+const guideCategories = ['Semua','Dada','Bahu','Trisep','Punggung','Bisep','Kaki','Glutes','Core','Cardio'];
+function renderGuide(){
+  const fr = document.getElementById('guideFilter');
+  fr.innerHTML = guideCategories.map(c=>`<button class="filter-btn${c===guideFilter?' active':''}" onclick="setGuideFilter('${c}')">${c}</button>`).join('');
+  const gc = document.getElementById('guideContent');
+  let allEx = [];
+  WK.forEach((d,di)=>d.exercises.forEach((ex,ei)=>allEx.push({...ex,dayIdx:di,exIdx:ei,dayColor:d.color,dayName:d.type})));
+  const filtered = guideFilter==='Semua'?allEx:allEx.filter(ex=>ex.muscles.toLowerCase().includes(guideFilter.toLowerCase()));
+  // deduplicate by name
+  const seen = new Set();
+  const unique = filtered.filter(ex=>{ if(seen.has(ex.name))return false; seen.add(ex.name); return true; });
+  let h = '';
+  unique.forEach((ex,j)=>{
+    const id = `guide_${j}`;
+    h+=`<div class="ex-card"><div class="ex-head" onclick="toggleEx('${id}')">
+      <div class="ex-num" style="color:${ex.dayColor}">●</div>
+      <div class="ex-inf"><div class="ex-name">${ex.name}</div>
+      <div class="ex-meta">${ex.muscles}</div></div>
+      <div class="ex-arr" id="arr_${id}">›</div>
+    </div>
+    <div class="ex-body" id="${id}">
+      <div style="margin-bottom:6px"><span class="badge badge-blue">${ex.sets}</span>${ex.weight?` <span class="badge badge-orange">${ex.weight}</span>`:''}</div>
+      <div class="steps-lbl">Cara melakukan</div>
+      <div class="step-list">`;
+    ex.steps.forEach((s,k)=>h+=`<div class="step-item"><div class="step-dot">${k+1}</div><div>${s}</div></div>`);
+    h+=`</div><div class="mistake-box"><div class="mistake-lbl">Kesalahan umum</div>${ex.mistakes.replace(/\n/g,'<br>')}</div>
+      <a class="vid-btn" href="${ex.video}" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#F87171"><path d="M23.5 6.3a3 3 0 0 0-2.1-2.1C19.5 3.8 12 3.8 12 3.8s-7.5 0-9.4.5A3 3 0 0 0 .5 6.3 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.7 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.7zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+        Tonton video tutorial di YouTube
+      </a></div></div>`;
+  });
+  if(!unique.length) h='<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">Tidak ada gerakan untuk kategori ini.</div>';
+  gc.innerHTML=h;
+}
+function setGuideFilter(c){ guideFilter=c; renderGuide(); }
+
+// ========== MEAL ==========
+function renderMealTabs(){
+  const el = document.getElementById('mealDayTabs');
+  el.innerHTML = MEALS.map((d,i)=>`<button class="day-tab${i===currentMealDay?' active':''}" onclick="selectMealDay(${i})">${d.name.substring(0,3)}</button>`).join('');
+}
+function selectMealDay(i){ currentMealDay=i; renderMealTabs(); renderMealDay(i); }
+function renderMealDay(i){
+  const d = MEALS[i];
+  let h = `<div style="text-align:right;margin-bottom:8px;font-size:12px;color:var(--orange);font-weight:700">Total: ~${d.total.toLocaleString()} kcal</div>`;
+  d.meals.forEach(m=>{
+    h+=`<div class="card meal-block">
+      <div class="meal-head">
+        <div class="meal-title">${m.icon} ${m.title}</div>
+        <div class="meal-kcal">${m.kcal} kcal</div>
+      </div>`;
+    m.items.forEach(it=>h+=`<div class="food-row">
+      <div class="food-left"><div class="food-name">${it.n}</div><div class="food-portion">${it.p}</div></div>
+      <div class="food-macro">${it.m}</div>
+    </div>`);
+    h+=`<div class="meal-tip">${m.tip}</div></div>`;
+  });
+  document.getElementById('mealContent').innerHTML=h;
+}
+
+// ========== PROGRESS ==========
+function saveProgress(){
+  const w = parseFloat(document.getElementById('inpWeight').value);
+  const f = parseFloat(document.getElementById('inpFat').value);
+  const wt = parseFloat(document.getElementById('inpWaist').value);
+  const vf = parseFloat(document.getElementById('inpVF').value);
+  if(!w){ alert('Masukkan berat badan dulu ya!'); return; }
+  const history = JSON.parse(localStorage.getItem('hadi_progress')||'[]');
+  history.unshift({ date: today.toLocaleDateString('id-ID'), weight: w, fat: f||null, waist: wt||null, vf: vf||null, ts: Date.now() });
+  localStorage.setItem('hadi_progress', JSON.stringify(history));
+  document.getElementById('inpWeight').value='';
+  document.getElementById('inpFat').value='';
+  document.getElementById('inpWaist').value='';
+  document.getElementById('inpVF').value='';
+  renderProgress();
+}
+function renderProgress(){
+  const history = JSON.parse(localStorage.getItem('hadi_progress')||'[]');
+  // chart
+  const pc = document.getElementById('progressChart');
+  if(history.length===0){
+    pc.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:10px">Belum ada data. Catat berat badan pertamamu!</div>';
+  } else {
+    const latest = history[0];
+    const start = 104;
+    const target = 90;
+    const lost = start - latest.weight;
+    const pct = Math.min(100, Math.max(0, Math.round(lost/(start-target)*100)));
+    let h = `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>Berat terbaru: <strong>${latest.weight} kg</strong></span>
+        <span style="color:var(--green)">-${lost.toFixed(1)} kg dari awal</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:var(--green)"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px"><span>Start: 104 kg</span><span>Target: 90 kg (${pct}%)</span></div>
+    </div>`;
+    if(latest.fat) h+=`<div style="font-size:12px;color:var(--muted)">Body Fat: <strong style="color:var(--text)">${latest.fat}%</strong></div>`;
+    if(latest.vf) h+=`<div style="font-size:12px;color:var(--muted);margin-top:2px">Visceral Fat: <strong style="color:${latest.vf<15?'var(--green)':latest.vf<20?'var(--orange)':'var(--red)'}">${latest.vf}</strong></div>`;
+    if(latest.waist) h+=`<div style="font-size:12px;color:var(--muted);margin-top:2px">Lingkar Pinggang: <strong style="color:var(--text)">${latest.waist} cm</strong></div>`;
+    pc.innerHTML=h;
+  }
+  // history
+  const hl = document.getElementById('historyList');
+  if(history.length===0){
+    hl.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:10px">Belum ada riwayat.</div>';
+  } else {
+    let h='';
+    history.forEach((item,i)=>{
+      const prev = history[i+1];
+      const delta = prev ? (item.weight - prev.weight) : null;
+      h+=`<div class="history-item">
+        <div><div style="font-size:13px;font-weight:600">${item.weight} kg</div>
+        <div class="hist-date">${item.date}${item.fat?' · Fat: '+item.fat+'%':''}${item.waist?' · Pinggang: '+item.waist+'cm':''}</div></div>
+        <div style="text-align:right">
+          ${delta!==null?`<div class="hist-delta ${delta<0?'delta-good':'delta-bad'}">${delta<0?'▼':'▲'} ${Math.abs(delta).toFixed(1)} kg</div>`:''}
+        </div>
+      </div>`;
+    });
+    hl.innerHTML=h;
+  }
+}
+function clearHistory(){
+  if(confirm('Hapus semua riwayat progres?')){ localStorage.removeItem('hadi_progress'); renderProgress(); }
+}
+
+// ========== NAVIGATION ==========
+function showScreen(name, btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  btn.classList.add('active');
+  const titles = {home:'Hadi Fitness',workout:'Jadwal Latihan',guide:'Panduan Gerakan',meal:'Program Makan',progress:'Progres & Aturan'};
+  const subs = {home:'Fat Loss Program',workout:'Tap gerakan untuk detail',guide:'Panduan lengkap setiap gerakan',meal:'1.700 kcal / hari',progress:'Catat perjalananmu'};
+  document.getElementById('topTitle').textContent = titles[name];
+  document.getElementById('topSub').textContent = subs[name];
+}
+function goToWorkout(){
+  const btn = document.querySelectorAll('.nav-btn')[1];
+  showScreen('workout', btn);
+}
+
+init();
+</script>
+</body>
+</html>

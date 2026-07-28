@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir C:BK-Cigalontang:*)",
+      "Bash(nanobanana-api-mcp --apiKey \"AIzaSyC1CGWqNW_5vImZlSwyt9ZcU7vlN3pU3RM\")"
+    ]
+  }
+}

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generator RPL BK - SMAN 1 Cigalontang</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #2c5aa0 0%, #6a4c93 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #2c5aa0 0%, #6a4c93 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+
+    header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-grid.full {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #2c5aa0;
+      box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #2c5aa0;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #2c5aa0;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+      justify-content: center;
+    }
+
+    button {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, #2c5aa0 0%, #6a4c93 100%);
+      color: white;
+      flex: 1;
+      max-width: 300px;
+    }
+
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(44, 90, 160, 0.4);
+    }
+
+    .btn-generate:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-reset {
+      background: #f0f0f0;
+      color: #333;
+      flex: 1;
+      max-width: 200px;
+    }
+
+    .btn-reset:hover {
+      background: #e0e0e0;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #2c5aa0;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #2c5aa0;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .message {
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+
+    .form-info {
+      background: #f8f9fa;
+      border-left: 4px solid #2c5aa0;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .tp-description {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      header h1 {
+        font-size: 22px;
+      }
+
+      .content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📋 Generator RPL Bimbingan Kelompok</h1>
+      <p>SMAN 1 Cigalontang - Format Resmi BK Indonesia</p>
+    </header>
+
+    <div class="content">
+      <div class="form-info">
+        <strong>ℹ️ Catatan:</strong> Isi semua kolom untuk menghasilkan RPL (Rencana Pelaksanaan Layanan) BK dengan komponen lengkap: A-M sesuai standar nasional.
+      </div>
+
+      <div id="message" class="message"></div>
+
+      <form id="rplForm">
+        <!-- Identitas Konselor -->
+        <div class="section-title">📋 Identitas Konselor & Sekolah</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="counselorName">Nama Konselor/Guru BK *</label>
+            <input type="text" id="counselorName" name="counselorName" required placeholder="Contoh: Hadi Hasanuddin">
+          </div>
+          <div class="form-group">
+            <label for="counselorNIP">NIP *</label>
+            <input type="text" id="counselorNIP" name="counselorNIP" required placeholder="Contoh: 197501011999031005">
+          </div>
+          <div class="form-group">
+            <label for="schoolName">Nama Sekolah *</label>
+            <input type="text" id="schoolName" name="schoolName" value="SMAN 1 Cigalontang" required>
+          </div>
+          <div class="form-group">
+            <label for="principalName">Nama Kepala Sekolah *</label>
+            <input type="text" id="principalName" name="principalName" required placeholder="Contoh: Drs. Ahmad Suryanto">
+          </div>
+          <div class="form-group">
+            <label for="principalNIP">NIP Kepala Sekolah *</label>
+            <input type="text" id="principalNIP" name="principalNIP" required placeholder="Contoh: 196805151989031003">
+          </div>
+        </div>
+
+        <!-- Komponen RPL A, B, C, D, E, F -->
+        <div class="section-title">🎯 Komponen Layanan</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="targetClass">F. Sasaran Layanan *</label>
+            <select id="targetClass" name="targetClass" required>
+              <option value="">-- Pilih Kelas --</option>
+              <option value="Kelas 7">Kelas 7</option>
+              <option value="Kelas 8">Kelas 8</option>
+              <option value="Kelas 9">Kelas 9</option>
+              <option value="Kelas 10">Kelas 10</option>
+              <option value="Kelas 11">Kelas 11</option>
+              <option value="Kelas 12">Kelas 12</option>
+              <option value="Lintas Kelas">Lintas Kelas</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="semester">Semester *</label>
+            <select id="semester" name="semester" required>
+              <option value="">-- Pilih Semester --</option>
+              <option value="Ganjil">Ganjil</option>
+              <option value="Genap">Genap</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tugas Perkembangan -->
+        <div class="section-title">🌱 E. Topik - Tugas Perkembangan</div>
+        <div class="form-grid full">
+          <div class="form-group">
+            <label for="developmentalTask">Pilih Tugas Perkembangan *</label>
+            <select id="developmentalTask" name="developmentalTask" required>
+              <option value="">-- Pilih Tugas Perkembangan --</option>
+              <option value="tp1">1. Menerima Keadaan Fisik</option>
+              <option value="tp2">2. Menerima Peran Seks</option>
+              <option value="tp3">3. Mengembangkan Keterampilan Intelektual</option>
+              <option value="tp4">4. Bergaul dengan Teman Sebaya</option>
+              <option value="tp5">5. Kemandirian Emosional</option>
+              <option value="tp6">6. Persiapan Karir</option>
+              <option value="tp7">7. Persiapan Pernikahan & Keluarga</option>
+              <option value="tp8">8. Mengembangkan Nilai & Moral</option>
+              <option value="tp9">9. Tanggung Jawab Sosial</option>
+              <option value="tp10">10. Tanggung Jawab Warga Negara</option>
+              <option value="tp11">11. Kemandirian Pribadi</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Waktu & Durasi -->
+        <div class="section-title">⏱️ H. Waktu & Durasi Layanan</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="duration">Durasi Total (menit) *</label>
+            <input type="number" id="duration" name="duration" required min="45" max="300" value="90" placeholder="Contoh: 90">
+          </div>
+          <div class="form-group">
+            <label for="numSessions">Jumlah Sesi/Pertemuan *</label>
+            <input type="number" id="numSessions" name="numSessions" required min="1" max="20" value="1" placeholder="Contoh: 1">
+          </div>
+        </div>
+
+        <!-- Tujuan Layanan -->
+        <div class="section-title">🎯 D. Tujuan Khusus Layanan</div>
+        <div class="form-grid full">
+          <div class="form-group">
+            <label for="councselingGoals">Tujuan Khusus (Apa yang ingin dicapai?) *</label>
+            <textarea id="councselingGoals" name="councselingGoals" required placeholder="Contoh: Peserta didik mampu menerima dan puas dengan keadaan fisiknya; Peserta didik mampu mengembangkan sikap positif terhadap perubahan fisik"></textarea>
+          </div>
+        </div>
+
+        <!-- Isu/Topik Bahasan -->
+        <div class="section-title">📌 Isu/Topik yang Diangkat</div>
+        <div class="form-grid full">
+          <div class="form-group">
+            <label for="issues">Topik Spesifik Bahasan *</label>
+            <textarea id="issues" name="issues" required placeholder="Contoh: Perubahan fisik pubertas, penerimaan diri, body image, kesehatan reproduksi"></textarea>
+          </div>
+        </div>
+
+        <!-- Pendekatan Konseling -->
+        <div class="section-title">💡 G. Pendekatan & Teknik Konseling</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="counselingApproach">Pendekatan Konseling *</label>
+            <select id="counselingApproach" name="counselingApproach" required>
+              <option value="">-- Pilih Pendekatan --</option>
+              <option value="Konseling Humanistik">Konseling Humanistik</option>
+              <option value="Konseling Kognitif-Behavioural">Konseling Kognitif-Behavioural</option>
+              <option value="Konseling Psikodinamik">Konseling Psikodinamik</option>
+              <option value="Konseling Realitas">Konseling Realitas</option>
+              <option value="Konseling Naratif">Konseling Naratif</option>
+              <option value="Pendekatan Kelompok Supportif">Pendekatan Kelompok Supportif</option>
+              <option value="Konseling Berbasis Kekuatan">Konseling Berbasis Kekuatan</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="implementationDate">J. Tanggal Pelaksanaan</label>
+            <input type="text" id="implementationDate" name="implementationDate" placeholder="Contoh: 15 September 2024">
+          </div>
+        </div>
+
+        <!-- Media & Alat -->
+        <div class="section-title">📱 I. Media & Alat Bantu</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="media">Media (jika ada)</label>
+            <input type="text" id="media" name="media" placeholder="Contoh: Video, slideshow, poster (tulis '-' jika tidak ada)">
+          </div>
+          <div class="form-group">
+            <label for="tools">Alat Bantu</label>
+            <input type="text" id="tools" name="tools" value="Buku tulis, pulpen, spidol" placeholder="Contoh: Buku tulis, pulpen, spidol">
+          </div>
+        </div>
+
+        <!-- Tombol -->
+        <div class="button-group">
+          <button type="button" class="btn-reset" onclick="resetForm()">Reset</button>
+          <button type="submit" class="btn-generate">Buat RPL BK (DOCX)</button>
+        </div>
+      </form>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p id="loadingText">Memproses data Anda...</p>
+        <div style="margin-top: 20px; text-align: left; font-size: 12px; color: #666;">
+          <p id="status1">⏳ Menyiapkan form...</p>
+          <p id="status2" style="display:none; color: #2c5aa0;">🔄 Menghasilkan materi dengan AI Gemini...</p>
+          <p id="status3" style="display:none;">📝 Menyusun dokumen RPL...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('rplForm');
+    const messageDiv = document.getElementById('message');
+    const loadingDiv = document.getElementById('loading');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = {
+        counselorName: document.getElementById('counselorName').value,
+        counselorNIP: document.getElementById('counselorNIP').value,
+        schoolName: document.getElementById('schoolName').value,
+        principalName: document.getElementById('principalName').value,
+        principalNIP: document.getElementById('principalNIP').value,
+        targetClass: document.getElementById('targetClass').value,
+        developmentalTask: document.getElementById('developmentalTask').value,
+        semester: document.getElementById('semester').value,
+        duration: document.getElementById('duration').value,
+        numSessions: document.getElementById('numSessions').value,
+        councselingGoals: document.getElementById('councselingGoals').value,
+        counselingApproach: document.getElementById('counselingApproach').value,
+        issues: document.getElementById('issues').value,
+        media: document.getElementById('media').value,
+        tools: document.getElementById('tools').value,
+        implementationDate: document.getElementById('implementationDate').value
+      };
+
+      loadingDiv.style.display = 'block';
+      messageDiv.style.display = 'none';
+
+      // Show progress steps
+      document.getElementById('status1').textContent = '✓ Form valid';
+      document.getElementById('status2').style.display = 'block';
+
+      try {
+        const response = await fetch('/api/generate-modul', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          document.getElementById('status2').innerHTML = '✓ Materi AI berhasil dibuat';
+          document.getElementById('status3').style.display = 'block';
+
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `RPL_BK_${formData.developmentalTask.toUpperCase()}.docx`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+
+          document.getElementById('status3').innerHTML = '✓ RPL siap diunduh!';
+          setTimeout(() => {
+            showMessage('✓ RPL BK berhasil dibuat dengan materi AI! File sedang diunduh...', 'success');
+          }, 500);
+        } else {
+          const error = await response.json();
+          showMessage('✗ Gagal membuat RPL: ' + (error.error || 'Kesalahan tidak diketahui'), 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showMessage('✗ Terjadi kesalahan: ' + error.message, 'error');
+      } finally {
+        loadingDiv.style.display = 'none';
+      }
+    });
+
+    function showMessage(text, type) {
+      messageDiv.textContent = text;
+      messageDiv.className = `message ${type}`;
+      messageDiv.style.display = 'block';
+
+      if (type === 'success') {
+        setTimeout(() => {
+          messageDiv.style.display = 'none';
+        }, 5000);
+      }
+    }
+
+    function resetForm() {
+      form.reset();
+      document.getElementById('schoolName').value = 'SMAN 1 Cigalontang';
+      document.getElementById('duration').value = '90';
+      document.getElementById('numSessions').value = '1';
+      document.getElementById('tools').value = 'Buku tulis, pulpen, spidol';
+      messageDiv.style.display = 'none';
+    }
+
+    // Set default values
+    document.getElementById('schoolName').value = 'SMAN 1 Cigalontang';
+  </script>
+</body>
+</html>

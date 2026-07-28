@@ -1,0 +1,18 @@
+{
+  "name": "modul-ajar-generator",
+  "version": "1.0.0",
+  "description": "Generator for structured teaching modules (Modul Ajar) aligned with Indonesia's Merdeka Curriculum",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "docx": "^8.5.0",
+    "express": "^4.18.2",
+    "exceljs": "^4.4.0",
+    "xlsx": "^0.18.5",
+    "@google/generative-ai": "^0.3.0",
+    "dotenv": "^16.3.1"
+  }
+}

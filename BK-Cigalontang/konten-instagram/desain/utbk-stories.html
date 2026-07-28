@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Stories — Persiapan UTBK 2026 | BK SMANCigalontang</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #1a1a1a;
+    padding: 40px 20px;
+  }
+
+  h1.page-title {
+    text-align: center; color: #fff;
+    font-size: 20px; margin-bottom: 6px;
+  }
+  p.page-subtitle {
+    text-align: center; color: #888;
+    font-size: 12px; margin-bottom: 10px;
+  }
+  .print-guide {
+    background: #2a2a2a; border: 1px solid #444;
+    border-radius: 8px; padding: 12px 18px;
+    max-width: 900px; margin: 0 auto 30px;
+    font-size: 12px; color: #aaa; line-height: 1.6;
+  }
+  .print-guide strong { color: #fff; }
+
+  /* Stories layout — horizontal scroll row */
+  .stories-row {
+    display: flex;
+    gap: 20px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 20px;
+    max-width: 100%;
+  }
+
+  .story-wrap {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .story-label {
+    color: #666; font-size: 11px;
+    text-align: center; letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Base story — 405 x 720 (9:16 scaled) */
+  .story {
+    width: 338px;
+    height: 600px;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+
+  /* Progress bars at top (Instagram style) */
+  .progress-bars {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; gap: 3px; padding: 10px 12px 0;
+    z-index: 10;
+  }
+  .progress-bars .bar {
+    flex: 1; height: 2px; border-radius: 2px;
+    background: rgba(255,255,255,0.35);
+  }
+  .progress-bars .bar.done { background: rgba(255,255,255,0.9); }
+
+  /* Top profile bar */
+  .story-topbar {
+    position: absolute; top: 18px; left: 0; right: 0;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 14px;
+    z-index: 10;
+  }
+  .story-topbar .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(135deg, #f5a623, #c0392b);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; border: 1.5px solid #fff;
+  }
+  .story-topbar .account { color: #fff; font-size: 12px; font-weight: 600; }
+  .story-topbar .time { color: rgba(255,255,255,0.7); font-size: 11px; margin-left: 4px; }
+
+  /* ===== STORY 1 — COUNTDOWN ===== */
+  .s1 {
+    background: linear-gradient(160deg, #c0392b 0%, #e74c3c 40%, #f39c12 100%);
+    justify-content: center; align-items: center; text-align: center;
+    padding: 60px 28px 40px;
+  }
+  .s1 .big-num {
+    font-size: 130px; font-weight: 900; color: rgba(255,255,255,0.15);
+    line-height: 1; position: absolute; bottom: 100px; right: 20px;
+    letter-spacing: -10px;
+  }
+  .s1 .content { position: relative; z-index: 2; }
+  .s1 .tag {
+    background: rgba(255,255,255,0.2);
+    color: #fff; font-size: 11px; padding: 4px 14px;
+    border-radius: 20px; letter-spacing: 2px;
+    display: inline-block; margin-bottom: 18px;
+  }
+  .s1 .days {
+    font-size: 90px; font-weight: 900; color: #fff;
+    line-height: 1; text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .s1 .days-label {
+    color: rgba(255,255,255,0.85); font-size: 22px;
+    font-weight: 700; margin-bottom: 20px;
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .s1 .main-text {
+    color: #fff; font-size: 20px; font-weight: 800;
+    line-height: 1.3; margin-bottom: 8px;
+  }
+  .s1 .sub-text { color: rgba(255,255,255,0.75); font-size: 14px; }
+  .s1 .countdown-sticker {
+    margin-top: 24px;
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.4);
+    border-radius: 12px; padding: 10px 20px;
+    display: inline-flex; align-items: center; gap: 8px;
+    color: #fff; font-size: 13px; font-weight: 600;
+  }
+
+  /* ===== STORY 2 — POLL ===== */
+  .s2 {
+    background: linear-gradient(160deg, #1a1a2e 0%, #16213e 100%);
+    justify-content: center; align-items: center; text-align: center;
+    padding: 60px 24px 30px;
+  }
+  .s2 .content { width: 100%; }
+  .s2 .emoji-big { font-size: 52px; margin-bottom: 16px; display: block; }
+  .s2 h2 {
+    color: #fff; font-size: 20px; font-weight: 800;
+    line-height: 1.4; margin-bottom: 24px;
+  }
+  .s2 h2 span { color: #f5a623; }
+  .s2 .poll-box {
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: 16px; padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+  .s2 .poll-box .poll-q {
+    color: rgba(255,255,255,0.7); font-size: 13px; margin-bottom: 14px;
+  }
+  .s2 .poll-option {
+    border-radius: 30px; padding: 11px 18px;
+    font-size: 14px; font-weight: 700;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+  }
+  .s2 .poll-yes { background: #2ecc71; color: #fff; }
+  .s2 .poll-no  { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: 1.5px solid rgba(255,255,255,0.2); }
+  .s2 .hint { color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 6px; }
+
+  /* ===== STORY 3 — TIMELINE ===== */
+  .s3 {
+    background: linear-gradient(160deg, #0f3460 0%, #16213e 100%);
+    padding: 60px 22px 30px;
+    display: flex; flex-direction: column;
+  }
+  .s3 .header { text-align: center; margin-bottom: 20px; }
+  .s3 .header .badge {
+    background: rgba(245,166,35,0.2); color: #f5a623;
+    font-size: 11px; padding: 4px 14px; border-radius: 20px;
+    display: inline-block; margin-bottom: 8px; letter-spacing: 1px;
+  }
+  .s3 .header h2 { color: #fff; font-size: 18px; font-weight: 800; }
+  .s3 .timeline { flex: 1; display: flex; flex-direction: column; gap: 0; }
+  .s3 .tl-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    position: relative; padding-bottom: 14px;
+  }
+  .s3 .tl-item:last-child { padding-bottom: 0; }
+  .s3 .tl-left { display: flex; flex-direction: column; align-items: center; }
+  .s3 .tl-dot {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; flex-shrink: 0;
+  }
+  .s3 .tl-line {
+    width: 2px; flex: 1; background: rgba(255,255,255,0.1);
+    margin: 3px 0;
+  }
+  .s3 .tl-item:last-child .tl-line { display: none; }
+  .s3 .tl-text { padding-top: 6px; }
+  .s3 .tl-text strong { color: #fff; font-size: 13px; display: block; margin-bottom: 3px; }
+  .s3 .tl-text span { color: rgba(255,255,255,0.55); font-size: 12px; }
+
+  .s3 .dot-1 { background: #e74c3c; color: #fff; }
+  .s3 .dot-2 { background: #e67e22; color: #fff; }
+  .s3 .dot-3 { background: #f5a623; color: #fff; }
+  .s3 .dot-4 { background: #2ecc71; color: #fff; }
+
+  /* ===== STORY 4 — TIPS BELAJAR ===== */
+  .s4 {
+    background: linear-gradient(160deg, #f39c12 0%, #f5a623 50%, #e67e22 100%);
+    padding: 60px 22px 30px;
+    display: flex; flex-direction: column;
+  }
+  .s4 .header { text-align: center; margin-bottom: 18px; }
+  .s4 .header .icon { font-size: 36px; margin-bottom: 8px; display: block; }
+  .s4 .header h2 { color: #fff; font-size: 19px; font-weight: 800; line-height: 1.3; }
+  .s4 .tips { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .s4 .tip-item {
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px; padding: 11px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .s4 .tip-item .icon { font-size: 20px; flex-shrink: 0; }
+  .s4 .tip-item p { color: #fff; font-size: 13px; font-weight: 600; line-height: 1.4; }
+  .s4 .quiz-sticker {
+    background: rgba(255,255,255,0.25);
+    border: 1.5px solid rgba(255,255,255,0.5);
+    border-radius: 12px; padding: 10px 14px; margin-top: 8px;
+    text-align: center; color: #fff; font-size: 12px; font-weight: 600;
+  }
+
+  /* ===== STORY 5 — STRATEGI WAKTU ===== */
+  .s5 {
+    background: linear-gradient(160deg, #1e8449 0%, #27ae60 100%);
+    padding: 60px 22px 30px;
+    display: flex; flex-direction: column;
+  }
+  .s5 .header { text-align: center; margin-bottom: 18px; }
+  .s5 .header .icon { font-size: 36px; margin-bottom: 8px; display: block; }
+  .s5 .header h2 { color: #fff; font-size: 18px; font-weight: 800; }
+  .s5 .strategies { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .s5 .strat {
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px; padding: 11px 14px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .s5 .strat .num {
+    background: rgba(255,255,255,0.25); color: #fff;
+    width: 24px; height: 24px; border-radius: 50%;
+    font-size: 12px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .s5 .strat p { color: #fff; font-size: 12.5px; line-height: 1.5; }
+  .s5 .strat p strong { color: #b3ffcb; }
+  .s5 .highlight-box {
+    background: rgba(255,255,255,0.2);
+    border: 1.5px solid rgba(255,255,255,0.4);
+    border-radius: 12px; padding: 11px 14px; margin-top: 4px;
+    text-align: center;
+  }
+  .s5 .highlight-box p { color: #fff; font-size: 12.5px; font-weight: 700; }
+  .s5 .highlight-box p span { color: #ffff99; }
+
+  /* ===== STORY 6 — CHECKLIST ===== */
+  .s6 {
+    background: linear-gradient(160deg, #1a1a2e 0%, #0f0c29 100%);
+    padding: 60px 22px 30px;
+    display: flex; flex-direction: column;
+  }
+  .s6 .header { text-align: center; margin-bottom: 16px; }
+  .s6 .header .moon { font-size: 32px; display: block; margin-bottom: 6px; }
+  .s6 .header h2 { color: #f5a623; font-size: 18px; font-weight: 800; }
+  .s6 .header p { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 4px; }
+  .s6 .checklist { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+  .s6 .check-item {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 10px 14px;
+  }
+  .s6 .check-item .box {
+    width: 20px; height: 20px; border-radius: 5px;
+    border: 2px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .s6 .check-item.done .box {
+    background: #2ecc71; border-color: #2ecc71;
+    color: #fff; font-size: 12px;
+  }
+  .s6 .check-item p { color: rgba(255,255,255,0.8); font-size: 12.5px; }
+  .s6 .check-item.done p { color: rgba(255,255,255,0.5); text-decoration: line-through; }
+  .s6 .slider-sticker {
+    background: rgba(245,166,35,0.1); border: 1.5px solid rgba(245,166,35,0.3);
+    border-radius: 12px; padding: 10px 14px; margin-top: 8px; text-align: center;
+    color: #f5a623; font-size: 12px; font-weight: 600;
+  }
+
+  /* ===== STORY 7 — PAGI HARI H ===== */
+  .s7 {
+    background: linear-gradient(160deg, #f5a623 0%, #f39c12 50%, #e67e22 100%);
+    padding: 60px 22px 30px;
+    display: flex; flex-direction: column;
+  }
+  .s7 .header { text-align: center; margin-bottom: 18px; }
+  .s7 .header .sun { font-size: 44px; display: block; margin-bottom: 8px; }
+  .s7 .header h2 { color: #fff; font-size: 19px; font-weight: 800; line-height: 1.3; }
+  .s7 .items { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .s7 .item {
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .s7 .item .emoji { font-size: 22px; flex-shrink: 0; }
+  .s7 .item p { color: #fff; font-size: 13px; font-weight: 600; line-height: 1.4; }
+
+  /* ===== STORY 8 — SELF CARE ===== */
+  .s8 {
+    background: linear-gradient(160deg, #4a235a 0%, #6c3483 100%);
+    padding: 60px 22px 30px;
+    display: flex; flex-direction: column;
+  }
+  .s8 .header { text-align: center; margin-bottom: 18px; }
+  .s8 .header .heart { font-size: 44px; display: block; margin-bottom: 8px; }
+  .s8 .header h2 { color: #fff; font-size: 19px; font-weight: 800; line-height: 1.3; }
+  .s8 .cares { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .s8 .care {
+    background: rgba(255,255,255,0.1);
+    border-left: 3px solid rgba(255,255,255,0.4);
+    border-radius: 0 12px 12px 0; padding: 10px 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .s8 .care .arrow { color: #f5a623; font-weight: 800; flex-shrink: 0; font-size: 16px; }
+  .s8 .care p { color: rgba(255,255,255,0.85); font-size: 12.5px; line-height: 1.4; }
+  .s8 .care p strong { color: #d7bde2; }
+  .s8 .closing {
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 12px 14px; margin-top: 8px; text-align: center;
+  }
+  .s8 .closing p { color: #fff; font-size: 13px; font-weight: 600; line-height: 1.5; }
+  .s8 .closing p span { color: #f5a623; }
+
+  /* ===== STORY 9 — Q&A ===== */
+  .s9 {
+    background: linear-gradient(160deg, #2980b9 0%, #3498db 100%);
+    justify-content: center; align-items: center; text-align: center;
+    padding: 60px 24px 30px;
+    display: flex; flex-direction: column;
+  }
+  .s9 .icon { font-size: 52px; margin-bottom: 16px; }
+  .s9 h2 { color: #fff; font-size: 20px; font-weight: 800; line-height: 1.4; margin-bottom: 10px; }
+  .s9 p.sub { color: rgba(255,255,255,0.75); font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+  .s9 .qa-box {
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    border-radius: 14px; padding: 14px 18px; width: 100%;
+  }
+  .s9 .qa-box p {
+    color: rgba(255,255,255,0.5); font-size: 13px; font-style: italic;
+  }
+  .s9 .qa-box .placeholder {
+    color: rgba(255,255,255,0.4); font-size: 13px; margin-bottom: 8px;
+    text-align: left;
+  }
+  .s9 .avatar-row {
+    display: flex; align-items: center; gap: 10px; margin-top: 10px;
+  }
+  .s9 .bk-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(135deg, #f5a623, #c0392b);
+    font-size: 14px; display: flex; align-items: center; justify-content: center;
+  }
+  .s9 .bk-name { color: rgba(255,255,255,0.7); font-size: 12px; }
+
+  /* ===== STORY 10 — MOTIVASI PENUTUP ===== */
+  .s10 {
+    background: linear-gradient(160deg, #0f0c29 0%, #1a1a2e 60%, #16213e 100%);
+    justify-content: center; align-items: center; text-align: center;
+    padding: 60px 28px 40px;
+    display: flex; flex-direction: column;
+  }
+  .s10 .stars {
+    font-size: 24px; letter-spacing: 8px; margin-bottom: 24px; opacity: 0.7;
+  }
+  .s10 .quote {
+    color: rgba(255,255,255,0.7); font-size: 16px; font-style: italic;
+    line-height: 1.8; margin-bottom: 24px;
+  }
+  .s10 .main-text {
+    color: #fff; font-size: 22px; font-weight: 900;
+    line-height: 1.4; margin-bottom: 6px;
+  }
+  .s10 .main-text span { color: #f5a623; }
+  .s10 .divider {
+    width: 40px; height: 2px; background: rgba(255,255,255,0.2);
+    margin: 20px auto;
+  }
+  .s10 .closing {
+    color: rgba(255,255,255,0.55); font-size: 13px; line-height: 1.7;
+  }
+  .s10 .closing strong { color: #f5a623; }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .page-title, .page-subtitle, .print-guide, .story-label { display: none; }
+    .stories-row { display: block; }
+    .story-wrap { display: block; margin-bottom: 0; }
+    .story {
+      width: 100%; height: 100vh;
+      border-radius: 0; box-shadow: none;
+      page-break-after: always;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">Stories Instagram — Persiapan UTBK 2026</h1>
+<p class="page-subtitle">BK SMA Negeri 1 Cigalontang &nbsp;|&nbsp; 10 Stories &nbsp;|&nbsp; Bidang Belajar &nbsp;|&nbsp; Kelas XII</p>
+
+<div class="print-guide">
+  <strong>Cara screenshot:</strong>
+  Zoom browser 100% → gunakan Snipping Tool (Win+Shift+S) → capture tiap story satu per satu.<br>
+  <strong>Ukuran Stories Instagram:</strong> 1080×1920px (rasio 9:16). Sesuaikan saat upload.<br>
+  <strong>Urutan posting:</strong> Story 1–5 di tanggal 12 April, Story 6–10 di tanggal 13 April 2026.
+</div>
+
+<div class="stories-row">
+
+  <!-- ======= STORY 1 — COUNTDOWN ======= -->
+  <div class="story-wrap">
+    <div class="story s1">
+      <div class="progress-bars">
+        <div class="bar done"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="story-topbar">
+        <div class="avatar">📚</div>
+        <span class="account">bk.smancigalontang</span>
+        <span class="time">Baru saja</span>
+      </div>
+      <div class="big-num">9</div>
+      <div class="content">
+        <div class="tag">⏰ COUNTDOWN UTBK 2026</div>
+        <div class="days">9</div>
+        <div class="days-label">HARI LAGI</div>
+        <div class="main-text">UTBK 2026 dimulai<br>21 April</div>
+        <div class="sub-text">Udah siap, kelas XII? 👀</div>
+        <div class="countdown-sticker">
+          ⏳ &nbsp; 21 April 2026 &nbsp; ⏳
+        </div>
+      </div>
+    </div>
+    <p class="story-label">Story 1 — Countdown</p>
+  </div>
+
+  <!-- ======= STORY 2 — POLL ======= -->
+  <div class="story-wrap">
+    <div class="story s2">
+      <div class="progress-bars">
+        <div class="bar done"></div><div class="bar done"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="story-topbar">
+        <div class="avatar">📚</div>
+        <span class="account">bk.smancigalontang</span>
+      </div>
+      <div class="content" style="width:100%">
+        <span class="emoji-big">🤔</span>
+        <h2>Jujur,<br>seberapa siap kamu<br>buat <span>UTBK</span>?</h2>
+        <div class="poll-box">
+          <p class="poll-q">Pilih yang paling jujur 👇</p>
+          <div class="poll-option poll-yes">✅ &nbsp; Udah siap banget!</div>
+          <div class="poll-option poll-no">😅 &nbsp; Masih butuh banyak belajar</div>
+        </div>
+        <p class="hint">Guru BK baca semua jawaban ini 💛</p>
+      </div>
+    </div>
+    <p class="story-label">Story 2 — Poll Interaktif</p>
+  </div>
+
+  <!-- ======= STORY 3 — TIMELINE ======= -->
+  <div class="story-wrap">
+    <div class="story s3">
+      <div class="progress-bars">
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="story-topbar">
+        <div class="avatar">📚</div>
+        <span class="account">bk.smancigalontang</span>
+      </div>
+      <div class="header">
+        <div class="badge">📅 RENCANA 9 HARI KE DEPAN</div>
+        <h2>Bagi waktumu<br>seperti ini</h2>
+      </div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-left">
+            <div class="tl-dot dot-1">H-9</div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-text">
+            <strong>12 – 15 April (H-9 s/d H-6)</strong>
+            <span>Review materi TPS & TKA secara menyeluruh</span>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left">
+            <div class="tl-dot dot-2">H-5</div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-text">
+            <strong>16 – 18 April (H-5 s/d H-3)</strong>
+            <span>Latihan soal intensif + tryout mandiri</span>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left">
+            <div class="tl-dot dot-3">H-2</div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-text">
+            <strong>19 April (H-2)</strong>
+            <span>Review catatan saja — jangan materi baru!</span>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left">
+            <div class="tl-dot dot-4">H-1</div>
+          </div>
+          <div class="tl-text">
+            <strong>20 April (H-1)</strong>
+            <span>Istirahat, siapkan berkas, tidur jam 22.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="story-label">Story 3 — Timeline Belajar</p>
+  </div>
+
+  <!-- ======= STORY 4 — TIPS BELAJAR ======= -->
+  <div class="story-wrap">
+    <div class="story s4">
+      <div class="progress-bars">
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="story-topbar">
+        <div class="avatar">📚</div>
+        <span class="account">bk.smancigalontang</span>
+      </div>
+      <div class="header">
+        <span class="icon">⚡</span>
+        <h2>Belajar Efektif<br>di Sisa Waktu</h2>
+      </div>
+      <div class="tips">
+        <div class="tip-item">
+          <span class="icon">🎯</span>
+          <p>Fokus ke materi yang sering keluar di UTBK</p>
+        </div>
+        <div class="tip-item">
+          <span class="icon">📝</span>
+          <p>Latihan soal lebih efektif dari baca teori panjang</p>
+        </div>
+        <div class="tip-item">
+          <span class="icon">🍅</span>
+          <p>25 menit belajar, 5 menit istirahat (Teknik Pomodoro)</p>
+        </div>
+        <div class="tip-item">
+          <span class="icon">📌</span>
+          <p>Catat rumus kunci di sticky note, tempel di meja</p>
+        </div>
+        <div class="tip-item">
+          <span class="icon">🚫</span>
+          <p>Hindari belajar semua mapel dalam satu hari</p>
+        </div>
+        <div class="quiz-sticker">
+          💬 Teknik Pomodoro — udah pernah coba? →
+        </div>
+      </div>
+    </div>
+    <p class="story-label">Story 4 — Tips Belajar</p>
+  </div>
+
+  <!-- ======= STORY 5 — STRATEGI WAKTU ======= -->
+  <div class="story-wrap">
+    <div class="story s5">
+      <div class="progress-bars">
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar done"></div><div class="bar done"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="story-topbar">
+        <div class="avatar">📚</div>
+        <span class="account">bk.smancigalontang</span>
+      </div>
+      <div class="header">
+        <span class="icon">⏱️</span>
+        <h2>Strategi Waktu<br>Saat Ujian Berlangsung</h2>
+      </div>
+      <div class="strategies">
+        <div class="strat">
+          <div class="num">1</div>
+          <p>Baca soal → <strong>skip yang berat</strong>, kerjakan yang mudah dulu</p>
+        </div>
+        <div class="strat">
+          <div class="num">2</div>
+          <p>Jangan terjebak di <strong>1 soal lebih dari 2 menit</strong></p>
+        </div>
+        <div class="strat">
+          <div class="num">3</div>
+          <p>Sisa waktu 10 menit → <strong>kembali ke soal yang di-skip</strong></p>
+        </div>
+        <div class="strat">
+          <div class="num">4</div>
+          <p>Selalu isi semua jawaban — <strong>tidak ada pengurangan nilai</strong></p>
+        </div>
+        <div class="highlight-box">
+          <p>💡 Tebak cerdas lebih baik<br><span>dari kosongin jawaban</span></p>
+        </div>
+      </div>
+    </div>
+    <p class="story-label">Story 5 — Strategi Ujian</p>
+  </div>
+
+  <!-- ======= STORY 6 — CHECKLIST ======= -->
+  <div class="story-wrap">
+    <div class="story s6">
+      <div class="progress-bars">
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="story-topbar">
+        <div class="avatar">📚</div>
+        <span class="account">bk.smancigalontang</span>
+      </div>
+      <div class="header">
+        <span class="moon">🌙</span>
+        <h2>Checklist H-1 UTBK</h2>
+        <p>Simpan story ini & centang satu per satu!</p>
+      </div>
+      <div class="checklist">
+        <div class="check-item">
+          <div class="box"></div>
+          <p>Kartu peserta UTBK sudah dicetak</p>
+        </div>
+        <div class="check-item">
+          <div class="box"></div>
+          <p>KTP / kartu identitas diri siap dibawa</p>
+        </div>
+        <div class="check-item">
+          <div class="box"></div>
+          <p>Lokasi ujian sudah dicek di Google Maps</p>
+        </div>
+        <div class="check-item">
+          <div class="box"></div>
+          <p>Baju dan sepatu sudah disiapkan malam ini</p>
+        </div>
+        <div class="check-item">
+          <div class="box"></div>
+          <p>Alarm di-set 2x untuk pagi hari</p>
+        </div>
+        <div class="check-item">
+          <div class="box"></div>
+          <p>HP di-charge penuh malam ini</p>
+        </div>
+        <div class="check-item done">
+          <div class="box">✓</div>
+          <p>Tidur sebelum jam 22.00 malam ini</p>
+        </div>
+      </div>
+      <div class="slider-sticker">
+        🌟 Geser untuk rate kesiapanmu malam ini →
+      </div>
+    </div>
+    <p class="story-label">Story 6 — Checklist H-1</p>
+  </div>
+
+  <!-- ======= STORY 7 — PAGI HARI H ======= -->
+  <div class="story-wrap">
+    <div class="story s7">
+      <div class="progress-bars">
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="story-topbar">
+        <div class="avatar">📚</div>
+        <span class="account">bk.smancigalontang</span>
+      </div>
+      <div class="header">
+        <span class="sun">☀️</span>
+        <h2>Pagi Hari H —<br>Lakukan Ini Dulu!</h2>
+      </div>
+      <div class="items">
+        <div class="item">
+          <span class="emoji">🍳</span>
+          <p>Sarapan bergizi — jangan sampai skip!</p>
+        </div>
+        <div class="item">
+          <span class="emoji">🚗</span>
+          <p>Berangkat lebih awal, antisipasi macet</p>
+        </div>
+        <div class="item">
+          <span class="emoji">📵</span>
+          <p>Jangan buka medsos pagi itu — fokus dulu</p>
+        </div>
+        <div class="item">
+          <span class="emoji">🧘</span>
+          <p>Tarik napas dalam — kamu sudah siap</p>
+        </div>
+        <div class="item">
+          <span class="emoji">🙏</span>
+          <p>Doa dulu sebelum masuk ruangan ujian</p>
+        </div>
+      </div>
+    </div>
+    <p class="story-label">Story 7 — Tips Pagi Hari H</p>
+  </div>
+
+  <!-- ======= STORY 8 — SELF CARE ======= -->
+  <div class="story-wrap">
+    <div class="story s8">
+      <div class="progress-bars">
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar done"></div><div class="bar done"></div>
+        <div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="story-topbar">
+        <div class="avatar">📚</div>
+        <span class="account">bk.smancigalontang</span>
+      </div>
+      <div class="header">
+        <span class="heart">💜</span>
+        <h2>Ingatkan Dirimu:<br>Kamu Juga Perlu Dijaga</h2>
+      </div>
+      <div class="cares">
+        <div class="care">
+          <span class="arrow">→</span>
+          <p><strong>Tidur 7–8 jam</strong> tetap wajib, bukan kemewahan</p>
+        </div>
+        <div class="care">
+          <span class="arrow">→</span>
+          <p><strong>Makan 3x sehari</strong> — otak butuh energi untuk fokus</p>
+        </div>
+        <div class="care">
+          <span class="arrow">→</span>
+          <p><strong>Olahraga ringan 15 menit</strong> terbukti bantu fokus belajar</p>
+        </div>
+        <div class="care">
+          <span class="arrow">→</span>
+          <p>Cerita ke teman atau orang tua kalau lagi cemas</p>
+        </div>
+        <div class="closing">
+          <p>UTBK penting,<br>tapi <span>kesehatan kamu lebih penting.</span><br>
+          Kamu sudah berjuang keras. 💛</p>
+        </div>
+      </div>
+    </div>
+    <p class="story-label">Story 8 — Self-Care</p>
+  </div>
+
+  <!-- ======= STORY 9 — Q&A ======= -->
+  <div class="story-wrap">
+    <div class="story s9">
+      <div class="progress-bars">
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar"></div>
+      </div>
+      <div class="story-topbar">
+        <div class="avatar">📚</div>
+        <span class="account">bk.smancigalontang</span>
+      </div>
+      <span class="icon">💬</span>
+      <h2>Ada yang lagi<br>cemas soal UTBK?</h2>
+      <p class="sub">Tanya apapun atau curhatin di sini.<br>Guru BK siap dengerin dan bantu. 💛</p>
+      <div class="qa-box">
+        <p class="placeholder">Tulis pertanyaan atau curhatmu di sini...</p>
+        <div class="avatar-row">
+          <div class="bk-avatar">📚</div>
+          <span class="bk-name">bk.smancigalontang akan membalas</span>
+        </div>
+      </div>
+    </div>
+    <p class="story-label">Story 9 — Question Box</p>
+  </div>
+
+  <!-- ======= STORY 10 — MOTIVASI ======= -->
+  <div class="story-wrap">
+    <div class="story s10">
+      <div class="progress-bars">
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar done"></div><div class="bar done"></div><div class="bar done"></div>
+        <div class="bar done"></div>
+      </div>
+      <div class="story-topbar">
+        <div class="avatar">📚</div>
+        <span class="account">bk.smancigalontang</span>
+      </div>
+      <div class="stars">✦ ✦ ✦</div>
+      <p class="quote">
+        "Ribuan jam belajar kamu<br>
+        tidak akan menghianatimu<br>
+        di 21 April nanti."
+      </p>
+      <div class="main-text">
+        Percaya prosesnya.<br>
+        <span>Percaya dirimu.</span>
+      </div>
+      <div class="divider"></div>
+      <p class="closing">
+        Guru BK selalu ada kalau kamu butuh. 🤝<br>
+        <strong>Semangat, Kelas XII!</strong>
+      </p>
+    </div>
+    <p class="story-label">Story 10 — Motivasi Penutup</p>
+  </div>
+
+</div><!-- end .stories-row -->
+</body>
+</html>

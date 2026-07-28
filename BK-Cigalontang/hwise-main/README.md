@@ -1,0 +1,2 @@
+# hwise
+untuk latihan
