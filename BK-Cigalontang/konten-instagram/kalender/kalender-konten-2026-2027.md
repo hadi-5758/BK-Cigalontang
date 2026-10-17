@@ -19,25 +19,25 @@
 | Pribadi | 12 | 15 | 27 |
 | Sosial | 10 | 20 | 30 |
 | Carousel | 16 | 36 | 52 |
-| Infografis | 2 | 6 | 8 |
+| Infografis | 3 | 6 | 9 |
 | Kuis Interaktif | 1 | 0 | 1 |
 | Photo Dump | 0 | 2 | 2 |
 | Reels | 10 | 19 | 29 |
-| Single Image | 7 | 9 | 16 |
+| Single Image | 6 | 9 | 15 |
 
 ## Sisa Semester 1 (Bonus)
 
 ### Minggu 1 · 19 Oktober 2026 – 23 Oktober 2026 · Tema: Siap TKA, Siap Mental
-*Momen:* Menjelang Prakiraan TKA (26–30 Okt); Bulan Kesehatan Mental  
+*Momen:* Menjelang TKA (nasional 26 Okt–8 Nov; sekolah: 26–30 Okt & XII 2–6 Nov); Bulan Kesehatan Mental  
 *Stories pendukung:* Polling: 'Mapel pilihan TKA-mu apa?' • Kotak tanya: 'Apa yang paling bikin kamu cemas soal TKA?'
 
 - **Senin, 19 Oktober 2026** · #SeninStarter · Carousel · Belajar — **TKA Itu Apa Sih? 5 Hal yang Wajib Kamu Tahu**  
   Isi: Apa itu TKA & tujuannya • Siapa pesertanya • Mapel wajib & pilihan • Manfaat hasil TKA untuk seleksi lanjut • Cara latihan yang efektif  
   CTA: Komen mapel pilihanmu & tag teman satu ruang ujian · Kolaborasi: Wakasek Kurikulum / Proktor TKA
-- **Rabu, 21 Oktober 2026** · #RabuRuangAman · Reels · Pribadi — **POV: H-7 TKA tapi Otak Nge-freeze**  
+- **Rabu, 21 Oktober 2026** · #RabuRuangAman · Reels · Pribadi — **POV: H-5 TKA tapi Otak Nge-freeze**  
   Isi: Skit singkat siswa panik → teman ajak teknik grounding 5-4-3-2-1 • Napas kotak 4-4-4-4 • Pesan: cemas itu wajar, bisa dikelola  
   CTA: Save & praktikkan sebelum tidur · Kolaborasi: Siswa talent (dengan izin tertulis)
-- **Jumat, 23 Oktober 2026** · #JumatNgobrolBK · Single Image · Belajar — **Checklist H-1 TKA**  
+- **Jumat, 23 Oktober 2026** · #JumatNgobrolBK · Infografis · Belajar — **Checklist Sebelum TKA — Simpan untuk Hari-H**  
   Isi: Kartu peserta & alat tulis • Tidur 7–8 jam • Sarapan • Cek ruang & jadwal • Datang 30 menit lebih awal • Doa & niat jujur  
   CTA: Save, lalu share ke grup kelas
 

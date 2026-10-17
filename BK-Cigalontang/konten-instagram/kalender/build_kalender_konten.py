@@ -45,16 +45,16 @@ SEM2 = "Semester 2"
 WEEKS = [
     # ===================== SISA SEMESTER 1 (BONUS) =====================
     dict(start="2026-10-19", sem=SEM1, tema="Siap TKA, Siap Mental",
-         momen="Menjelang Prakiraan TKA (26–30 Okt); Bulan Kesehatan Mental",
+         momen="Menjelang TKA (nasional 26 Okt–8 Nov; sekolah: 26–30 Okt & XII 2–6 Nov); Bulan Kesehatan Mental",
          stories="Polling: 'Mapel pilihan TKA-mu apa?' • Kotak tanya: 'Apa yang paling bikin kamu cemas soal TKA?'",
          posts=[
              ("Carousel", "B", "TKA Itu Apa Sih? 5 Hal yang Wajib Kamu Tahu",
               "Apa itu TKA & tujuannya • Siapa pesertanya • Mapel wajib & pilihan • Manfaat hasil TKA untuk seleksi lanjut • Cara latihan yang efektif",
               "Komen mapel pilihanmu & tag teman satu ruang ujian", "Wakasek Kurikulum / Proktor TKA"),
-             ("Reels", "P", "POV: H-7 TKA tapi Otak Nge-freeze",
+             ("Reels", "P", "POV: H-5 TKA tapi Otak Nge-freeze",
               "Skit singkat siswa panik → teman ajak teknik grounding 5-4-3-2-1 • Napas kotak 4-4-4-4 • Pesan: cemas itu wajar, bisa dikelola",
               "Save & praktikkan sebelum tidur", "Siswa talent (dengan izin tertulis)"),
-             ("Single Image", "B", "Checklist H-1 TKA",
+             ("Infografis", "B", "Checklist Sebelum TKA — Simpan untuk Hari-H",
               "Kartu peserta & alat tulis • Tidur 7–8 jam • Sarapan • Cek ruang & jadwal • Datang 30 menit lebih awal • Doa & niat jujur",
               "Save, lalu share ke grup kelas", "-"),
          ]),
