@@ -19,7 +19,7 @@
 
 ## TKA Itu Apa Sih? 5 Hal yang Wajib Kamu Tahu
 
-**Ukuran:** 1080 × 1350 px · **Palet:** biru tua sekolah + kuning cerah + putih · **Font:** sans-serif tebal untuk judul
+**Ukuran:** 1080 × 1350 px · **Palet & font:** identitas @bksmanrici (lihat `brand/README.md`) · **Desain jadi:** `desain/export/tka-5-hal/`
 
 ---
 
