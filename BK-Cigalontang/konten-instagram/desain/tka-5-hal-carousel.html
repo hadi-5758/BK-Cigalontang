@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carousel — TKA Itu Apa Sih? | BK SMANCigalontang</title>
+<style>
+  /* ===== RESET & TOKEN WARNA ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --navy: #12355B;
+    --navy-2: #1E4E82;
+    --kuning: #FFC93C;
+    --kuning-muda: #FFF4D1;
+    --coral: #FF7A59;
+    --hijau: #2BB673;
+    --biru-muda: #E8F1FB;
+    --putih: #FFFFFF;
+    --teks: #1B2A3A;
+    --kulit: #F1C7A1;
+    --kulit-2: #C98E63;
+  }
+  body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: #d9dee5;
+    padding: 40px 20px;
+    color: var(--teks);
+  }
+  .grid { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; }
+  /* Pratinjau diperkecil 50%; render PNG memakai ukuran asli 1080x1350 */
+  .wrap { width: 540px; height: 675px; }
+  .wrap .slide { transform: scale(0.5); transform-origin: top left; }
+  body.render { padding: 0; background: none; }
+  body.render .wrap { width: auto; height: auto; }
+  body.render .wrap .slide { transform: none; }
+
+  /* ===== SLIDE DASAR ===== */
+  .slide {
+    width: 1080px; height: 1350px;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+    padding: 70px 80px 60px;
+    background: var(--putih);
+  }
+  .bar {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 26px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--navy);
+  }
+  .bar .logo { display: flex; align-items: center; gap: 14px; }
+  .bar .logo i {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: var(--navy); color: var(--kuning);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-style: normal; font-size: 22px; letter-spacing: 0;
+  }
+  .bar .hal { font-size: 24px; opacity: .7; letter-spacing: 1px; }
+  .dark .bar, .dark .bar .hal { color: var(--putih); }
+  .dark .bar .logo i { background: var(--kuning); color: var(--navy); }
+
+  .foot {
+    margin-top: auto; display: flex; justify-content: space-between; align-items: center;
+    font-size: 24px; font-weight: 600; color: var(--navy); opacity: .75;
+  }
+  .dark .foot { color: var(--putih); }
+  .geser { display: flex; align-items: center; gap: 10px; }
+
+  .nomor {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 96px; height: 96px; border-radius: 28px;
+    background: var(--kuning); color: var(--navy);
+    font-family: 'Inter Display', 'Inter', sans-serif;
+    font-size: 58px; font-weight: 900; margin-top: 50px;
+  }
+  h2 {
+    font-family: 'Inter Display', 'Inter', sans-serif;
+    font-size: 76px; line-height: 1.08; font-weight: 900;
+    color: var(--navy); margin-top: 28px; letter-spacing: -1.5px;
+  }
+  .dark h2 { color: var(--putih); }
+  p.isi { font-size: 40px; line-height: 1.42; margin-top: 30px; color: var(--teks); }
+  p.isi b, li b { color: var(--navy); }
+  mark { background: var(--kuning); color: var(--navy); padding: 0 10px; border-radius: 8px; }
+  .ilus { display: flex; justify-content: center; align-items: center; flex: 1; }
+
+  /* ===== SLIDE 1 ===== */
+  .s1 { background: linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%); }
+  .s1 .pre {
+    margin-top: 60px; font-size: 30px; font-weight: 800; letter-spacing: 6px;
+    color: var(--kuning); text-transform: uppercase;
+  }
+  .s1 h1 {
+    font-family: 'Inter Display', 'Inter', sans-serif;
+    font-size: 104px; line-height: 1.02; font-weight: 900; color: var(--putih);
+    margin-top: 20px; letter-spacing: -2px;
+  }
+  .s1 h1 em { font-style: normal; color: var(--kuning); }
+  .s1 .sub { font-size: 38px; color: #D7E4F4; margin-top: 26px; line-height: 1.35; }
+  .stiker {
+    position: absolute; top: 210px; right: 70px;
+    width: 210px; height: 210px; border-radius: 50%;
+    background: var(--coral); color: var(--putih);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transform: rotate(10deg); box-shadow: 0 14px 0 rgba(0,0,0,.18);
+    font-family: 'Inter Display', 'Inter', sans-serif;
+  }
+  .stiker b { font-size: 86px; font-weight: 900; line-height: 1; }
+  .stiker span { font-size: 26px; font-weight: 700; letter-spacing: 2px; }
+
+  /* ===== SLIDE 3 ===== */
+  .kartu-dua { display: flex; flex-direction: column; gap: 26px; margin-top: 44px; }
+  .kartu {
+    display: flex; align-items: center; gap: 30px;
+    padding: 34px 40px; border-radius: 32px; font-size: 42px; font-weight: 800;
+  }
+  .kartu.salah { background: #F1F3F6; color: #8A96A6; }
+  .kartu.salah span { text-decoration: line-through; text-decoration-thickness: 5px; text-decoration-color: var(--coral); }
+  .kartu.benar { background: var(--kuning); color: var(--navy); box-shadow: 0 12px 0 #E5A900; }
+  .kartu small { display: block; font-size: 30px; font-weight: 600; margin-top: 6px; }
+
+  /* ===== SLIDE 4 ===== */
+  .label-kecil { font-size: 30px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: var(--coral); margin-top: 40px; }
+  .mapel { display: flex; gap: 24px; margin-top: 20px; }
+  .mapel .m {
+    flex: 1; height: 270px; border-radius: 30px; padding: 28px 22px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    color: var(--putih); font-size: 34px; font-weight: 800; line-height: 1.15;
+  }
+  .m.bi { background: #2F6FB5; } .m.ing { background: var(--hijau); } .m.mtk { background: var(--coral); }
+  .m.pil { background: var(--putih); border: 5px dashed var(--navy); color: var(--navy); }
+  .m.pil b { font-size: 120px; line-height: .9; font-family: 'Inter Display', sans-serif; }
+
+  /* ===== SLIDE 5 ===== */
+  .timeline { position: relative; margin-top: 50px; display: flex; flex-direction: column; gap: 24px; }
+  .timeline::before { content: ""; position: absolute; left: 58px; top: 40px; bottom: 40px; width: 8px; background: var(--biru-muda); border-radius: 4px; }
+  .hari { display: flex; align-items: center; gap: 34px; position: relative; }
+  .hari .titik {
+    width: 124px; height: 124px; border-radius: 50%; flex: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--putih); font-weight: 800; font-size: 22px; letter-spacing: 1px;
+    border: 8px solid var(--putih); box-shadow: 0 0 0 4px var(--biru-muda);
+  }
+  .hari .titik b { font-size: 46px; line-height: 1; font-family: 'Inter Display', sans-serif; }
+  .hari .nama { font-size: 44px; font-weight: 800; color: var(--navy); }
+  .hari .nama small { display: block; font-size: 28px; font-weight: 600; color: #5C6B7D; margin-top: 4px; }
+  .catatan {
+    margin-top: 44px; background: var(--kuning-muda); border-left: 12px solid var(--kuning);
+    padding: 28px 34px; border-radius: 20px; font-size: 36px; line-height: 1.38;
+  }
+
+  /* ===== SLIDE 6 ===== */
+  ul.cek { list-style: none; margin-top: 46px; display: flex; flex-direction: column; gap: 24px; }
+  ul.cek li {
+    display: flex; align-items: center; gap: 30px; font-size: 38px; line-height: 1.3;
+    background: var(--biru-muda); padding: 26px 32px; border-radius: 28px;
+  }
+  ul.cek li svg { flex: none; }
+
+  /* ===== SLIDE 7 ===== */
+  .s7 { background: var(--kuning-muda); }
+  .tiga { display: flex; gap: 26px; margin-top: 70px; }
+  .tiga svg { width: 200px; height: 200px; }
+  .tiga div {
+    flex: 1; background: var(--putih); border-radius: 34px; padding: 40px 20px 44px;
+    text-align: center; font-size: 38px; font-weight: 800; color: var(--navy);
+    box-shadow: 0 10px 0 #F2DFA5;
+  }
+  .tiga svg { display: block; margin: 0 auto 18px; }
+  .pesan {
+    margin-top: 90px; font-family: 'Inter Display', sans-serif;
+    font-size: 74px; line-height: 1.2; font-weight: 900; color: var(--navy); letter-spacing: -1px;
+  }
+  .pesan em { font-style: normal; color: var(--coral); }
+
+  /* ===== SLIDE 8 ===== */
+  .s8 { background: linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%); }
+  .s8 p.isi { color: #D7E4F4; }
+  .info { display: flex; flex-direction: column; gap: 18px; margin-top: 36px; }
+  .info div {
+    display: flex; align-items: center; gap: 22px;
+    background: rgba(255,255,255,.1); border-radius: 24px; padding: 22px 30px;
+    font-size: 36px; font-weight: 700; color: var(--putih);
+  }
+  .cta { display: flex; gap: 20px; margin-top: 30px; }
+  .cta div {
+    flex: 1; background: var(--kuning); color: var(--navy); border-radius: 26px;
+    padding: 24px 26px; font-size: 32px; font-weight: 800; line-height: 1.25;
+  }
+</style>
+</head>
+<body>
+<div class="grid">
+
+<!-- ================= SLIDE 1 — COVER ================= -->
+<div class="wrap"><section class="slide s1 dark" id="slide-01">
+  <div class="bar"><div class="logo"><i>BK</i>SMAN 1 Cigalontang</div><div class="hal">#SeninStarter</div></div>
+  <div class="stiker"><b>H-7</b><span>TKA 2026</span></div>
+  <div class="pre">Info Penting Kelas XII</div>
+  <h1>TKA tinggal<br><em>seminggu lagi.</em></h1>
+  <div class="sub">Udah tahu <b style="color:#fff">5 hal penting</b> ini belum?<br>Biar nggak cuma deg-degan, tapi juga siap.</div>
+  <div class="ilus">
+    <svg width="900" height="620" viewBox="0 0 900 620" aria-hidden="true">
+      <!-- lantai & bayangan -->
+      <ellipse cx="450" cy="590" rx="380" ry="22" fill="#0B2442" opacity=".5"/>
+      <!-- bintang / kilau -->
+      <g fill="#FFC93C">
+        <path d="M120 120 l10 26 26 10 -26 10 -10 26 -10 -26 -26 -10 26 -10z"/>
+        <path d="M790 90 l7 18 18 7 -18 7 -7 18 -7 -18 -18 -7 18 -7z"/>
+        <path d="M770 300 l6 15 15 6 -15 6 -6 15 -6 -15 -15 -6 15 -6z" opacity=".7"/>
+      </g>
+      <circle cx="160" cy="330" r="8" fill="#fff" opacity=".4"/>
+      <circle cx="720" cy="200" r="6" fill="#fff" opacity=".4"/>
+      <!-- gelembung pikiran -->
+      <circle cx="610" cy="120" r="14" fill="#fff" opacity=".9"/>
+      <circle cx="645" cy="80" r="20" fill="#fff" opacity=".9"/>
+      <rect x="660" y="10" width="170" height="90" rx="45" fill="#fff"/>
+      <text x="745" y="72" text-anchor="middle" font-family="Inter Display, Inter, sans-serif" font-size="52" font-weight="900" fill="#12355B">A? B?</text>
+      <!-- kursi -->
+      <rect x="200" y="380" width="30" height="200" rx="10" fill="#0B2442"/>
+      <rect x="150" y="300" width="40" height="170" rx="18" fill="#0E2C50"/>
+      <!-- badan siswa (seragam putih) -->
+      <path d="M190 330 q10 -110 120 -110 q110 0 120 110 l0 120 l-240 0z" fill="#FFFFFF"/>
+      <!-- rok abu -->
+      <rect x="190" y="440" width="240" height="70" rx="16" fill="#8A96A6"/>
+      <!-- lengan ke keyboard -->
+      <path d="M400 300 q60 40 120 90" stroke="#FFFFFF" stroke-width="56" stroke-linecap="round" fill="none"/>
+      <circle cx="528" cy="394" r="26" fill="#F1C7A1"/>
+      <!-- jilbab & wajah -->
+      <path d="M215 210 q0 -130 95 -130 q95 0 95 130 q0 60 -30 90 l-130 0 q-30 -30 -30 -90z" fill="#BFD6EF"/>
+      <path d="M240 296 l140 0 l42 56 q-112 30 -224 0z" fill="#BFD6EF"/>
+      <ellipse cx="310" cy="190" rx="62" ry="72" fill="#F1C7A1"/>
+      <path d="M248 160 q62 -70 124 0 q-62 -30 -124 0z" fill="#BFD6EF"/>
+      <!-- ekspresi penasaran -->
+      <circle cx="330" cy="190" r="9" fill="#1B2A3A"/>
+      <circle cx="290" cy="190" r="9" fill="#1B2A3A"/>
+      <path d="M318 168 q14 -10 26 -2" stroke="#1B2A3A" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M278 172 q12 -4 24 0" stroke="#1B2A3A" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M298 228 q14 10 28 0" stroke="#C0392B" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <circle cx="350" cy="215" r="12" fill="#FF9E8A" opacity=".6"/>
+      <!-- meja -->
+      <rect x="440" y="420" width="420" height="26" rx="10" fill="#FFC93C"/>
+      <rect x="470" y="446" width="22" height="134" fill="#E5A900"/>
+      <rect x="810" y="446" width="22" height="134" fill="#E5A900"/>
+      <!-- komputer -->
+      <rect x="560" y="190" width="290" height="200" rx="18" fill="#0B2442"/>
+      <rect x="576" y="206" width="258" height="168" rx="10" fill="#E8F1FB"/>
+      <rect x="690" y="390" width="30" height="30" fill="#0B2442"/>
+      <rect x="640" y="410" width="130" height="14" rx="7" fill="#0B2442"/>
+      <text x="705" y="262" text-anchor="middle" font-family="Inter Display, Inter, sans-serif" font-size="42" font-weight="900" fill="#12355B">TKA</text>
+      <rect x="600" y="286" width="210" height="16" rx="8" fill="#B8CCE4"/>
+      <rect x="600" y="314" width="150" height="16" rx="8" fill="#B8CCE4"/>
+      <circle cx="790" cy="344" r="16" fill="#2BB673"/>
+      <path d="M782 344 l6 6 11 -12" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <!-- keyboard -->
+      <rect x="500" y="398" width="160" height="20" rx="6" fill="#B8CCE4"/>
+    </svg>
+  </div>
+  <div class="foot"><span>Bidang Belajar</span><span class="geser">Geser <svg width="40" height="24" viewBox="0 0 40 24"><path d="M2 12h32M24 3l10 9-10 9" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/></svg></span></div>
+</section></div>
+
+<!-- ================= SLIDE 2 — APA ITU TKA ================= -->
+<div class="wrap"><section class="slide" id="slide-02">
+  <div class="bar"><div class="logo"><i>BK</i>SMAN 1 Cigalontang</div><div class="hal">2 / 8</div></div>
+  <div class="nomor">1</div>
+  <h2>TKA = Tes<br>Kemampuan Akademik</h2>
+  <p class="isi">Tes dari <b>Kemendikdasmen</b> untuk mengukur kemampuan akademikmu secara <b>terstandar nasional</b>.</p>
+  <div class="ilus">
+    <svg width="920" height="460" viewBox="0 0 920 460" aria-hidden="true">
+      <ellipse cx="460" cy="430" rx="400" ry="18" fill="#E8F1FB"/>
+      <!-- komputer -->
+      <rect x="40" y="70" width="320" height="230" rx="22" fill="#12355B"/>
+      <rect x="58" y="88" width="284" height="194" rx="12" fill="#E8F1FB"/>
+      <rect x="180" y="300" width="40" height="60" fill="#12355B"/>
+      <rect x="120" y="356" width="160" height="18" rx="9" fill="#12355B"/>
+      <rect x="84" y="118" width="232" height="22" rx="11" fill="#2F6FB5"/>
+      <g fill="#B8CCE4"><rect x="84" y="160" width="190" height="16" rx="8"/><rect x="84" y="190" width="150" height="16" rx="8"/></g>
+      <circle cx="98" cy="240" r="14" fill="#FFC93C"/><circle cx="148" cy="240" r="14" fill="#B8CCE4"/><circle cx="198" cy="240" r="14" fill="#B8CCE4"/>
+      <text x="200" y="420" text-anchor="middle" font-family="Inter" font-size="30" font-weight="800" fill="#12355B">Berbasis komputer</text>
+      <!-- panah -->
+      <path d="M400 190 h110" stroke="#FFC93C" stroke-width="16" stroke-linecap="round"/>
+      <path d="M490 160 l36 30 -36 30" stroke="#FFC93C" stroke-width="16" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- sertifikat -->
+      <rect x="580" y="50" width="290" height="270" rx="18" fill="#FFF4D1" stroke="#FFC93C" stroke-width="8"/>
+      <text x="725" y="110" text-anchor="middle" font-family="Inter Display, Inter" font-size="30" font-weight="900" fill="#12355B">SERTIFIKAT</text>
+      <text x="725" y="146" text-anchor="middle" font-family="Inter" font-size="22" font-weight="700" fill="#5C6B7D">HASIL TKA</text>
+      <g fill="#E5C77A"><rect x="620" y="170" width="210" height="12" rx="6"/><rect x="620" y="196" width="170" height="12" rx="6"/></g>
+      <circle cx="790" cy="262" r="34" fill="#FF7A59"/>
+      <path d="M770 290 l-10 50 30 -16 30 16 -10 -50" fill="#FF7A59"/>
+      <circle cx="790" cy="262" r="18" fill="#fff" opacity=".5"/>
+      <text x="725" y="420" text-anchor="middle" font-family="Inter" font-size="30" font-weight="800" fill="#12355B">Sertifikat Hasil TKA</text>
+    </svg>
+  </div>
+  <div class="foot"><span>Tes Kemampuan Akademik</span><span class="geser">Geser <svg width="40" height="24" viewBox="0 0 40 24"><path d="M2 12h32M24 3l10 9-10 9" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/></svg></span></div>
+</section></div>
+
+<!-- ================= SLIDE 3 — BUKAN PENENTU KELULUSAN ================= -->
+<div class="wrap"><section class="slide" id="slide-03">
+  <div class="bar"><div class="logo"><i>BK</i>SMAN 1 Cigalontang</div><div class="hal">3 / 8</div></div>
+  <div class="nomor">2</div>
+  <h2>Tenang, TKA bukan<br>penentu lulus</h2>
+  <div class="kartu-dua">
+    <div class="kartu salah">
+      <svg width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="36" fill="#FFE1D8"/><path d="M24 24l28 28M52 24L24 52" stroke="#FF7A59" stroke-width="8" stroke-linecap="round"/></svg>
+      <span>Penentu kelulusan</span>
+    </div>
+    <div class="kartu benar">
+      <svg width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="36" fill="#12355B"/><path d="M22 39l11 11 21-24" stroke="#FFC93C" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>Data pendukung seleksi<small>seperti SNBP</small></div>
+    </div>
+  </div>
+  <p class="isi">Kelulusan tetap ditentukan sekolah. Jadi, lakukan yang terbaik, <mark>tanpa harus panik.</mark></p>
+  <div class="ilus">
+    <svg width="760" height="300" viewBox="0 0 760 300" aria-hidden="true">
+      <ellipse cx="380" cy="285" rx="300" ry="14" fill="#E8F1FB"/>
+      <!-- siswa laki-laki santai -->
+      <path d="M290 290 q0 -130 90 -130 q90 0 90 130z" fill="#FFFFFF" stroke="#D5DEE9" stroke-width="4"/>
+      <path d="M362 162 l18 40 18 -40" fill="#8A96A6"/>
+      <circle cx="380" cy="105" r="58" fill="#C98E63"/>
+      <path d="M322 98 q4 -66 62 -62 q54 4 54 58 q-30 -28 -116 4z" fill="#1B2A3A"/>
+      <path d="M356 104 q8 -8 16 0 M392 104 q8 -8 16 0" stroke="#1B2A3A" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M360 130 q20 18 40 0" stroke="#1B2A3A" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <!-- jempol -->
+      <circle cx="500" cy="210" r="30" fill="#C98E63"/>
+      <rect x="490" y="160" width="20" height="44" rx="10" fill="#C98E63"/>
+      <path d="M455 260 q20 -40 45 -50" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" fill="none"/>
+      <!-- gelembung napas tenang -->
+      <g fill="none" stroke="#2BB673" stroke-width="6" stroke-linecap="round">
+        <path d="M200 120 q-30 30 0 60"/><path d="M165 105 q-45 45 0 90" opacity=".6"/>
+        <path d="M560 70 q30 30 0 60"/><path d="M595 55 q45 45 0 90" opacity=".6"/>
+      </g>
+    </svg>
+  </div>
+  <div class="foot"><span>Info terbaru: tka.kemendikdasmen.go.id</span><span class="geser">Geser <svg width="40" height="24" viewBox="0 0 40 24"><path d="M2 12h32M24 3l10 9-10 9" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/></svg></span></div>
+</section></div>
+
+<!-- ================= SLIDE 4 — MAPEL ================= -->
+<div class="wrap"><section class="slide" id="slide-04">
+  <div class="bar"><div class="logo"><i>BK</i>SMAN 1 Cigalontang</div><div class="hal">4 / 8</div></div>
+  <div class="nomor">3</div>
+  <h2>Apa aja yang<br>diujikan?</h2>
+  <div class="label-kecil">Mapel wajib</div>
+  <div class="mapel">
+    <div class="m bi">
+      <svg width="80" height="70" viewBox="0 0 80 70"><path d="M4 8q18-8 36 4v54q-18-12-36-4z" fill="#fff"/><path d="M76 8q-18-8-36 4v54q18-12 36-4z" fill="#D6E6F8"/></svg>
+      Bahasa Indonesia</div>
+    <div class="m ing">
+      <svg width="80" height="70" viewBox="0 0 80 70"><rect x="4" y="6" width="60" height="44" rx="14" fill="#fff"/><path d="M18 50l-6 16 20-16z" fill="#fff"/><text x="34" y="38" text-anchor="middle" font-family="Inter" font-weight="900" font-size="24" fill="#2BB673">Hi!</text></svg>
+      Bahasa Inggris</div>
+    <div class="m mtk">
+      <svg width="80" height="70" viewBox="0 0 80 70"><rect x="6" y="4" width="62" height="62" rx="12" fill="#fff"/><path d="M22 22h14M29 15v14M44 22h14M22 48l12-10M22 38l12 10M44 43h14" stroke="#FF7A59" stroke-width="5" stroke-linecap="round"/></svg>
+      Matematika</div>
+  </div>
+  <div class="label-kecil">+ 2 mapel pilihan</div>
+  <div class="mapel">
+    <div class="m pil"><b>?</b>Pilihan 1</div>
+    <div class="m pil"><b>?</b>Pilihan 2</div>
+    <div class="m" style="background:var(--kuning-muda);color:var(--navy);font-size:26px;font-weight:600;line-height:1.3;justify-content:center">Sudah dipilih saat pendaftaran. Idealnya <b>nyambung dengan prodi impianmu.</b></div>
+  </div>
+  <div class="foot"><span>Mapel TKA SMA</span><span class="geser">Geser <svg width="40" height="24" viewBox="0 0 40 24"><path d="M2 12h32M24 3l10 9-10 9" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/></svg></span></div>
+</section></div>
+
+<!-- ================= SLIDE 5 — SATU MAPEL PER HARI ================= -->
+<div class="wrap"><section class="slide" id="slide-05">
+  <div class="bar"><div class="logo"><i>BK</i>SMAN 1 Cigalontang</div><div class="hal">5 / 8</div></div>
+  <div class="nomor">4</div>
+  <h2>Skemanya: satu<br>mapel per hari</h2>
+  <div class="timeline">
+    <div class="hari"><div class="titik" style="background:#2F6FB5">HARI<b>1</b></div><div class="nama">Bahasa Indonesia</div></div>
+    <div class="hari"><div class="titik" style="background:var(--hijau)">HARI<b>2</b></div><div class="nama">Bahasa Inggris</div></div>
+    <div class="hari"><div class="titik" style="background:var(--coral)">HARI<b>3</b></div><div class="nama">Matematika</div></div>
+    <div class="hari"><div class="titik" style="background:var(--navy)">HARI<b>4</b></div><div class="nama">2 mapel pilihan<small>sesuai pilihanmu saat daftar</small></div></div>
+  </div>
+  <div class="catatan">Artinya: <b>cicil persiapan per mapel.</b> Nggak perlu belajar semuanya dalam satu malam.</div>
+  <div class="foot"><span>Cek jadwal sesimu ke proktor sekolah</span><span class="geser">Geser <svg width="40" height="24" viewBox="0 0 40 24"><path d="M2 12h32M24 3l10 9-10 9" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/></svg></span></div>
+</section></div>
+
+<!-- ================= SLIDE 6 — CARA LATIHAN ================= -->
+<div class="wrap"><section class="slide" id="slide-06">
+  <div class="bar"><div class="logo"><i>BK</i>SMAN 1 Cigalontang</div><div class="hal">6 / 8</div></div>
+  <div class="nomor">5</div>
+  <h2>Latihan yang<br>beneran ngefek</h2>
+  <ul class="cek">
+    <li>
+      <svg width="90" height="90" viewBox="0 0 90 90"><rect width="90" height="90" rx="24" fill="#12355B"/><rect x="24" y="18" width="42" height="54" rx="6" fill="#fff"/><path d="M32 34h26M32 44h26M32 54h16" stroke="#B8CCE4" stroke-width="5" stroke-linecap="round"/><circle cx="64" cy="66" r="14" fill="#FFC93C"/><path d="M58 66l4 4 8-8" stroke="#12355B" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
+      <span>Kerjakan <b>contoh soal resmi</b>, bukan cuma baca rangkuman</span></li>
+    <li>
+      <svg width="90" height="90" viewBox="0 0 90 90"><rect width="90" height="90" rx="24" fill="#FF7A59"/><circle cx="45" cy="50" r="24" fill="#fff"/><rect x="39" y="14" width="12" height="10" rx="3" fill="#fff"/><path d="M45 50V36M45 50l10 6" stroke="#FF7A59" stroke-width="5" stroke-linecap="round"/></svg>
+      <span>Latihan <b>pakai timer</b> biar terbiasa dengan waktu</span></li>
+    <li>
+      <svg width="90" height="90" viewBox="0 0 90 90"><rect width="90" height="90" rx="24" fill="#2BB673"/><rect x="22" y="18" width="46" height="56" rx="6" fill="#fff"/><path d="M22 18v56" stroke="#1E8E57" stroke-width="8"/><path d="M36 34l14 14M50 34L36 48" stroke="#FF7A59" stroke-width="5" stroke-linecap="round"/><path d="M34 60h24" stroke="#B8CCE4" stroke-width="5" stroke-linecap="round"/></svg>
+      <span>Catat soal yang salah, lalu <b>pahami alasannya</b></span></li>
+    <li>
+      <svg width="90" height="90" viewBox="0 0 90 90"><rect width="90" height="90" rx="24" fill="#FFC93C"/><rect x="16" y="24" width="58" height="38" rx="5" fill="#12355B"/><rect x="21" y="29" width="48" height="28" rx="3" fill="#E8F1FB"/><path d="M10 66h70l-6 6H16z" fill="#12355B"/><path d="M27 38h30M27 46h20" stroke="#2F6FB5" stroke-width="4" stroke-linecap="round"/></svg>
+      <span>Biasakan baca soal <b>di layar</b>, bukan cuma di kertas</span></li>
+  </ul>
+  <div class="foot"><span>Bisa mulai hari ini</span><span class="geser">Geser <svg width="40" height="24" viewBox="0 0 40 24"><path d="M2 12h32M24 3l10 9-10 9" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/></svg></span></div>
+</section></div>
+
+<!-- ================= SLIDE 7 — PENGINGAT MENTAL ================= -->
+<div class="wrap"><section class="slide s7" id="slide-07">
+  <div class="bar"><div class="logo"><i>BK</i>SMAN 1 Cigalontang</div><div class="hal">7 / 8</div></div>
+  <h2 style="margin-top:70px">Yang nggak kalah<br>penting…</h2>
+  <div class="tiga">
+    <div>
+      <svg width="150" height="150" viewBox="0 0 150 150"><circle cx="75" cy="75" r="70" fill="#E8F1FB"/><path d="M95 30a46 46 0 1 0 25 62a38 38 0 0 1-25-62z" fill="#12355B"/><g fill="#FFC93C"><circle cx="110" cy="40" r="5"/><circle cx="40" cy="45" r="4"/><circle cx="120" cy="75" r="3"/></g><text x="104" y="118" font-family="Inter" font-weight="900" font-size="22" fill="#2F6FB5">z z</text></svg>
+      Tidur cukup</div>
+    <div>
+      <svg width="150" height="150" viewBox="0 0 150 150"><circle cx="75" cy="75" r="70" fill="#FFE1D8"/><ellipse cx="75" cy="88" rx="52" ry="20" fill="#fff" stroke="#E2E8F0" stroke-width="4"/><ellipse cx="75" cy="80" rx="38" ry="14" fill="#FFF4D1"/><circle cx="66" cy="78" r="12" fill="#FFC93C"/><rect x="82" y="70" width="22" height="12" rx="6" fill="#2BB673"/><path d="M60 50q6-10 0-20M75 50q6-10 0-20M90 50q6-10 0-20" stroke="#FF7A59" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
+      Sarapan</div>
+    <div>
+      <svg width="150" height="150" viewBox="0 0 150 150"><circle cx="75" cy="75" r="70" fill="#D9F4E6"/><path d="M75 118s-42-26-42-56a22 22 0 0 1 42-10a22 22 0 0 1 42 10c0 30-42 56-42 56z" fill="#2BB673"/><path d="M58 70l11 11 22-24" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Jujur saat ujian</div>
+  </div>
+  <div class="pesan">Deg-degan itu wajar.<br>Artinya kamu <em>peduli</em><br>sama hasilnya.</div>
+  <div class="foot"><span>Bidang Pribadi × Belajar</span><span class="geser">Geser <svg width="40" height="24" viewBox="0 0 40 24"><path d="M2 12h32M24 3l10 9-10 9" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/></svg></span></div>
+</section></div>
+
+<!-- ================= SLIDE 8 — CTA ================= -->
+<div class="wrap"><section class="slide s8 dark" id="slide-08">
+  <div class="bar"><div class="logo"><i>BK</i>SMAN 1 Cigalontang</div><div class="hal">8 / 8</div></div>
+  <h2 style="margin-top:60px">Masih bingung<br>atau cemas?</h2>
+  <p class="isi">Ruang BK terbuka buat kamu: tanya soal TKA, pilihan prodi, atau sekadar cerita.</p>
+  <div class="ilus">
+    <svg width="860" height="330" viewBox="0 0 860 330" aria-hidden="true">
+      <ellipse cx="430" cy="318" rx="360" ry="12" fill="#0B2442" opacity=".5"/>
+      <!-- pintu ruang BK -->
+      <rect x="40" y="30" width="200" height="290" rx="12" fill="#FFC93C"/>
+      <rect x="62" y="52" width="156" height="268" rx="6" fill="#FFF4D1"/>
+      <circle cx="198" cy="190" r="10" fill="#12355B"/>
+      <rect x="82" y="80" width="116" height="50" rx="10" fill="#12355B"/>
+      <text x="140" y="116" text-anchor="middle" font-family="Inter Display, Inter" font-weight="900" font-size="32" fill="#FFC93C">BK</text>
+      <!-- guru BK -->
+      <path d="M330 320 q0 -120 80 -120 q80 0 80 120z" fill="#2F6FB5"/>
+      <circle cx="410" cy="150" r="50" fill="#F1C7A1"/>
+      <path d="M358 150 q-4 -74 54 -72 q54 2 50 72 q-20 -40 -104 0z" fill="#1B2A3A"/>
+      <rect x="378" y="140" width="28" height="20" rx="8" fill="none" stroke="#1B2A3A" stroke-width="4"/>
+      <rect x="414" y="140" width="28" height="20" rx="8" fill="none" stroke="#1B2A3A" stroke-width="4"/>
+      <path d="M394 176 q16 12 32 0" stroke="#1B2A3A" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <!-- siswi berjilbab -->
+      <path d="M560 320 q0 -110 75 -110 q75 0 75 110z" fill="#FFFFFF"/>
+      <path d="M582 170 q0 -92 53 -92 q53 0 53 92 q0 40 -20 58 l-66 0 q-20 -18 -20 -58z" fill="#E8F1FB"/>
+      <ellipse cx="635" cy="160" rx="38" ry="44" fill="#C98E63"/>
+      <path d="M598 140 q37 -46 74 0 q-37 -20 -74 0z" fill="#E8F1FB"/>
+      <circle cx="622" cy="160" r="6" fill="#1B2A3A"/><circle cx="648" cy="160" r="6" fill="#1B2A3A"/>
+      <path d="M624 182 q11 8 22 0" stroke="#1B2A3A" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <!-- gelembung chat -->
+      <rect x="470" y="20" width="150" height="74" rx="24" fill="#fff"/>
+      <path d="M500 94 l-6 22 26 -22z" fill="#fff"/>
+      <circle cx="510" cy="57" r="9" fill="#12355B"/><circle cx="545" cy="57" r="9" fill="#12355B"/><circle cx="580" cy="57" r="9" fill="#12355B"/>
+      <path d="M760 70 c0-16 22-22 30-6 c8-16 30-10 30 6 c0 22-30 38-30 38 s-30-16-30-38z" fill="#FF7A59"/>
+    </svg>
+  </div>
+  <div class="info">
+    <div><svg width="44" height="44" viewBox="0 0 44 44"><path d="M22 4a14 14 0 0 0-14 14c0 11 14 22 14 22s14-11 14-22A14 14 0 0 0 22 4z" fill="#FFC93C"/><circle cx="22" cy="18" r="5" fill="#12355B"/></svg>Ruang BK SMAN 1 Cigalontang</div>
+    <div><svg width="44" height="44" viewBox="0 0 44 44"><rect x="4" y="8" width="36" height="26" rx="8" fill="#FFC93C"/><path d="M12 34l-2 8 10-8z" fill="#FFC93C"/></svg>DM akun ini, kapan saja</div>
+  </div>
+  <div class="cta">
+    <div>Komen mapel pilihanmu &amp; tag teman satu ruang!</div>
+    <div>Simpan postingan ini buat dibaca lagi.</div>
+  </div>
+</section></div>
+
+</div>
+</body>
+</html>
