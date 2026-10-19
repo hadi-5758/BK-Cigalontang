@@ -7,7 +7,7 @@ Sumber: `Panduan_Identitas_Digital_IG_bksmanrici.pdf` (folder ini).
 
 | File | Keterangan |
 |---|---|
-| `logo-bk-smanrici.png` | Logo BK bulat, latar transparan (800×800). Dipasang di header setiap slide, ukuran ±68 px pada kanvas 1080 px |
+| `logo-bk-smanrici.png` | Logo BK bulat, latar transparan (800×800), dibuat dari `logo-bk-smanrici-sumber.jpg` dengan `potong_logo.py`. Dipasang di header setiap slide, ukuran ±68 px pada kanvas 1080 px |
 | `font/PlusJakartaSans-latin.woff2` | Font judul (Plus Jakarta Sans, variable 200–800, lisensi SIL OFL) |
 | `Panduan_Identitas_Digital_IG_bksmanrici.pdf` | Panduan asli |
 
