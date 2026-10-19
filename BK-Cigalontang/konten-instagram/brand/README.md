@@ -45,3 +45,18 @@ Sumber: `Panduan_Identitas_Digital_IG_bksmanrici.pdf` (folder ini).
 - Maksimal 3 warna brand per slide + netral; emas untuk satu titik fokus saja (CTA/sorotan).
 - Ilustrasi gaya flat, karakter beragam (berjilbab & tidak, warna kulit beragam), seragam putih abu.
 - Contoh penerapan: `../desain/tka-5-hal-carousel.html`.
+
+## Karakter Siswa
+
+Lembar referensi: `karakter/referensi-karakter-siswa.webp` (siswa putra & putri SMANRICI, seragam putih abu: dasi abu, badge OSIS di saku, bendera merah putih, emblem kuning di lengan kiri, sepatu hitam, kaos kaki putih; siswi berjilbab putih panjang, kemeja lengan panjang, rok abu lipit panjang).
+
+PNG transparan siap pakai (dibuat oleh `karakter/potong_karakter.py`):
+
+| File | Pose |
+|---|---|
+| `siswa-putra-depan.png` | Putra, tampak depan |
+| `siswa-putra-samping-kanan.png` / `-kiri.png` | Putra, menghadap kanan / kiri |
+| `siswa-putri-depan.png` | Putri, tampak depan |
+| `siswa-putri-samping-kanan.png` / `-kiri.png` | Putri, menghadap kanan / kiri |
+
+Aturan pakai: jangan ubah proporsi (skala seragam saja), boleh dipotong jadi potret dalam lingkaran (lihat slide 3 carousel TKA), dan pakai karakter yang menghadap ke arah objek cerita (pintu BK, komputer, dsb.). Untuk pose lain (duduk, menunjuk, ekspresi berbeda), buat karakter baru dengan lembar referensi ini sebagai patokan agar wajah & seragam konsisten. Karakter putra tampak depan masih menyisakan sedikit putih di sela lengan, jadi taruh di latar terang.
