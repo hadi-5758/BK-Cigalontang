@@ -21,9 +21,9 @@ rng = np.random.default_rng(7)
 # waktu mulai tiap baris dialog (detik) — sama dengan teks di layar
 # (mulai detik, pembicara, kalimat, durasi maksimal detik) — sama dengan teks di layar
 DIALOG = [
-    (0.4, "Siswi", "Aduh… H-5 TKA, tapi otakku nge-freeze.", 3.0),
-    (3.6, "Siswi", "Kok semua materi kayak baru pertama lihat, sih…", 4.0),
-    (9.3, "Siswa", "Eh, berhenti dulu sebentar. Coba ikutin aku.", 3.0),
+    (0.2, "Siswi", "Aduh… H-5 TKA, tapi otakku nge-freeze.", 5.0),
+    (5.3, "Siswi", "Kok semua materi kayak baru pertama lihat, sih…", 3.2),
+    (9.3, "Siswa", "Eh, berhenti dulu sebentar. Coba ikutin aku.", 3.6),
     (13.0, "Siswa", "Sebutin lima hal yang kamu lihat…", 1.9),
     (15.0, "Siswa", "empat hal yang bisa kamu sentuh…", 1.9),
     (17.0, "Siswa", "tiga suara yang kamu dengar…", 1.9),
@@ -200,28 +200,46 @@ keluar = Path(args[0] if args else "reels-audio.wav")
 if "--suara" in args:
     folder = Path(args[args.index("--suara") + 1])
     import subprocess, tempfile
+    akhir_sebelum = 0.0
     for k, (mulai, siapa, kalimat, maks) in enumerate(DIALOG, 1):
         cocok = sorted(folder.glob(f"dialog-{k:02d}.*"))
         if not cocok:
             print(f"  (lewati) dialog-{k:02d} belum ada: {kalimat}")
             continue
-        # konversi format apa pun (wav/m4a/mp3/ogg) ke WAV mono 44.1 kHz
-        with tempfile.NamedTemporaryFile(suffix=".wav") as tmp:
-            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(cocok[0]), "-ac", "1", "-ar", str(SR), tmp.name], check=True)
-            with wave.open(tmp.name) as w:
-                data = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(float) / 32768
-        # potong hening di awal & akhir
-        energi = np.convolve(np.abs(data), np.ones(441) / 441, "same")
-        aktif = np.nonzero(energi > max(.01, energi.max() * .06))[0]
-        if len(aktif):
-            data = data[max(0, aktif[0] - t2i(.05)):aktif[-1] + t2i(.15)]
+        def baca(tempo=1.0):
+            # konversi format apa pun (wav/m4a/mp3/ogg/mp4) ke WAV mono 44.1 kHz, opsional dipercepat
+            with tempfile.NamedTemporaryFile(suffix=".wav") as tmp:
+                subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(cocok[0]), "-vn", "-ac", "1", "-ar", str(SR),
+                                "-af", f"atempo={tempo:.3f}", tmp.name], check=True)
+                with wave.open(tmp.name) as w:
+                    d = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(float) / 32768
+            # potong hening di awal & akhir
+            energi = np.convolve(np.abs(d), np.ones(441) / 441, "same")
+            aktif = np.nonzero(energi > max(.003, energi.max() * .02))[0]  # ambang rendah agar akhir kata yang lembut tidak terpotong
+            if len(aktif):
+                d = d[max(0, aktif[0] - t2i(.05)):aktif[-1] + t2i(.15)]
+            return d
+        data = baca()
+        # terlalu panjang? percepat halus (maks 1.15x, nada tetap) agar tidak menabrak baris berikutnya
+        if len(data) / SR > maks + .05:
+            tempo = min(1.15, len(data) / SR / maks)
+            data = baca(tempo)
+            print(f"  dialog-{k:02d} dipercepat {tempo:.2f}x -> {len(data)/SR:.1f} dtk")
         if len(data) / SR > maks + .3:
             print(f"  peringatan: dialog-{k:02d} {len(data)/SR:.1f} dtk > maks {maks} dtk ({siapa}: {kalimat})")
+        # kalau baris sebelumnya belum selesai, geser sedikit (maks 0.6 dtk) agar tidak bertumpuk
+        geser = max(0.0, akhir_sebelum + .1 - mulai)
+        if geser > 0:
+            print(f"  dialog-{k:02d} digeser +{geser:.2f} dtk" + ("  (lebih dari 0.6 dtk, sebaiknya rekam ulang lebih singkat)" if geser > .6 else ""))
+            mulai += geser
         tambah(suara, data / (np.abs(data).max() + 1e-9) * .8, mulai)
+        akhir_sebelum = mulai + len(data) / SR
     # ducking: musik turun saat ada suara
     env = np.convolve(np.abs(suara), np.ones(t2i(.25)) / t2i(.25), "same")
     musik *= 1 - .6 * np.clip(env / .05, 0, 1)
 
+if "--tanpa-musik" in args:
+    musik[:] = 0; sfx[:] = 0
 campur = musik + sfx + suara
 campur /= max(1e-9, np.abs(campur).max() / .89)
 # stereo sederhana: sedikit lebar dengan delay kanal kanan
