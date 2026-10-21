@@ -63,12 +63,12 @@
           font-family: 'Plus Jakarta Sans', sans-serif; font-size: 52px; font-weight: 800; }
   .g b { color: var(--tinta); }
 
-  #napas { margin-top: 30px; position: relative; height: 560px; }
-  #kotak { position: absolute; left: 50%; top: 40px; width: 420px; height: 420px; margin-left: -210px;
+  #napas { margin-top: 20px; position: relative; height: 500px; }
+  #kotak { position: absolute; left: 50%; top: 40px; width: 380px; height: 380px; margin-left: -190px;
            border: 14px solid var(--toska-muda); border-radius: 36px; }
   #titik { position: absolute; width: 56px; height: 56px; border-radius: 50%; background: var(--emas);
            box-shadow: 0 0 0 12px rgba(245,158,11,.25); }
-  #napasLabel { position: absolute; left: 0; right: 0; top: 160px; text-align: center; }
+  #napasLabel { position: absolute; left: 0; right: 0; top: 140px; text-align: center; }
   #napasLabel .aksi { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 72px; font-weight: 800; color: var(--toska-tua); }
   #napasLabel .hitung { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 96px; font-weight: 800; color: var(--emas-tua); line-height: 1.1; }
   .sisi { position: absolute; font-size: 28px; font-weight: 800; color: var(--toska); letter-spacing: 2px; }
@@ -89,15 +89,23 @@
   #akhir .akun { margin-top: 40px; font-size: 38px; font-weight: 800; color: #fff; letter-spacing: 1px; }
 
   .karakter { position: absolute; transform-origin: 50% 100%; }
+  /* Rig cut-out: badan + kepala terpisah (sambungan dihaluskan dengan mask gradien) */
+  .rig { position: absolute; inset: 0; transform-origin: 50% 100%; }
+  .rig img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .rig .kepala { position: absolute; inset: 0; }
+  .kelopak { position: absolute; border-radius: 50% 50% 46% 46%; transform-origin: 50% 0;
+             border-bottom: 2px solid #4A2E22; }
 </style>
 </head>
 <body>
 <div id="stage">
   <!-- karakter -->
-  <img id="girl" class="karakter" src="../brand/karakter/siswa-putri-depan.png" alt="">
-  <img id="boy" class="karakter" src="../brand/karakter/siswa-putra-samping-kanan.png" alt="">
+  <div id="chars" class="abs" style="inset:0;transform-origin:540px 1300px">
+    <div id="girl" class="karakter"></div>
+    <div id="boy" class="karakter"></div>
+    <div id="keringat" class="abs" style="font-size:84px;left:690px;top:870px">💦</div>
+  </div>
 
-  <div id="keringat" class="abs" style="font-size:84px;left:690px;top:870px">💦</div>
   <div id="kilau1" class="abs" style="font-size:80px;left:720px;top:960px">✨</div>
   <div id="kilau2" class="abs" style="font-size:64px;left:300px;top:1080px">✨</div>
   <!-- adegan 1-2 -->
@@ -136,9 +144,9 @@
       <div id="napas">
         <div id="kotak"></div>
         <div class="sisi" style="left:50%;top:0;transform:translateX(-50%)">TARIK 4</div>
-        <div class="sisi" style="right:40px;top:230px;transform:rotate(90deg)">TAHAN 4</div>
-        <div class="sisi" style="left:50%;top:478px;transform:translateX(-50%)">HEMBUS 4</div>
-        <div class="sisi" style="left:40px;top:230px;transform:rotate(-90deg)">TAHAN 4</div>
+        <div class="sisi" style="right:60px;top:210px;transform:rotate(90deg)">TAHAN 4</div>
+        <div class="sisi" style="left:50%;top:436px;transform:translateX(-50%)">HEMBUS 4</div>
+        <div class="sisi" style="left:60px;top:210px;transform:rotate(-90deg)">TAHAN 4</div>
         <div id="titik"></div>
         <div id="napasLabel"><div class="aksi" id="aksi">Tarik</div><div class="hitung" id="hitung">1</div></div>
       </div>
@@ -182,12 +190,65 @@ function set(el, o, x = 0, y = 0, s = 1, r = 0) {
   el.style.transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`;
   el.style.visibility = o <= 0.001 ? 'hidden' : 'visible';
 }
-function karakter(el, cx, bawah, tinggi, rasio) {
+const K = '../brand/karakter/';
+const RASIO_PUTRI = 229 / 792, RASIO_PUTRA = 165 / 825;
+// titik acuan dalam piksel gambar asli: leher (batas kepala), poros kepala, mata [x, y, lebar, tinggi]
+const RIG = {
+  putriDepan: { src: 'siswa-putri-depan.png', w: 229, h: 792, leher: 150, poros: [114, 142],
+                mata: [[94, 79, 22, 18], [140, 79, 22, 18]], kulit: '#FDCBA6' },
+  putriKiri:  { src: 'siswa-putri-samping-kiri.png', w: 185, h: 792, leher: 150, poros: [78, 142],
+                mata: [[40, 73, 20, 18]], kulit: '#FDCBA6' },
+  putraKanan: { src: 'siswa-putra-samping-kanan.png', w: 165, h: 825, leher: 146, poros: [86, 140],
+                mata: [[111, 80, 18, 18]], kulit: '#F8B583' },
+};
+function buatRig(wadah, kunci) {
+  const r = RIG[kunci], el = document.createElement('div');
+  el.className = 'rig'; el.dataset.kunci = kunci;
+  const pct = v => (v * 100) + '%';
+  const a = (r.leher - 12) / r.h, b = (r.leher + 14) / r.h;
+  const badan = document.createElement('img');
+  badan.src = K + r.src;
+  badan.style.webkitMaskImage = badan.style.maskImage =
+    `linear-gradient(to bottom, transparent ${pct(a)}, #000 ${pct(b)})`;
+  const kepala = document.createElement('div'); kepala.className = 'kepala';
+  kepala.style.transformOrigin = `${pct(r.poros[0] / r.w)} ${pct(r.poros[1] / r.h)}`;
+  const imgK = document.createElement('img'); imgK.src = K + r.src;
+  imgK.style.webkitMaskImage = imgK.style.maskImage =
+    `linear-gradient(to bottom, #000 ${pct(a)}, transparent ${pct(b)})`;
+  kepala.appendChild(imgK);
+  r.mata.forEach(([x, y, w, h]) => {
+    const k = document.createElement('div'); k.className = 'kelopak';
+    Object.assign(k.style, { left: pct((x - w / 2) / r.w), top: pct((y - h / 2) / r.h),
+      width: pct(w / r.w), height: pct(h / r.h), background: r.kulit });
+    kepala.appendChild(k);
+  });
+  el.append(badan, kepala);
+  wadah.appendChild(el);
+  return el;
+}
+const rigGirlDepan = buatRig(document.getElementById('girl'), 'putriDepan');
+const rigGirlKiri = buatRig(document.getElementById('girl'), 'putriKiri');
+const rigBoy = buatRig(document.getElementById('boy'), 'putraKanan');
+
+// kedip: tertutup sebentar setiap `jeda` detik
+const kedip = (t, jeda, geser) => { const f = ((t + geser) % jeda); return f < .14 ? Math.sin(f / .14 * Math.PI) : 0; };
+function pose(rig, { kepala = 0, kepalaY = 0, napas = 1, kedipan = 0 }) {
+  rig.style.transform = `scale(1, ${napas})`;
+  const k = rig.querySelector('.kepala');
+  k.style.transform = `translateY(${kepalaY}px) rotate(${kepala}deg)`;
+  k.querySelectorAll('.kelopak').forEach(e => e.style.transform = `scaleY(${kedipan})`);
+}
+function letak(el, cx, bawah, tinggi, rasio) {
   const w = tinggi * rasio;
   el.style.width = w + 'px'; el.style.height = tinggi + 'px';
   el.style.left = (cx - w / 2) + 'px'; el.style.top = (bawah - tinggi) + 'px';
 }
-const RASIO_PUTRI = 229 / 792, RASIO_PUTRA = 165 / 825;
+// napas kotak bersama (23.5–39.5 s): tarik naik, tahan, hembus turun, tahan
+function napasKotak(t) {
+  const p = clamp((t - 23.5) / 16) * 16, sisi = Math.min(3, Math.floor(p / 4)), f = ease((p % 4) / 4);
+  if (t < 23.5 || t > 39.5) return 0;
+  return [f, 1, 1 - f, 0][sisi];
+}
 
 function render(t) {
   const sampul = t < 0;
@@ -198,21 +259,71 @@ function render(t) {
   } else {
     ['pov', 'keluh', 'c1', 'c2', 'c3', 'c4', 'c5'].forEach(id => $(id).style.display = '');
   }
-  // ---- karakter siswi ----
-  // adegan 1-2: besar di tengah & gelisah; adegan 3-4: geser ke kanan; adegan 5: tengah & tenang
+  // ---- kamera: perlahan mendekat saat panik, mundur saat teman datang ----
+  const zoom = 1 + .06 * ease(t / 7) * (1 - ease((t - 7.6) / 1.2));
+  $('chars').style.transform = `scale(${zoom})`;
+
+  // ---- siswi ----
   const kePinggir = ease((t - 8) / 1.2), keTengah = ease((t - 39) / 1.2);
   const cxG = 540 + (720 - 540) * kePinggir + (540 - 720) * keTengah;
-  const hG = 1080 + (840 - 1080) * kePinggir + (1000 - 840) * keTengah;
-  karakter($('girl'), cxG, 1930, hG, RASIO_PUTRI);
-  const gelisah = t < 8 ? Math.sin(t * 38) * 4 * clamp(t / .5) : 0;          // gemetar panik
-  const napasBadan = (t > 23 && t < 39) ? 1 + 0.012 * Math.sin((t - 23) / 16 * Math.PI * 2 * 1) : 1;
+  const hG = 1080 + (780 - 1080) * kePinggir + (1000 - 780) * keTengah;
+  // menoleh ke teman (8.8 s) lalu kembali menghadap depan (39.2 s): ganti pose dengan "squash" singkat
+  const menghadapKiri = t >= 8.8 && t < 39.2;
+  const dekatPutar = Math.min(Math.abs(t - 8.8), Math.abs(t - 39.2));
+  const putar = dekatPutar < .14 ? 1 - .14 * Math.cos(dekatPutar / .14 * Math.PI / 2) : 1;
+  rigGirlDepan.style.display = menghadapKiri ? 'none' : 'block';
+  rigGirlKiri.style.display = menghadapKiri ? 'block' : 'none';
+  const rG = menghadapKiri ? RASIO_PUTRI * 185 / 229 : RASIO_PUTRI;
+  letak($('girl'), cxG, 1930, hG, rG);
+  const nG = napasKotak(t);
+  let gx = 0, gy = 0, gr = 0, gKep = 0, gKepY = 0, gNapas = 1 + .008 * Math.sin(t * 1.6);
+  if (t < 3) {                       // gelisah: gemetar halus, kepala bergetar
+    gx = Math.sin(t * 38) * 3 * clamp(t / .5); gKep = Math.sin(t * 31) * 1.6;
+  } else if (t < 8) {                // menggeleng bingung
+    gx = Math.sin(t * 30) * 2; gKep = Math.sin((t - 3) * 9) * 5 * (1 - clamp((t - 7.4) / .6));
+    gr = Math.sin(t * 2.2) * 1.2;
+  } else if (t < 13) {               // mendengarkan, mengangguk kecil di 11.5 s
+    gKep = -5 * Math.sin(clamp((t - 11.3) / .7) * Math.PI);
+    gr = Math.sin(t * 1.3) * .6;
+  } else if (t < 23.4) {             // grounding: melihat sekeliling, angguk tiap langkah
+    const langkah = (t - 13) % 2;
+    gKep = Math.sin((t - 13) * 1.6) * 3.5 - 3 * Math.sin(clamp(langkah / .5) * Math.PI);
+    gr = Math.sin(t * 1.1) * .6;
+  } else if (t < 39.4) {             // napas kotak: dada naik-turun, kepala sedikit mendongak saat tarik
+    gNapas = 1 + .028 * nG; gKep = 2.5 * nG; gKepY = -6 * nG;
+  } else {                           // lega: lompat kecil, kepala miring, angguk "oke" di 41.2 s
+    const lompat = Math.sin(clamp((t - 39.5) / .45) * Math.PI);
+    gy = -26 * lompat; gNapas = 1 - .03 * lompat + .008 * Math.sin(t * 1.6);
+    gKep = 5 * Math.sin(t * 1.4) - 6 * Math.sin(clamp((t - 41.1) / .6) * Math.PI);
+    gr = Math.sin(t * 1.4) * 1.2;
+  }
   const munculG = clamp(t / .5) * (1 - clamp((t - 43) / .4));
-  set($('girl'), munculG, gelisah, 0, napasBadan, t < 8 ? Math.sin(t * 9) * 1.2 : 0);
+  set($('girl'), munculG, gx, gy, 1, gr);
+  $('girl').style.transform += ` scaleX(${putar})`;
+  const kedipG = t < 8 ? kedip(t, 1.3, .3) : kedip(t, 3.1, .9);
+  pose(menghadapKiri ? rigGirlKiri : rigGirlDepan, { kepala: gKep, kepalaY: gKepY, napas: gNapas, kedipan: kedipG });
 
-  // ---- karakter siswa (masuk dari kiri) ----
-  const masukB = easeOut((t - 8) / 1.0);
-  karakter($('boy'), 330, 1930, 860, RASIO_PUTRA);
-  set($('boy'), tampil(t, 8, 39), -420 * (1 - masukB), 0, 1);
+  // ---- siswa: berjalan masuk dari kiri dengan langkah memantul ----
+  const jalan = clamp((t - 8) / 1.6);              // 4 langkah
+  const langkahB = jalan * 4;
+  const masukX = -440 * (1 - easeOut(jalan));
+  const pantul = jalan < 1 ? -Math.abs(Math.sin(langkahB * Math.PI)) * 18 : 0;
+  const goyang = jalan < 1 ? Math.sin(langkahB * Math.PI) * 2.2 : 0;
+  const mendarat = Math.sin(clamp((t - 9.6) / .35) * Math.PI);   // sedikit "squash" saat berhenti
+  letak($('boy'), 330, 1930, 800, RASIO_PUTRA);
+  let bKep = 0, bKepY = 0, bNapas = 1 + .008 * Math.sin(t * 1.5 + 1) - .02 * mendarat, br = goyang;
+  if (t >= 9.2 && t < 12.6) {        // berbicara: kepala bergerak kecil mengikuti ucapan
+    bKep = Math.sin(t * 8) * 1.6 + 3 * Math.sin(clamp((t - 10.6) / .5) * Math.PI);
+  } else if (t >= 13 && t < 23.4) {  // memandu: angguk setiap langkah grounding
+    bKep = 4 * Math.sin(clamp(((t - 13) % 2) / .5) * Math.PI);
+    br = Math.sin(t * 1.2) * .5;
+  } else if (t >= 23.4 && t < 39.4) {
+    const nB = napasKotak(t); bNapas = 1 + .028 * nB; bKep = -2.5 * nB; bKepY = -6 * nB;
+  } else if (t >= 9.6) {
+    br = Math.sin(t * 1.2) * .5;
+  }
+  set($('boy'), tampil(t, 8, 39), masukX, pantul, 1, br);
+  pose(rigBoy, { kepala: bKep, kepalaY: bKepY, napas: bNapas, kedipan: kedip(t, 3.7, 0) });
 
   set($('keringat'), tampil(t, 1, 8), 0, Math.abs(Math.sin(t * 4)) * -18, 1, 0);
   set($('kilau1'), tampil(t, 40, 43), 0, 0, .8 + .25 * Math.sin(t * 5), 0);
