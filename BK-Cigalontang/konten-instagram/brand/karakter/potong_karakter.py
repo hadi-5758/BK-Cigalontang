@@ -9,15 +9,26 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 DIR = Path(__file__).parent
-SUMBER = DIR / "referensi-karakter-siswa.webp"
-# nama: (x_awal, x_akhir) kolom pada lembar referensi
-POSE = {
-    "siswa-putra-depan": (6, 264),
-    "siswa-putra-samping-kanan": (282, 456),
-    "siswa-putra-samping-kiri": (457, 630),
-    "siswa-putri-depan": (892, 1124),
-    "siswa-putri-samping-kanan": (1124, 1310),
-    "siswa-putri-samping-kiri": (1340, 1536),
+# lembar referensi -> {nama file: (x_awal, x_akhir) kolom pose}
+LEMBAR = {
+    "referensi-karakter-siswa.webp": {
+        "siswa-putra-depan": (6, 264),
+        "siswa-putra-samping-kanan": (282, 456),
+        "siswa-putra-samping-kiri": (457, 630),
+        "siswa-putri-depan": (892, 1124),
+        "siswa-putri-samping-kanan": (1124, 1310),
+        "siswa-putri-samping-kiri": (1340, 1536),
+    },
+    "referensi-karakter-guru.webp": {
+        "guru-bk-putri-depan": (4, 216),
+        "guru-bk-putri-samping-kanan": (216, 382),
+        "guru-bk-putri-samping-kiri": (393, 560),
+        "guru-bk-putri-belakang": (560, 755),
+        "guru-bk-putra-depan": (769, 990),
+        "guru-bk-putra-samping-kanan": (990, 1150),
+        "guru-bk-putra-samping-kiri": (1160, 1312),
+        "guru-bk-putra-belakang": (1313, 1536),
+    },
 }
 AMBANG_PUTIH = 236
 
@@ -55,6 +66,33 @@ def celah_tertutup(kandidat, a, min_luas=150, maks_luas=4000):
     return hasil
 
 
+def komponen_terbesar(isi):
+    """Ambil bagian gambar terbesar yang tersambung (karakternya), buang serpihan pose tetangga."""
+    h, w = isi.shape
+    label = np.zeros(isi.shape, dtype=np.int32)
+    ukuran, n = [0], 0
+    for y0, x0 in zip(*np.nonzero(isi)):
+        if label[y0, x0]:
+            continue
+        n += 1
+        tumpukan, jml = [(y0, x0)], 0
+        label[y0, x0] = n
+        while tumpukan:
+            y, x = tumpukan.pop()
+            jml += 1
+            for yy, xx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+                if 0 <= yy < h and 0 <= xx < w and isi[yy, xx] and not label[yy, xx]:
+                    label[yy, xx] = n
+                    tumpukan.append((yy, xx))
+        ukuran.append(jml)
+    if n == 0:
+        return isi
+    terbesar = int(np.argmax(ukuran))
+    # pertahankan juga bagian kecil yang lepas tapi cukup besar (mis. sepatu), > 2% dari terbesar
+    simpan = [i for i, u in enumerate(ukuran) if i and u >= .02 * ukuran[terbesar]]
+    return np.isin(label, simpan)
+
+
 def potong(img, x0, x1):
     a = np.asarray(img.crop((x0, 0, x1, img.height)).convert("RGB")).astype(int)
     putih = a.min(axis=2) >= AMBANG_PUTIH
@@ -68,6 +106,7 @@ def potong(img, x0, x1):
             break
         latar = baru
     latar |= celah_tertutup(putih & ~latar, a)
+    latar |= ~komponen_terbesar(~latar)
     alpha = Image.fromarray(np.where(latar, 0, 255).astype("uint8"))
     alpha = alpha.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.8))
     rgba = Image.fromarray(a.astype("uint8")).convert("RGBA")
@@ -76,8 +115,9 @@ def potong(img, x0, x1):
 
 
 if __name__ == "__main__":
-    img = Image.open(SUMBER)
-    for nama, (x0, x1) in POSE.items():
-        hasil = potong(img, x0, x1)
-        hasil.save(DIR / f"{nama}.png")
-        print(nama, hasil.size)
+    for sumber, pose in LEMBAR.items():
+        img = Image.open(DIR / sumber)
+        for nama, (x0, x1) in pose.items():
+            hasil = potong(img, x0, x1)
+            hasil.save(DIR / f"{nama}.png")
+            print(nama, hasil.size)
