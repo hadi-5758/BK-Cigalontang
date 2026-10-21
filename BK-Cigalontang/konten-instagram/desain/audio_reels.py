@@ -33,7 +33,7 @@ DIALOG = [
     (27.6, "Siswa", "Tahan…", 3.8),
     (31.6, "Siswa", "Hembuskan pelan-pelan…", 3.8),
     (35.6, "Siswa", "Tahan…", 3.4),
-    (39.6, "Siswa", "Cemas itu wajar. Bisa dikelola, kok.", 1.5),
+    (39.6, "Siswa", "Cemas itu wajar, kok.", 1.5),
     (41.2, "Siswi", "Oke… mulai dari satu bab dulu.", 1.8),
     (43.4, "Guru BK", "Butuh teman cerita? Ruang BK terbuka buat kamu.", 4.0),
 ]
