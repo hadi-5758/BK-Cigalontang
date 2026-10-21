@@ -258,7 +258,12 @@ if "--suara" in args:
         if geser > 0:
             print(f"  dialog-{k:02d} digeser +{geser:.2f} dtk" + ("  (lebih dari 0.6 dtk, sebaiknya rekam ulang lebih singkat)" if geser > .6 else ""))
             mulai += geser
-        tambah(suara, data / (np.abs(data).max() + 1e-9) * .8, mulai)
+        # samakan kekerasan rata-rata (RMS bagian bersuara), bukan puncak, agar kalimat lembut tidak tenggelam
+        bersuara = data[np.convolve(np.abs(data), np.ones(441) / 441, "same") > .01]
+        rms = np.sqrt(np.mean(bersuara ** 2)) if len(bersuara) else 1e-9
+        data = data * (10 ** (-18 / 20) / (rms + 1e-9))
+        data = np.tanh(data * 1.1) / 1.1 if np.abs(data).max() > .95 else data  # pembatas lembut
+        tambah(suara, data, mulai)
         akhir_sebelum = mulai + len(data) / SR
     # ducking: musik turun saat ada suara
     env = np.convolve(np.abs(suara), np.ones(t2i(.25)) / t2i(.25), "same")
