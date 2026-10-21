@@ -15,6 +15,7 @@ import urllib.request
 from pathlib import Path
 
 MODEL = "eleven_v4"
+KECEPATAN = 0.9  # sedikit lebih pelan dari normal agar tidak terdengar tergesa-gesa
 SUARA = {
     "Siswi": "TrU3igk19A4aIUi2GAA2",    # Velora - warm, youthful & conversational
     "Siswa": "URAuwR59OqCASDVp35yi",    # Ibnu - Calm, Clear
@@ -22,7 +23,7 @@ SUARA = {
 }
 # (nomor, pemeran, teks dengan tag emosi eleven_v4) — urutan sama dengan DIALOG di audio_reels.py
 BARIS = [
-    (1, "Siswi", "[nervous] Aduh... H min lima TKA, tapi otakku nge-freeze."),
+    (1, "Siswi", "[worried] Aduh... H min lima TKA, tapi otakku nge-freeze."),
     (2, "Siswi", "[confused] Kok semua materi kayak baru pertama lihat, sih..."),
     (3, "Siswa", "[warmly] Eh, berhenti dulu sebentar. Coba ikutin aku."),
     (4, "Siswa", "[softly] Sebutin lima hal yang kamu lihat..."),
@@ -42,7 +43,8 @@ BARIS = [
 
 def buat(teks, voice_id):
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=mp3_44100_128"
-    body = json.dumps({"text": teks, "model_id": MODEL}).encode()
+    body = json.dumps({"text": teks, "model_id": MODEL,
+                       "voice_settings": {"speed": KECEPATAN}}).encode()
     req = urllib.request.Request(url, data=body, method="POST",
                                  headers={"Content-Type": "application/json", "Accept": "audio/mpeg"})
     with urllib.request.urlopen(req, timeout=120) as r:

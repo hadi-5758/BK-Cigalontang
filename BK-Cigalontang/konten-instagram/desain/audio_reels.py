@@ -15,7 +15,6 @@ import numpy as np
 
 SR = 44100
 DURASI = 48.0
-N = int(SR * DURASI)
 rng = np.random.default_rng(7)
 
 # waktu mulai tiap baris dialog (detik) — sama dengan teks di layar
@@ -37,6 +36,33 @@ DIALOG = [
     (41.2, "Siswi", "Oke… mulai dari satu bab dulu.", 1.8),
     (43.4, "Guru BK", "Butuh teman cerita? Ruang BK terbuka buat kamu.", 4.0),
 ]
+
+
+# Jadwal versi dubbing (video dibuka dengan ?dubbing, 57.5 dtk): animasi yang menyesuaikan suara,
+# jadi tiap kalimat diputar dengan kecepatan aslinya.
+DIALOG_DUBBING = [
+    (0.3, "Siswi", "Aduh… H-5 TKA, tapi otakku nge-freeze.", 9.0),
+    (6.0, "Siswi", "Kok semua materi kayak baru pertama lihat, sih…", 9.0),
+    (10.8, "Siswa", "Eh, berhenti dulu sebentar. Coba ikutin aku.", 9.0),
+    (14.9, "Siswa", "Sebutin lima hal yang kamu lihat…", 9.0),
+    (17.6, "Siswa", "empat hal yang bisa kamu sentuh…", 9.0),
+    (20.3, "Siswa", "tiga suara yang kamu dengar…", 9.0),
+    (23.0, "Siswa", "dua aroma yang kamu cium…", 9.0),
+    (25.7, "Siswa", "dan satu hal yang kamu syukuri.", 9.0),
+    (28.4, "Siswa", "Sekarang ikuti titiknya. Tarik napas…", 9.0),
+    (34.1, "Siswa", "Tahan…", 9.0),
+    (38.1, "Siswa", "Hembuskan pelan-pelan…", 9.0),
+    (42.1, "Siswa", "Tahan…", 9.0),
+    (46.2, "Siswa", "Cemas itu wajar, kok.", 9.0),
+    (48.3, "Siswi", "Oke… mulai dari satu bab dulu.", 9.0),
+    (52.2, "Guru BK", "Butuh teman cerita? Ruang BK terbuka buat kamu.", 9.0),
+]
+if "--jadwal-dubbing" in sys.argv:
+    DIALOG = DIALOG_DUBBING
+    DURASI = 57.5
+
+
+N = int(SR * DURASI)
 
 
 def t2i(t):

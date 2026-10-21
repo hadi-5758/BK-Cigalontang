@@ -178,7 +178,20 @@
 </div>
 
 <script>
-const DURASI = 48;
+// Versi dubbing (buka dengan ?dubbing): tempo animasi diregangkan mengikuti durasi asli tiap kalimat
+// ElevenLabs, jadi suara tidak perlu dipercepat. Pasangan [detik video, detik timeline asli].
+const TEMPO_DUBBING = [[0, 0], [5.6, 3.4], [9.5, 8], [10.7, 9.2], [14.2, 12.4], [14.8, 13],
+  [28.3, 23], [30.0, 23.5], [46.0, 39.5], [48.2, 41], [51.8, 43], [57.5, 48]];
+const DUBBING = location.search.includes('dubbing');
+const DURASI = DUBBING ? 57.5 : 48;
+function waktuAsli(t) {
+  if (!DUBBING || t < 0) return t;
+  for (let i = 1; i < TEMPO_DUBBING.length; i++) {
+    const [r0, a0] = TEMPO_DUBBING[i - 1], [r1, a1] = TEMPO_DUBBING[i];
+    if (t <= r1) return a0 + (t - r0) / (r1 - r0) * (a1 - a0);
+  }
+  return TEMPO_DUBBING[TEMPO_DUBBING.length - 1][1];
+}
 const $ = id => document.getElementById(id);
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const ease = x => { x = clamp(x); return x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; };
@@ -379,12 +392,13 @@ function render(t) {
   const ak = clamp((t - 43) / .5);
   set($('akhir'), ak, 0, 0, .96 + .04 * easeOut((t - 43) / .6));
 }
-window.render = render;
+const renderAsli = render;  // simpan dulu: window.render menimpa fungsi global render
+window.render = t => renderAsli(waktuAsli(t));
 window.DURASI = DURASI;
 // pratinjau di browser biasa
 if (!navigator.webdriver) {
   const mulai = performance.now();
-  (function loop() { render(((performance.now() - mulai) / 1000) % DURASI); requestAnimationFrame(loop); })();
+  (function loop() { window.render(((performance.now() - mulai) / 1000) % DURASI); requestAnimationFrame(loop); })();
 } else { render(0); }
 </script>
 </body>

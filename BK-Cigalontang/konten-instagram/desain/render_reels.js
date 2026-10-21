@@ -9,7 +9,8 @@ const path = require('path');
   const fps = Number(fpsArg || 30);
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
-  await page.goto('file://' + path.resolve(html));
+  const [berkas, kueri] = html.split('?');  // mis. reels.html?dubbing
+  await page.goto('file://' + path.resolve(berkas) + (kueri ? '?' + kueri : ''));
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(300);
   const durasi = await page.evaluate(() => window.DURASI);
