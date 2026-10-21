@@ -195,6 +195,8 @@ Info resmi: tka.kemendikdasmen.go.id
 | 32–38 dtk | A tersenyum kecil, membuka buku lagi dengan lebih tenang | "Cemas itu wajar. Bisa dikelola, kok." | A: "Oke… mulai dari satu bab dulu." |
 | 38–45 dtk | Kartu penutup: logo BK + teks | **Butuh teman cerita? Ruang BK terbuka 🤍** · Save & coba sebelum tidur | (musik fade out) |
 
+**Versi animasi (siap unggah, tanpa syuting):** `desain/export/reels-otak-nge-freeze/reels-otak-nge-freeze.mp4` (48 detik, 1080×1920, tanpa audio: tambahkan musik lo-fi dari library Instagram) + cover `cover-reels.png`. Sumber: `desain/reels-otak-nge-freeze.html`, render ulang dengan `node desain/render_reels.js`.
+
 **Cover Reels (thumbnail):** A memegang kepala dengan ekspresi lucu-panik, teks besar "OTAK NGE-FREEZE? COBA INI" (pastikan teks tetap terbaca di grid 1:1/4:5).
 
 ## Caption
