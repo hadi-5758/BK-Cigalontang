@@ -50,7 +50,7 @@ Sumber: `Panduan_Identitas_Digital_IG_bksmanrici.pdf` (folder ini).
 
 ![Jajaran karakter 2D](karakter/2d/lineup-2d.png)
 
-Set karakter 2D ini **menggantikan** set lama di bawah untuk konten baru. Set 3D menyusul.
+Set karakter 2D ini (dan set 3D di bawahnya) **menggantikan** set lama untuk konten baru.
 Lembar referensi ada di `karakter/2d/referensi/`, semua PNG transparan dibuat oleh `karakter/2d/potong_2d.py` (BiRefNet lewat `rembg`); gambar jajaran oleh `karakter/2d/buat_lineup.py`.
 
 | Karakter | Folder | Ciri |
@@ -80,6 +80,38 @@ Aturan pakai:
 - Wajah karakter ini ilustrasi, bukan siswa sungguhan, jadi aman dipakai tanpa izin wajah.
 
 Menambah atau memperbaiki potongan: ubah kotak di `LEMBAR` pada `potong_2d.py`, lalu `pip install "rembg[cpu]"` dan `python3 potong_2d.py` (±30 detik per potongan di CPU), kemudian `python3 buat_lineup.py`.
+
+## Karakter 3D
+
+![Jajaran karakter 3D](karakter/3d/lineup-3d.png)
+
+Karakternya sama dengan set 2D (siswi, siswa, guru BK putri & putra, seragam yang sama), tetapi bergaya render 3D yang lembut. Lembar referensi ada di `karakter/3d/referensi/`, dan PNG transparan dibuat oleh `karakter/3d/potong_3d.py` dengan pemotong yang sama seperti set 2D. Jajaran dibuat dengan `python3 karakter/2d/buat_lineup.py karakter/3d`.
+
+Palet dari lembar guru (berlaku juga untuk kulit siswa):
+
+| Bagian | Warna |
+|---|---|
+| Kulit | `#FAD7C0` |
+| Hijab guru putri | `#E6D1C1` |
+| Seragam dinas khaki | `#B0895B` |
+| Rambut/alis guru putri | `#3A2F2A` |
+| Rambut guru putra | `#2B2B2B` |
+| Sepatu | `#1F1F1F` |
+| Aksen (pin, emblem) | `#D4AF37` |
+
+**Isi tiap folder** (`karakter/3d/<karakter>/`):
+
+| File | Siswi | Siswa | Guru BK Putri | Guru BK Putra |
+|---|---|---|---|---|
+| `utama.png` | ✓ (bertas) | ✓ (bertas) | – | – |
+| `tampak-depan`, `menghadap-kanan`, `menghadap-kiri`, `tampak-belakang` | ✓ | ✓ | ✓ | ✓ + `tiga-perempat-depan` |
+| `pose-*.png` (badan penuh siswa, ¾ badan guru) | salam, memegang-buku, menunjuk, semangat, membawa-tas, mempresentasikan, berjalan | melambaikan-tangan, mengacungkan-jempol, menyilangkan-tangan, menunjuk, memegang-buku, memakai-tas, berjalan | menyapa, memberi-arahan, menjelaskan, diskusi-konseling (duduk di meja), berpikir, memegang-dokumen | menyapa, memberi-arahan, menjelaskan, diskusi-konseling (duduk), mencari-solusi, memegang-dokumen |
+| `ekspresi-*.png` | normal, senang, tertawa, serius, terkejut, sedih, marah, malu | sama dengan siswi | normal-ramah, senyum-terbuka, tertawa-senang, terkejut, serius-profesional, berpikir, empati, tertegun-mendengar, sedih, tegas | normal-ramah, senyum-terbuka, tertawa-senang, terkejut, serius-profesional, berpikir, empati, tegas, ragu, semangat |
+
+Kapan pakai 2D atau 3D:
+- **Jangan campur 2D dan 3D dalam satu konten.** Pilih satu set per postingan atau per seri.
+- 3D cocok untuk cover carousel, poster layanan, thumbnail Reels, dan pengumuman yang ingin terlihat lebih "premium". 2D lebih ringan untuk infografis padat teks dan animasi Reels sederhana.
+- Aturan skala, potongan setengah badan, dan arah hadap sama dengan set 2D di atas.
 
 ## Karakter (set lama)
 

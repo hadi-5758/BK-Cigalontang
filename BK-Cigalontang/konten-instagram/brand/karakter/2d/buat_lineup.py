@@ -1,11 +1,13 @@
 """
-Gambar jajaran karakter 2D (tampak depan) untuk README: lineup-2d.png.
-Jalankan setelah potong_2d.py: python3 buat_lineup.py
+Gambar jajaran karakter (tampak depan) untuk README: lineup-<set>.png di folder set.
+Jalankan setelah potong_2d.py: python3 buat_lineup.py            (set 2D, folder ini)
+                               python3 buat_lineup.py ../3d     (set lain)
 """
+import sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-DIR = Path(__file__).parent
+DIR = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).parent
 TINGGI = 620           # tinggi siswa dalam px
 SKALA_GURU = 1.08      # guru sedikit lebih tinggi dari siswa (lihat README)
 KARAKTER = [("siswi", "Siswi"), ("siswa", "Siswa"),
@@ -38,8 +40,9 @@ def main():
         w = d.textlength(label, font=font)
         d.text((x + (f.width - w) / 2, lantai + 26), label, fill="#0F766E", font=font)
         x += f.width + jarak
-    kanvas.save(DIR / "lineup-2d.png", optimize=True)
-    print("lineup-2d.png", kanvas.size)
+    nama = f"lineup-{DIR.name}.png"
+    kanvas.save(DIR / nama, optimize=True)
+    print(nama, kanvas.size)
 
 
 if __name__ == "__main__":
