@@ -176,7 +176,7 @@ Slide Terakhir — CTA (Call to Action)
   - Tidak mempromosikan atau melarang; fokus pada batasan sehat
 
 ### Standar Visual
-- **Wajib mengikuti identitas visual @bksmanrici** di `brand/README.md`: palet Toska Utama `#0D9488`, Hijau Zamrud `#10B981`, Emas Hangat `#F59E0B`; judul Plus Jakarta Sans, isi Inter; logo `brand/logo-bk-smanrici.png` di header; kerangka Highlight / Poster Layanan / Infografik Edukasi / Pengumuman Kegiatan
+- **Wajib mengikuti identitas visual @bksmanrici** di `brand/README.md`: palet Toska Utama `#0D9488`, Hijau Zamrud `#10B981`, Emas Hangat `#F59E0B`; judul Plus Jakarta Sans, isi Inter; logo `brand/logo-bk-smanrici.png` di header; karakter 2D standar di `brand/karakter/2d/` (siswi, siswa, guru BK putri & putra: tampak, pose, ekspresi); kerangka Highlight / Poster Layanan / Infografik Edukasi / Pengumuman Kegiatan
 - Tidak menampilkan wajah siswa tanpa izin tertulis
 - Tidak menggunakan foto/ilustrasi yang menggambarkan kekerasan secara eksplisit
 - Gunakan ilustrasi, karakter, atau foto stok yang representatif

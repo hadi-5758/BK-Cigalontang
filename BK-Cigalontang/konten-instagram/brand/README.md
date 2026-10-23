@@ -46,7 +46,42 @@ Sumber: `Panduan_Identitas_Digital_IG_bksmanrici.pdf` (folder ini).
 - Ilustrasi gaya flat, karakter beragam (berjilbab & tidak, warna kulit beragam), seragam putih abu.
 - Contoh penerapan: `../desain/tka-5-hal-carousel.html`.
 
-## Karakter
+## Karakter 2D (standar baru)
+
+![Jajaran karakter 2D](karakter/2d/lineup-2d.png)
+
+Set karakter 2D ini **menggantikan** set lama di bawah untuk konten baru. Set 3D menyusul.
+Lembar referensi ada di `karakter/2d/referensi/`, semua PNG transparan dibuat oleh `karakter/2d/potong_2d.py` (BiRefNet lewat `rembg`); gambar jajaran oleh `karakter/2d/buat_lineup.py`.
+
+| Karakter | Folder | Ciri |
+|---|---|---|
+| Siswi | `karakter/2d/siswi/` | Jilbab putih panjang, kemeja putih lengan panjang, dasi abu, rok abu lipit panjang, badge OSIS, emblem SMA kuning di lengan, sepatu pantofel hitam, kaos kaki putih |
+| Siswa | `karakter/2d/siswa/` | Rambut hitam pendek, kemeja putih lengan pendek, dasi abu, celana abu, badge OSIS, emblem SMA, sepatu kets hitam |
+| Guru BK Putri | `karakter/2d/guru-bk-putri/` | Hijab krem, blazer & rok panjang khaki (seragam dinas), papan nama, emblem di kedua lengan, sepatu hak hitam |
+| Guru BK Putra | `karakter/2d/guru-bk-putra/` | Rambut hitam bergelombang, kemeja dinas khaki lengan pendek, celana khaki, papan nama, emblem lengan, sepatu pantofel hitam |
+
+Palet seragam siswa (dari lembar): putih `#FFFFFF`, abu muda `#CBD5E1`, abu `#64748B`, biru dongker `#1E3A5F`. Warna tidak diubah, karakter tetap ditaruh di atas palet brand.
+
+**Isi tiap folder:**
+
+| File | Isi |
+|---|---|
+| `tampak-depan.png`, `tampak-belakang.png` | Badan penuh |
+| `menghadap-kanan.png`, `menghadap-kiri.png` | Badan penuh, wajah/badan ke arah itu |
+| `utama.png` | Pose utama besar (siswi & siswa saja) |
+| `pose-*.png` | Siswi: salam, memegang-buku, menunjuk, semangat, peace, membawa-tas, membawa-tablet, mempresentasikan. Siswa: melambaikan-tangan, mengacungkan-jempol, menyilangkan-tangan, menunjuk, memegang-buku, memakai-tas, berjalan, sikap-santai. Siswa/siswi badan penuh; guru setengah badan (menyapa, memberi-arahan, menjelaskan, diskusi-konseling, lalu putri: berpikir, memegang-dokumen, memegang-tablet; putra: mencari-solusi, tegas-profesional, memegang-dokumen) |
+| `ekspresi-*.png` | Potret kepala-bahu. Siswi/siswa: normal, senang, tertawa, serius, terkejut, sedih, marah, malu. Guru: normal-ramah, senyum-terbuka, tertawa-senang, terkejut, serius-profesional, berpikir, lalu putri: sedih-empati, tertegun-mendengar; putra: empati, tegas |
+
+Aturan pakai:
+- Skala seragam saja; guru diperbesar ±1,08× saat berdiri bersama siswa.
+- Pose guru dan semua ekspresi terpotong di bawah (setengah badan/potret): letakkan menempel tepi bawah kartu atau di dalam bingkai, jangan "melayang".
+- Pilih ekspresi sesuai emosi naskah (mis. cemas → `sedih`/`terkejut`, lega → `senang`), dan guru `sedih-empati`/`empati` untuk adegan mendengarkan.
+- Adegan konseling: guru `menghadap-kiri` di kanan, siswa `menghadap-kanan` di kiri.
+- Wajah karakter ini ilustrasi, bukan siswa sungguhan, jadi aman dipakai tanpa izin wajah.
+
+Menambah atau memperbaiki potongan: ubah kotak di `LEMBAR` pada `potong_2d.py`, lalu `pip install "rembg[cpu]"` dan `python3 potong_2d.py` (±30 detik per potongan di CPU), kemudian `python3 buat_lineup.py`.
+
+## Karakter (set lama)
 
 ![Jajaran karakter](karakter/lineup-karakter.png)
 
