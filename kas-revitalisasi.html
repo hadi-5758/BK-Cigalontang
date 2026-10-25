@@ -552,12 +552,13 @@ function bisaTulis(){
    UTIL
    ========================================================= */
 function $(id){ return document.getElementById(id); }
+const NL = String.fromCharCode(10); // Apps Script mengubah garis miring terbalik di kode halaman, jadi baris baru dibuat tanpa escape
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sum = (arr, f = x => x.nominal) => arr.reduce((a, x) => a + (+f(x) || 0), 0);
 const rp = n => (n < 0 ? '−Rp ' : 'Rp ') + Math.abs(Math.round(n || 0)).toLocaleString('id-ID');
 const angka = n => Math.round(n || 0).toLocaleString('id-ID');
-const parseRp = s => parseInt(String(s).replace(/\D/g, ''), 10) || 0;
+const parseRp = s => parseInt(String(s).replace(/[^0-9]/g, ''), 10) || 0;
 const pct = (a, b) => b ? (a / b * 100) : 0;
 const BLN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const BLN_PJG = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -830,7 +831,7 @@ function setJenis(j){
 function mulaiCatat(j){ if(editing) batalEdit(); goTo('catat'); setJenis(j); }
 function hintKategori(){ $('hintPiutang').hidden = $('k-kategori').value !== KAT_PIUTANG; }
 function nextBukti(){
-  let mx = 0; db.keluar.forEach(k => { const m = /^BKT-(\d+)$/.exec(k.noBukti || ''); if(m) mx = Math.max(mx, +m[1]); });
+  let mx = 0; db.keluar.forEach(k => { const m = /^BKT-([0-9]+)$/.exec(k.noBukti || ''); if(m) mx = Math.max(mx, +m[1]); });
   return 'BKT-' + String(mx + 1).padStart(3, '0');
 }
 function isiDatalist(){
@@ -925,7 +926,7 @@ async function simpanKeluar(e){
   menyimpan = true;
   try{
     const saldo = saldoPada(kasEvents(), d.tanggal, editing && editing.id);
-    if(d.nominal > saldo && !await tanya({judul:'Saldo kas tidak cukup', pesan:`Saldo kas tunai per ${tgl(d.tanggal)} hanya ${rp(saldo)}, sedangkan pengeluaran ini ${rp(d.nominal)}.\n\nMungkin ada tarik tunai yang belum dicatat.`, ok:'Tetap simpan'})) return;
+    if(d.nominal > saldo && !await tanya({judul:'Saldo kas tidak cukup', pesan:`Saldo kas tunai per ${tgl(d.tanggal)} hanya ${rp(saldo)}, sedangkan pengeluaran ini ${rp(d.nominal)}.${NL}${NL}Mungkin ada tarik tunai yang belum dicatat.`, ok:'Tetap simpan'})) return;
     await simpanRec('keluar', d);
   } finally { menyimpan = false; }
 }
@@ -939,7 +940,7 @@ async function simpanTarik(e){
     const dup = db.tarik.find(t => (t.noSI || '').toLowerCase() === d.noSI.toLowerCase() && (!editing || t.id !== editing.id));
     if(dup && !await tanya({judul:'Nomor SI sudah dipakai', pesan:`Nomor SI "${d.noSI}" sudah tercatat pada ${tgl(dup.tanggal)} sebesar ${rp(dup.nominal)}.`, ok:'Tetap simpan'})) return;
     const saldo = saldoPada(bankEvents(), d.tanggal, editing && editing.id);
-    if(d.nominal > saldo && !await tanya({judul:'Saldo rekening tidak cukup', pesan:`Saldo rekening per ${tgl(d.tanggal)} hanya ${rp(saldo)}.\n\nMungkin Dana Salur belum dicatat.`, ok:'Tetap simpan'})) return;
+    if(d.nominal > saldo && !await tanya({judul:'Saldo rekening tidak cukup', pesan:`Saldo rekening per ${tgl(d.tanggal)} hanya ${rp(saldo)}.${NL}${NL}Mungkin Dana Salur belum dicatat.`, ok:'Tetap simpan'})) return;
     await simpanRec('tarik', d);
   } finally { menyimpan = false; }
 }
@@ -957,7 +958,7 @@ async function hapusRec(jenis, id){
   const r = db[jenis].find(x => x.id === id); if(!r) return;
   const cic = jenis === 'keluar' ? db.cicil.filter(c => c.piutangId === id) : [];
   const ok = await tanya({judul:'Hapus data ini?', bahaya:true, ok:'Hapus',
-    pesan:`${tgl(r.tanggal)} · ${rp(r.nominal)}\n${r.keperluan || (r.noSI ? 'SI No. ' + r.noSI : '') || r.tahap || ''}` + (cic.length ? `\n\nKasbon ini punya ${cic.length} cicilan yang juga akan ikut terhapus.` : '')});
+    pesan:`${tgl(r.tanggal)} · ${rp(r.nominal)}${NL}${r.keperluan || (r.noSI ? 'SI No. ' + r.noSI : '') || r.tahap || ''}` + (cic.length ? `${NL}${NL}Kasbon ini punya ${cic.length} cicilan yang juga akan ikut terhapus.` : '')});
   if(!ok) return;
   db[jenis] = db[jenis].filter(x => x.id !== id);
   if(cic.length) db.cicil = db.cicil.filter(c => c.piutangId !== id);
@@ -1387,7 +1388,7 @@ function restoreBackup(input){
       n = normalize(d);
     }catch(e){ return toast('File ini bukan backup aplikasi Kas Revitalisasi', true); }
     const ok = await tanya({judul:'Pulihkan backup?', ok:'Pulihkan', bahaya:true,
-      pesan:`Isi backup: ${n.salur.length} dana salur · ${n.tarik.length} tarik tunai · ${n.keluar.length} pengeluaran · ${n.cicil.length} cicilan.\n\nSemua data yang ada sekarang akan DIGANTI dengan isi backup ini${store ? ', di semua perangkat' : ''}.`});
+      pesan:`Isi backup: ${n.salur.length} dana salur · ${n.tarik.length} tarik tunai · ${n.keluar.length} pengeluaran · ${n.cicil.length} cicilan.${NL}${NL}Semua data yang ada sekarang akan DIGANTI dengan isi backup ini${store ? ', di semua perangkat' : ''}.`});
     if(!ok) return;
     const gagal = await gantiSemua(n, 'Memulihkan backup');
     toast(gagal ? 'Pemulihan gagal tersimpan ke Google Sheets. Coba lagi.' : 'Data berhasil dipulihkan', !!gagal);
@@ -1397,7 +1398,7 @@ function restoreBackup(input){
 async function hapusSemua(){
   if(!bisaTulis()) return;
   const ok = await tanya({judul:'Hapus semua data transaksi?', bahaya:true, ok:'Hapus semua', ketik:'HAPUS',
-    pesan:'Semua dana salur, tarik tunai, pengeluaran, dan cicilan akan dihapus' + (store ? ' dari semua perangkat' : '') + '. Identitas sekolah tetap disimpan.\n\nPastikan Anda sudah mengunduh backup.'});
+    pesan:'Semua dana salur, tarik tunai, pengeluaran, dan cicilan akan dihapus' + (store ? ' dari semua perangkat' : '') + '. Identitas sekolah tetap disimpan.' + NL + NL + 'Pastikan Anda sudah mengunduh backup.'});
   if(!ok) return;
   const baru = emptyDb(); baru.setting = db.setting;
   const gagal = await gantiSemua(baru, 'Menghapus data');
