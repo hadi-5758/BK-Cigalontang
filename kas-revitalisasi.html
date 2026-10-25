@@ -399,10 +399,31 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
 
 <script>
 /* Tampilkan kesalahan JavaScript di layar, supaya mudah dilaporkan */
+window.APP_VERSI = '2026-10-25e';
+function cariBarisRusak_(){
+  // Cari baris pertama yang membuat kode utama gagal dibaca (pencarian biner pada potongan awal kode)
+  var NLc = String.fromCharCode(10), sc = null;
+  for(var i = 0; i < document.scripts.length; i++) if(document.scripts[i].text.indexOf('use strict') >= 0) sc = document.scripts[i];
+  if(!sc) return '';
+  var L = sc.text.split(NLc);
+  var pesan = function(k){ try{ new Function(L.slice(0, k).join(NLc)); return ''; }catch(err){ return String(err.message); } };
+  var target = pesan(L.length);
+  if(!target) return '';
+  var rusak = function(k){ return pesan(k) === target; };
+  var lo = 1, hi = L.length;
+  while(lo < hi){ var mid = (lo + hi) >> 1; if(rusak(mid)) hi = mid; else lo = mid + 1; }
+  var baris = L[lo - 1] || '', aneh = [];
+  for(var j = 0; j < baris.length; j++){ var c = baris.charCodeAt(j); if(c < 32 || c > 126) aneh.push(c); }
+  return 'Baris kode ke-' + lo + ': ' + baris.trim().slice(0, 160) + (aneh.length ? ' [kode karakter: ' + aneh.slice(0, 12).join(',') + ']' : '');
+}
 window.addEventListener('error', function(e){
   var el = document.getElementById('bootErr'); if(!el) return;
+  var detail = '';
+  try{ if(/SyntaxError|token/i.test(String(e.message))) detail = cariBarisRusak_(); }catch(x){ detail = 'Diagnosis gagal: ' + x.message; }
   el.hidden = false;
-  el.textContent = 'Aplikasi mengalami kesalahan: ' + (e.message || 'tidak diketahui') + (e.lineno ? ' (baris ' + e.lineno + ')' : '') + '. Kirim pesan ini ke pembuat aplikasi.';
+  el.style.whiteSpace = 'pre-wrap';
+  el.textContent = 'Aplikasi mengalami kesalahan (versi ' + window.APP_VERSI + '): ' + (e.message || 'tidak diketahui') + (e.lineno ? ' (baris ' + e.lineno + ')' : '') +
+    (detail ? String.fromCharCode(10) + detail : '') + String.fromCharCode(10) + 'Kirim screenshot pesan ini ke pembuat aplikasi.';
 });
 </script>
 <script>
