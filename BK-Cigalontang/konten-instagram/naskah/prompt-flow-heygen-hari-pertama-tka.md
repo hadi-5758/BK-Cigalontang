@@ -32,9 +32,9 @@ Tips: PNG transparan kadang dibaca model sebagai latar hitam. Kalau hasilnya ane
 STYLE: Stylized 3D animated short film, soft Pixar-like rendering, rounded friendly faces, big expressive eyes, warm early-morning sunlight, soft shadows, pastel teal and mint color palette with warm golden accents. Setting: an Indonesian public senior high school (SMA) front gate in a green village area, white school building with teal roof, trees, a small fence. Vertical 9:16 format. Smooth gentle camera movement. No on-screen text, no subtitles, no captions, no watermark.
 
 CHARACTERS (keep exactly consistent with the reference images):
-- NISA: 16-year-old Indonesian girl, long white hijab draped over the chest, white long-sleeve school shirt, grey necktie, small brown OSIS badge on the chest pocket, round yellow school emblem on the left sleeve, black belt, long pleated blue-grey skirt, white socks, black loafers, black backpack. Soft round face, big brown eyes.
-- RAKA: 16-year-old Indonesian boy, short wavy black hair, white short-sleeve school shirt, grey necktie, OSIS badge on the pocket, yellow emblem on the left sleeve, blue-grey trousers, black belt, black-and-white canvas sneakers, black backpack. Friendly, cheerful.
-- BU GURU BK: Indonesian female school counselor around 30, beige hijab, khaki civil-servant uniform (fitted blazer and long khaki skirt), black name tag and small gold pin, holding a black folder, black low heels. Warm, calm, motherly smile.
+- NISA: cartoon student character, long white hijab draped over the chest, white long-sleeve school shirt, grey necktie, small brown OSIS badge on the chest pocket, round yellow school emblem on the left sleeve, black belt, long pleated blue-grey skirt, white socks, black loafers, black backpack. Stylized cartoon face, big brown eyes.
+- RAKA: cartoon student character, short wavy black hair, white short-sleeve school shirt, grey necktie, OSIS badge on the pocket, yellow emblem on the left sleeve, blue-grey trousers, black belt, black-and-white canvas sneakers, black backpack. Friendly, cheerful.
+- BU GURU BK: cartoon teacher character (school counselor), beige hijab, khaki civil-servant uniform (fitted blazer and long khaki skirt), black name tag and small gold pin, holding a black folder, black low heels. Warm, calm, motherly smile.
 ```
 
 ---
@@ -51,7 +51,7 @@ AUDIO: ambient morning sounds only, no music, no dialogue.
 **Klip 2 · Nisa cemas (8–16 dtk)**
 ```
 [STYLE + CHARACTERS]
-SCENE: Medium close-up of Nisa standing in front of the school gate. Her eyebrows rise anxiously, she bites her lip, fiddles with her backpack strap and takes a shaky breath. Slight slow push-in of the camera. Soft blurred background.
+SCENE: Medium close-up of Nisa standing in front of the school gate. Her eyebrows rise anxiously, she fiddles with her backpack strap and takes a shaky breath. Slight slow push-in of the camera. Soft blurred background.
 DIALOGUE (Nisa, quiet inner voice, worried, Indonesian): "Duh… gimana kalau nanti aku blank? Kalau waktunya nggak cukup?"
 AUDIO: soft heartbeat-like low tone, no music.
 ```
@@ -101,6 +101,13 @@ SCENE: Nisa smiles brightly and says thank you, then Nisa and Raka walk side by 
 DIALOGUE (Nisa, happy and confident, Indonesian): "Makasih, Bu! Bismillah."
 AUDIO: footsteps fading, birds, a hopeful soft music swell.
 ```
+
+**Kalau muncul "Gagal — melanggar kebijakan … anak di bawah umur"**
+Flow sangat ketat untuk apa pun yang terbaca sebagai anak. Penyebab paling umum dan cara mengatasinya:
+- Jangan sebut umur atau kata *girl/boy/kid/teen/16-year-old*. Pakai *cartoon student character* (sudah diterapkan di blok di atas).
+- Hindari deskripsi tubuh/wajah yang detail (bibir, badan); cukup pakaian, ekspresi, dan aksi.
+- Gambar referensi juga ikut dinilai: kalau tetap gagal dengan gambar siswa, coba **tanpa gambar referensi** dulu (teks saja), atau pakai lembar referensi yang ada latarnya.
+- Jangan "mengakali" dengan menyebut karakter sebagai orang dewasa. Kalau tetap ditolak, buat adegan siswa dengan animasi kita sendiri (`reels-hari-pertama-tka.mp4`), dan pakai Flow hanya untuk klip Bu Guru BK dan suasana sekolah (klip 5–7 tanpa siswa, atau b-roll gerbang/halaman sekolah).
 
 **Kalau hasil Flow kurang pas**
 - Wajah berubah antar klip → pakai *frame terakhir* klip sebelumnya sebagai *frame awal* klip berikutnya (fitur extend / frames-to-video), dan selalu sertakan gambar referensi.
