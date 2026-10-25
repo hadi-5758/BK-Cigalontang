@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kas Revitalisasi Sekolah</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#0f6b63">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -130,6 +129,7 @@ details.more{margin-bottom:11px}
 details.more summary{cursor:pointer;font-size:13px;color:var(--accent);font-weight:700;padding:4px 0}
 details.more[open] summary{margin-bottom:8px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--border);background:var(--card);border-radius:9px;padding:9px 14px;font-weight:700;cursor:pointer;font-size:13.5px;min-height:40px}
+a.btn{text-decoration:none;color:inherit}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .btn.danger{color:var(--red);border-color:var(--red)}
 .btn.danger-solid{background:var(--red);border-color:var(--red);color:var(--card)}
@@ -380,7 +380,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
         <button class="btn" id="btnXls" onclick="exportExcel()">Unduh Excel</button>
         <button class="btn" id="btnPrint" onclick="window.print()" hidden>Cetak</button>
       </div>
-      <p class="small muted mt8">PDF berukuran A4, siap dikirim lewat WhatsApp atau dicetak. Identitas sekolah dan nama penandatangan diisi di Pengaturan (ikon kanan atas).</p>
+      <p class="small muted mt8">PDF berukuran A4, siap dikirim lewat WhatsApp atau dicetak. Saat online, file disimpan ke folder <b>Kas Revitalisasi - Arsip</b> di Google Drive. Identitas sekolah dan nama penandatangan diisi di Pengaturan (ikon kanan atas).</p>
     </div>
     <div id="lapOut"></div>
   </section>
@@ -414,11 +414,10 @@ const KELOMPOK_OF = {};
 KELOMPOK.forEach(g => g.kat.forEach(k => KELOMPOK_OF[k] = g.nama));
 const kelompokDari = kat => KELOMPOK_OF[kat] || 'Operasional';
 const warnaKelompok = nama => (KELOMPOK.find(g => g.nama === nama) || KELOMPOK[2]).warna;
-const diViewer = (() => { try{ return window.self !== window.top; }catch(e){ return true; } })();
 
 /* =========================================================
    PENYIMPANAN
-   - Di claude.ai: data utama di cloud (capability db), tersinkron ke semua perangkat.
+   - Dibuka lewat Apps Script: data utama di Google Sheets, sama di semua perangkat.
    - Dibuka sebagai file biasa: data di browser (localStorage).
    localStorage selalu dipakai sebagai salinan cepat.
    ========================================================= */
@@ -453,48 +452,54 @@ function save(){
 let db = load();
 try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 
-/* ---------- Cloud (claude.ai) ---------- */
-let store = null, readOnly = false, cloudSiap = false;
-const cloudLoaded = {};
+/* ---------- Google Sheets (lewat Apps Script) ---------- */
+const ONLINE = !!(window.google && google.script && google.script.run);
+let store = ONLINE ? {} : null, readOnly = false, cloudSiap = false, sheetUrl = '', antreanTulis = 0;
 function setSync(state, txt){
   const p = $('syncPill'); p.className = 'sync ' + state; $('syncTxt').textContent = txt;
-  p.title = {ok:'Data tersimpan di cloud claude.ai dan tersinkron ke semua perangkat Anda', wait:'Menyambungkan ke cloud…', err:'Tidak tersambung ke cloud', '':'Data hanya tersimpan di browser perangkat ini'}[state] || '';
+  p.title = {ok:'Data tersimpan di Google Sheets. Ketuk untuk memuat ulang.', wait:'Memuat data dari Google Sheets…', err:'Gagal tersambung ke Google Sheets. Ketuk untuk mencoba lagi.', '':'Data hanya tersimpan di browser perangkat ini'}[state] || '';
 }
-function pesanErr(e){
-  const c = e && e.code;
-  if(c === 'quota_exceeded') return 'Kapasitas penyimpanan cloud penuh.';
-  if(c === 'invalid_argument') return 'Akun ini hanya punya akses lihat.';
-  if(c === 'resource_exhausted') return 'Terlalu banyak permintaan, coba lagi sebentar.';
-  return 'Koneksi ke cloud terputus. Periksa internet lalu coba lagi.';
+function gs(fn){
+  const args = Array.prototype.slice.call(arguments, 1);
+  return new Promise((res, rej) => { const r = google.script.run.withSuccessHandler(res).withFailureHandler(rej); r[fn].apply(r, args); });
 }
+const pesanErr = e => (e && e.message) ? e.message : 'periksa koneksi internet';
 const jeda = ms => new Promise(r => setTimeout(r, ms));
 async function cloudOp(fn){
-  for(let i = 0; i < 5; i++){
-    try{ await fn(); return true; }
-    catch(e){
-      const c = e && e.code;
-      if((c === 'unavailable' || c === 'resource_exhausted') && i < 4){ await jeda(600 * (i + 1) + Math.random() * 400); continue; }
-      if(c === 'invalid_argument' && readOnly === false){ /* bisa juga karena hak akses */ }
-      toast('Gagal menyimpan ke cloud: ' + pesanErr(e), true);
-      return false;
+  antreanTulis++;
+  try{
+    for(let i = 0; i < 3; i++){
+      try{ await fn(); return true; }
+      catch(e){
+        if(i < 2){ await jeda(800 * (i + 1)); continue; }
+        toast('Gagal menyimpan ke Google Sheets: ' + pesanErr(e), true);
+        return false;
+      }
     }
-  }
-  return false;
+    return false;
+  } finally { antreanTulis--; }
+}
+/* Kolom tambahan agar Sheet mudah dibaca manusia (kelompok kategori, nama pekerja) */
+function untukSheet(col, rec){
+  const o = Object.assign({}, rec);
+  if(col === 'keluar') o.kelompok = kelompokDari(rec.kategori);
+  if(col === 'cicil'){ const p = db.keluar.find(k => k.id === rec.piutangId); o.nama = p ? p.kepada : ''; }
+  return o;
 }
 async function putRec(col, rec){
   save();
   if(!store) return true;
-  return cloudOp(() => store.collection(col).doc(rec.id).set(rec));
+  return cloudOp(() => gs('putRec', col, untukSheet(col, rec)));
 }
 async function delRec(col, id){
   save();
   if(!store) return true;
-  return cloudOp(() => store.collection(col).doc(id).delete());
+  return cloudOp(() => gs('delRec', col, id));
 }
 async function putSetting(){
   save();
   if(!store) return true;
-  return cloudOp(() => store.doc('config/setting').set(db.setting));
+  return cloudOp(() => gs('putSetting', db.setting));
 }
 let renderT = null;
 function jadwalRender(){ clearTimeout(renderT); renderT = setTimeout(() => { save(); renderHeader(); renderAktifAman(); }, 60); }
@@ -503,35 +508,31 @@ function renderAktifAman(){
   if(scrAktif === 'catat'){ isiDatalist(); infoSaldo(); return; }
   renderAktif();
 }
-async function initCloud(){
-  if(!(window.claude && typeof window.claude.use === 'function')){ setSync('', 'Lokal'); return; }
-  setSync('wait', 'Menyambung…');
-  let s = null;
-  try{ s = await window.claude.use('db'); }catch(e){ s = null; }
-  if(!s){ setSync('', 'Lokal'); renderAktif(); return; }
-  store = s;
+let memuat = false, terakhirMuat = 0;
+async function muatServer(diam){
+  if(!store || memuat) return;
+  if(diam && antreanTulis > 0) return;
+  memuat = true;
+  if(!diam) setSync('wait', 'Memuat…');
   try{
-    const u = await window.claude.use('user');
-    if(u){ const w = await u.can('data.write'); if(w === false){ readOnly = true; document.body.classList.add('ro'); } }
-  }catch(e){}
-  const onErr = e => { setSync('err', 'Terputus'); if(e && e.code !== 'revoked') toast('Sinkronisasi terhenti. Muat ulang halaman.', true); };
-  KOLEKSI.forEach(c => {
-    store.collection(c).onSnapshot(snap => {
-      db[c] = snap.docs.map(d => normRec(Object.assign({}, d.data(), {id: d.id})));
-      cloudLoaded[c] = true; cekSiap(); jadwalRender();
-    }, onErr);
-  });
-  store.doc('config/setting').onSnapshot(snap => {
-    db.setting = Object.assign(emptyDb().setting, snap.exists ? snap.data() : {});
-    cloudLoaded.setting = true; cekSiap(); jadwalRender();
-  }, onErr);
+    const d = await gs('getAll');
+    KOLEKSI.forEach(c => { db[c] = (d[c] || []).filter(x => x && x.id).map(normRec); });
+    db.setting = Object.assign(emptyDb().setting, d.setting || {});
+    sheetUrl = d.sheetUrl || '';
+    cloudSiap = true; terakhirMuat = Date.now();
+    setSync('ok', 'Google Sheets');
+    jadwalRender();
+  }catch(e){
+    setSync('err', 'Gagal memuat');
+    toast('Tidak bisa memuat data dari Google Sheets: ' + pesanErr(e), true);
+  }finally{ memuat = false; }
 }
-function cekSiap(){
-  if(cloudSiap) return;
-  if(KOLEKSI.every(c => cloudLoaded[c]) && cloudLoaded.setting){
-    cloudSiap = true;
-    setSync('ok', readOnly ? 'Hanya lihat' : 'Tersinkron');
-  }
+function initCloud(){
+  if(!store){ setSync('', 'Lokal'); return; }
+  $('syncPill').style.cursor = 'pointer';
+  $('syncPill').onclick = () => muatServer(false);
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && Date.now() - terakhirMuat > 15000) muatServer(true); });
+  muatServer(false);
 }
 function bisaTulis(){
   if(readOnly){ toast('Akun ini hanya punya akses lihat.', true); return false; }
@@ -566,7 +567,7 @@ function toast(msg, err){
 function bindRp(el){
   el.addEventListener('input', () => { const n = parseRp(el.value); el.value = n ? angka(n) : ''; });
 }
-/* Dialog konfirmasi di dalam halaman (confirm()/prompt() tidak berfungsi di claude.ai) */
+/* Dialog konfirmasi di dalam halaman (confirm()/prompt() tidak andal di dalam iframe Apps Script) */
 function tanya(o){
   return new Promise(res => {
     $('dlgBox').innerHTML = `<h2>${esc(o.judul)}</h2><p style="white-space:pre-line">${esc(o.pesan)}</p>
@@ -579,20 +580,24 @@ function tanya(o){
     ($('dlg-in') || $('dlg-ok')).focus();
   });
 }
-/* Unduh file: lewat capability downloads di claude.ai, atau tautan biasa saat dibuka sebagai file */
-let dlPromise = null;
-function getDownloads(){
-  if(!(window.claude && typeof window.claude.use === 'function')) return Promise.resolve(null);
-  return dlPromise || (dlPromise = window.claude.use('downloads').catch(() => null));
+/* Simpan file: ke folder Google Drive saat online, atau unduhan biasa saat dibuka sebagai file */
+function blobKeBase64(blob){
+  return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.onerror = rej; fr.readAsDataURL(blob); });
 }
-async function unduh(data, nama){
-  const dl = await getDownloads();
-  if(dl){
-    try{ await dl.save({filename: nama, data}); return true; }
-    catch(e){ if(e && e.code !== 'declined') toast('File tidak bisa diunduh di tampilan ini.', true); return false; }
+function tampilLink(f){
+  $('dlgBox').innerHTML = `<h2>Tersimpan di Google Drive</h2><p><b>${esc(f.name)}</b> disimpan di folder <b>${esc(f.folder)}</b>.</p>
+    <div class="btns mt12"><a class="btn primary" href="${esc(f.url)}" target="_blank" rel="noopener">Buka file</a><button class="btn" id="dlg-no">Tutup</button></div>`;
+  $('dlg').hidden = false;
+  $('dlg-no').onclick = () => { $('dlg').hidden = true; $('dlgBox').innerHTML = ''; };
+}
+async function unduh(data, nama, mime){
+  const blob = data instanceof Blob ? data : new Blob([data], {type: mime || 'application/octet-stream'});
+  if(store){
+    try{
+      const f = await gs('saveFile', nama, await blobKeBase64(blob), mime || 'application/octet-stream');
+      tampilLink(f); return true;
+    }catch(e){ toast('Gagal menyimpan ke Google Drive: ' + pesanErr(e), true); return false; }
   }
-  if(diViewer){ toast('Unduhan tidak tersedia di tampilan ini.', true); return false; }
-  const blob = data instanceof Blob ? data : new Blob([data]);
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nama;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   return true;
@@ -737,7 +742,7 @@ function renderBeranda(){
   let h = '';
 
   if(!storageOK && !store) h += `<div class="alert err">Browser tidak mengizinkan penyimpanan data (mode penyamaran?). Data tidak akan tersimpan. Buka aplikasi di jendela biasa.</div>`;
-  if(store && !cloudSiap) h += `<div class="alert info">Memuat data dari cloud…</div>`;
+  if(store && !cloudSiap) h += `<div class="alert info">Memuat data dari Google Sheets…</div>`;
   if(readOnly) h += `<div class="alert info">Anda membuka halaman ini dengan akses lihat saja. Data hanya bisa diubah oleh bendahara.</div>`;
   const mk = minimumSaldo(kas);
   if(mk.min < 0) h += `<div class="alert err">Saldo kas tunai sempat minus (${rp(mk.min)}) pada ${tgl(mk.tglMin)}. Kemungkinan ada tarik tunai yang belum dicatat atau tanggal yang keliru.</div>`;
@@ -747,13 +752,10 @@ function renderBeranda(){
   if(adaData && !readOnly){
     const lb = db.meta.lastBackup;
     const hari = lb ? Math.floor((Date.now() - lb) / 864e5) : null;
-    const batas = store ? 30 : 7;
-    if(hari === null || hari >= batas) h += store
-      ? `<div class="alert warn">${hari === null ? 'Belum ada backup.' : 'Backup terakhir ' + hari + ' hari lalu.'} Data sudah aman di cloud, tapi simpan juga salinan sendiri sebulan sekali. <a href="#" onclick="downloadBackup();return false">Unduh backup</a></div>`
-      : `<div class="alert warn">${hari === null ? 'Data belum pernah di-backup.' : 'Backup terakhir ' + hari + ' hari lalu.'} Data hanya tersimpan di browser ini. <a href="#" onclick="downloadBackup();return false">Backup sekarang</a></div>`;
+    if(!store && (hari === null || hari >= 7)) h += `<div class="alert warn">${hari === null ? 'Data belum pernah di-backup.' : 'Backup terakhir ' + hari + ' hari lalu.'} Data hanya tersimpan di browser ini. <a href="#" onclick="downloadBackup();return false">Backup sekarang</a></div>`;
   } else if(!adaData && (!store || cloudSiap) && !readOnly){
     h += `<div class="card"><h2>Mulai mencatat</h2><p class="muted">Catat <b>Dana Salur</b> yang masuk ke rekening, lalu <b>Tarik Tunai</b> (dengan Nomor SI), kemudian <b>Pengeluaran</b>.</p>
-      ${store ? `<p class="muted small mt8">Sudah sempat mencatat di versi file sebelumnya? Unduh backup dari sana, lalu pulihkan di sini.</p>` : ''}
+      ${store ? `<p class="muted small mt8">Sudah sempat mencatat di versi sebelumnya? Unduh backup dari sana, lalu pulihkan di sini.</p>` : ''}
       <div class="btns mt12"><button class="btn primary" onclick="mulaiCatat('salur')">Catat Dana Salur</button><button class="btn" onclick="openSetting()">Isi identitas sekolah</button>${store ? `<button class="btn" onclick="$('fileRestore').click()">Pulihkan dari backup</button>` : ''}</div></div>`;
   }
 
@@ -1227,7 +1229,9 @@ function htmlLaporan(){
   return h;
 }
 function renderLaporan(){
-  $('btnPrint').hidden = diViewer;
+  $('btnPrint').hidden = !!store;
+  $('btnPdf').textContent = store ? 'Simpan PDF ke Drive' : 'Unduh PDF';
+  $('btnXls').textContent = store ? 'Simpan Excel ke Drive' : 'Unduh Excel';
   $('lapOut').innerHTML = htmlLaporan();
 }
 const namaFile = ext => 'Laporan-Kas-Revitalisasi-' + ($('lp-sampai').value || todayISO()) + '.' + ext;
@@ -1244,7 +1248,7 @@ async function exportPdf(){
       jsPDF:{unit:'mm', format:'a4', orientation:'portrait'},
       pagebreak:{mode:['css','legacy'], avoid:['tr','.ttd','h3']}
     }).from(stage.firstElementChild).outputPdf('blob');
-    if(await unduh(blob, namaFile('pdf'))) toast('PDF siap');
+    if(await unduh(blob, namaFile('pdf'), 'application/pdf') && !store) toast('PDF siap');
   }catch(e){
     toast('PDF gagal dibuat. Periksa koneksi internet lalu coba lagi.', true);
   }finally{ stage.remove(); btn.disabled = false; }
@@ -1292,7 +1296,7 @@ async function exportExcel(){
       X.utils.book_append_sheet(wb, ws, n);
     });
     const buf = X.write(wb, {bookType:'xlsx', type:'array'});
-    if(await unduh(new Blob([buf]), namaFile('xlsx'))) toast('Excel siap');
+    if(await unduh(new Blob([buf]), namaFile('xlsx'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') && !store) toast('Excel siap');
   }catch(e){
     toast('Excel gagal dibuat. Periksa koneksi internet lalu coba lagi.', true);
   }finally{ btn.disabled = false; }
@@ -1317,13 +1321,13 @@ function openSetting(){
     </form>
     <div class="sec-title">Penyimpanan</div>
     ${store
-      ? `<p class="small muted">Data tersimpan di cloud claude.ai dan tersinkron otomatis ke HP dan laptop yang login dengan akun Claude yang sama. Buka link aplikasi ini di perangkat mana pun.</p>`
+      ? `<p class="small muted">Data tersimpan di Google Sheets milik Anda dan sama di HP maupun laptop. Sheet juga bisa dibuka langsung, dibagikan ke Kepala Sekolah (akses lihat), dan punya riwayat versi.</p>${sheetUrl ? `<div class="btns mt8"><a class="btn" href="${esc(sheetUrl)}" target="_blank" rel="noopener">Buka Google Sheets</a></div>` : ''}`
       : `<p class="small muted">Data tersimpan <b>hanya di browser perangkat ini</b>. Lakukan backup rutin dan simpan file-nya di Google Drive atau WhatsApp ke diri sendiri.</p>`}
     <p class="small mt8">Jumlah data: ${n}</p>
     <div class="sec-title">Backup</div>
-    <p class="small muted">File backup (.json) berisi semua data. Bisa dipakai untuk memulihkan data atau memindahkan data dari versi file ke versi online.</p>
+    <p class="small muted">File backup (.json) berisi semua data${store ? ', disimpan ke folder Kas Revitalisasi - Arsip di Google Drive' : ''}. Bisa dipakai untuk memulihkan data atau memindahkan data dari versi sebelumnya.</p>
     <p class="small mt8">Backup terakhir di perangkat ini: <b>${lb ? new Date(lb).toLocaleString('id-ID') : 'belum pernah'}</b></p>
-    <div class="btns mt8"><button class="btn primary" onclick="downloadBackup()">Unduh Backup</button><button class="btn w" onclick="$('fileRestore').click()">Pulihkan dari Backup</button></div>
+    <div class="btns mt8"><button class="btn primary" onclick="downloadBackup()">${store ? 'Simpan Backup ke Drive' : 'Unduh Backup'}</button><button class="btn w" onclick="$('fileRestore').click()">Pulihkan dari Backup</button></div>
     <div class="btns mt12"><button class="btn danger w" onclick="hapusSemua()">Hapus semua data</button><button class="btn" onclick="tutupModal()">Tutup</button></div>`;
   $('modal').hidden = false;
 }
@@ -1336,30 +1340,29 @@ async function simpanSetting(e){
 }
 async function downloadBackup(){
   const data = JSON.stringify(Object.assign({}, db, {meta: undefined}), null, 1);
-  if(await unduh(data, 'backup-kas-revitalisasi-' + todayISO() + '.json')){
-    db.meta.lastBackup = Date.now(); save(); toast('Backup diunduh');
-    if(!$('modal').hidden) openSetting(); else renderAktif();
+  if(await unduh(data, 'backup-kas-revitalisasi-' + todayISO() + '.json', 'application/json')){
+    db.meta.lastBackup = Date.now(); save();
+    if(!store) toast('Backup diunduh');
+    tutupModal(); renderAktif();
   }
 }
 /* Ganti seluruh isi penyimpanan (cloud atau lokal) dengan data baru */
 async function gantiSemua(baru, label){
   const total = KOLEKSI.reduce((a, c) => a + db[c].length + baru[c].length, 0) + 1;
   let jalan = 0, gagal = 0;
-  const prog = () => { $('dlgBox').innerHTML = `<h2>${esc(label)}</h2><p>Memproses ${jalan} dari ${total} data… Jangan tutup halaman ini.</p><div class="bar mt12"><i style="width:${pct(jalan, total)}%;background:var(--accent)"></i></div>`; };
+  const prog = () => { $('dlgBox').innerHTML = `<h2>${esc(label)}</h2><p>Memproses ${total} data… Jangan tutup halaman ini.</p>`; };
   // Salinan tetap: snapshot cloud yang datang di tengah proses boleh mengubah `db`, tapi tidak mengubah target ini
   const lama = {}; KOLEKSI.forEach(c => lama[c] = db[c].map(x => x.id));
   const target = normalize(baru);
   db = Object.assign(normalize(baru), {meta: db.meta});
   save();
   if(store){
-    $('dlg').hidden = false; prog();
-    for(const c of KOLEKSI){
-      const keep = new Set(target[c].map(x => x.id));
-      for(const id of lama[c]){ if(!keep.has(id) && !await cloudOp(() => store.collection(c).doc(id).delete())) gagal++; jalan++; prog(); }
-      for(const rec of target[c]){ if(!await cloudOp(() => store.collection(c).doc(rec.id).set(Object.assign({}, rec)))) gagal++; jalan++; prog(); }
-    }
-    if(!await cloudOp(() => store.doc('config/setting').set(target.setting))) gagal++;
+    jalan = 0; $('dlg').hidden = false; prog();
+    const kirim = {setting: target.setting};
+    KOLEKSI.forEach(c => kirim[c] = target[c].map(r => untukSheet(c, r)));
+    if(!await cloudOp(() => gs('replaceAll', kirim))) gagal = total;
     $('dlg').hidden = true;
+    await muatServer(false);
   }
   renderHeader(); tutupModal(); goTo('beranda');
   return gagal;
@@ -1378,7 +1381,7 @@ function restoreBackup(input){
       pesan:`Isi backup: ${n.salur.length} dana salur · ${n.tarik.length} tarik tunai · ${n.keluar.length} pengeluaran · ${n.cicil.length} cicilan.\n\nSemua data yang ada sekarang akan DIGANTI dengan isi backup ini${store ? ', di semua perangkat' : ''}.`});
     if(!ok) return;
     const gagal = await gantiSemua(n, 'Memulihkan backup');
-    toast(gagal ? gagal + ' data gagal tersimpan ke cloud. Ulangi pemulihan.' : 'Data berhasil dipulihkan', !!gagal);
+    toast(gagal ? 'Pemulihan gagal tersimpan ke Google Sheets. Coba lagi.' : 'Data berhasil dipulihkan', !!gagal);
   };
   rd.readAsText(file);
 }
@@ -1389,7 +1392,7 @@ async function hapusSemua(){
   if(!ok) return;
   const baru = emptyDb(); baru.setting = db.setting;
   const gagal = await gantiSemua(baru, 'Menghapus data');
-  toast(gagal ? gagal + ' data gagal dihapus. Coba lagi.' : 'Semua data transaksi dihapus', !!gagal);
+  toast(gagal ? 'Penghapusan gagal tersimpan ke Google Sheets. Coba lagi.' : 'Semua data transaksi dihapus', !!gagal);
 }
 
 /* Peringatan sebelum menutup jika ada form yang setengah terisi */
