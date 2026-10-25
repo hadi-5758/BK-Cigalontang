@@ -561,8 +561,18 @@ var Solver = (function () {
     return toFacelets(c);
   }
 
+  // Identitas kepingan per stiker setelah gerakan dari kubus jadi (untuk menyamarkan kepingan)
+  function pieceIds(moves) {
+    var c = new Cube(), ids = [];
+    for (var i = 0; i < moves.length; i++) c.mul(MOVE_CUBES[moves[i]]);
+    for (i = 0; i < 6; i++) ids[i * 9 + 4] = "x";
+    for (i = 0; i < 8; i++) for (var j = 0; j < 3; j++) ids[CORNER_FACELET[i][(j + c.co[i]) % 3]] = "c" + c.cp[i];
+    for (i = 0; i < 12; i++) for (j = 0; j < 2; j++) ids[EDGE_FACELET[i][(j + c.eo[i]) % 2]] = "e" + c.ep[i];
+    return ids;
+  }
+
   return {
-    init: init, solve: solve, applyMoves: applyMoves, parseMoves: parseMoves,
+    init: init, pieceIds: pieceIds, solve: solve, applyMoves: applyMoves, parseMoves: parseMoves,
     randomCube: randomCube, MOVE_NAMES: MOVE_NAMES,
     SOLVED: "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"
   };
