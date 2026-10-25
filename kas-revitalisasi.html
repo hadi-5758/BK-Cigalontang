@@ -276,9 +276,10 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
 </nav>
 
 <main class="wrap">
+  <div class="alert err" id="bootErr" hidden style="margin-top:14px"></div>
 
   <!-- BERANDA -->
-  <section id="scr-beranda" class="screen active"></section>
+  <section id="scr-beranda" class="screen active"><div class="card empty" style="margin-top:14px">Memuat aplikasi…</div></section>
 
   <!-- CATAT -->
   <section id="scr-catat" class="screen">
@@ -397,6 +398,14 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
 <input type="file" id="fileRestore" accept=".json,application/json" hidden onchange="restoreBackup(this)">
 
 <script>
+/* Tampilkan kesalahan JavaScript di layar, supaya mudah dilaporkan */
+window.addEventListener('error', function(e){
+  var el = document.getElementById('bootErr'); if(!el) return;
+  el.hidden = false;
+  el.textContent = 'Aplikasi mengalami kesalahan: ' + (e.message || 'tidak diketahui') + (e.lineno ? ' (baris ' + e.lineno + ')' : '') + '. Kirim pesan ini ke pembuat aplikasi.';
+});
+</script>
+<script>
 'use strict';
 /* =========================================================
    KONFIGURASI
@@ -450,7 +459,7 @@ function save(){
   }
 }
 let db = load();
-try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); }catch(e){}
 
 /* ---------- Google Sheets (lewat Apps Script) ---------- */
 const ONLINE = !!(window.google && google.script && google.script.run);
