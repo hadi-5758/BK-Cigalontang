@@ -204,14 +204,23 @@
   </div>
 </div>
 <script>
-// Momen napas bersama diperlambat: 3,4 detik timeline (26,8–30,2) diputar dalam 6 detik nyata,
-// adegan sesudahnya bergeser 2,6 detik.
-const NAPAS_A = 26.8, NAPAS_ASLI = 3.4, NAPAS_NYATA = 6;
-const DURASI = 48 + NAPAS_NYATA - NAPAS_ASLI;
+// Waktu nyata video -> waktu timeline animasi (pasangan [detik video, detik timeline], linier di antaranya).
+// Versi biasa: momen napas bersama (timeline 26,8–30,2) diputar dalam 6 detik.
+// Versi dubbing (?dubbing): adegan berdialog diregangkan mengikuti panjang suara ElevenLabs
+// (jadwal suaranya di audio_hari_pertama.py, DIALOG).
+const TEMPO = location.search.includes('dubbing')
+  ? [[0, 0], [4.8, 4.8], [5.2, 5.2], [8.6, 7.4], [9.1, 7.9], [12.7, 10.4], [12.9, 10.6], [15.5, 13.2],
+     [19.8, 15.9], [20.0, 16.1], [23.9, 18.6], [24.1, 18.8], [24.7, 19.4], [28.6, 21.4], [28.8, 21.6],
+     [31.0, 23.8], [35.4, 26.6], [35.6, 26.8], [41.6, 30.2], [42.0, 30.6], [44.0, 32], [47.5, 34.4],
+     [51.4, 37.4], [51.7, 37.7], [54.3, 39.8], [54.5, 40], [62.5, 48]]
+  : [[0, 0], [26.8, 26.8], [32.8, 30.2], [50.6, 48]];
+const DURASI = TEMPO[TEMPO.length - 1][0];
 function waktuAsli(t) {
-  if (t < NAPAS_A) return t;
-  if (t < NAPAS_A + NAPAS_NYATA) return NAPAS_A + (t - NAPAS_A) * NAPAS_ASLI / NAPAS_NYATA;
-  return t - (NAPAS_NYATA - NAPAS_ASLI);
+  for (let i = 1; i < TEMPO.length; i++) {
+    const [r0, a0] = TEMPO[i - 1], [r1, a1] = TEMPO[i];
+    if (t <= r1) return a0 + (t - r0) / (r1 - r0) * (a1 - a0);
+  }
+  return TEMPO[TEMPO.length - 1][1];
 }
 const $ = id => document.getElementById(id);
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));

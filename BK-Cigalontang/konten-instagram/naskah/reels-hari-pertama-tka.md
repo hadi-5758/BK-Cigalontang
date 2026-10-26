@@ -6,6 +6,8 @@
 **File:** `desain/reels-hari-pertama-tka.html` → `desain/export/reels-hari-pertama-tka-musik.mp4`
 (musik & efek suara: `desain/audio_hari_pertama.py`, disintesis sendiri, bebas hak cipta)
 
+**Versi dubbing:** `desain/export/reels-hari-pertama-tka-dubbing.mp4` (±62,5 detik). Suara ElevenLabs (`desain/dubbing_hari_pertama.py`, klip di `audio/elevenlabs-reels-hari-pertama-tka/`): Nisa = Velora, Raka = Ibnu, Bu Guru BK = Salsa. Animasi dirender dengan `reels-hari-pertama-tka.html?dubbing` (adegan berdialog diregangkan sesuai panjang suara), audio dengan `python3 audio_hari_pertama.py <wav> --dubbing ../audio/elevenlabs-reels-hari-pertama-tka`.
+
 Nama tokoh fiktif: **Nisa** (siswi), **Raka** (siswa), **Bu Guru BK**.
 
 ## Alur adegan
