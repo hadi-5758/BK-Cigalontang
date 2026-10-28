@@ -72,3 +72,5 @@ Tulis janji digital-mu di komentar ðŸ‘‡ Selamat Hari Sumpah Pemuda, SMANRICI! ðŸ
 #BKSMANCigalontang #BimbinganKonseling #GuruBK #RemajaBerdaya #SumpahPemuda #HariSumpahPemuda #AntiBullying #StopCyberbullying #LiterasiDigital #RemajaSMA #SiswaIndonesia #TipsRemaja
 
 **Saran:** posting carousel dan Reels di hari yang sama dengan jeda beberapa jam (mis. carousel pagi, Reels sore), atau gabungkan sebagai Reels saja kalau ingin satu posting.
+
+**Versi dubbing (narasi):** `desain/export/reels-sumpah-pemuda-digital-dubbing.mp4` (77,5 detik). Narasi bergantian ElevenLabs (`desain/dubbing_sumpah_pemuda.py`, klip di `audio/elevenlabs-reels-sumpah-pemuda/`): Nisa = Velora, Raka = Ibnu, Bu Guru BK = Salsa (penutup & dukungan Ruang BK). Animasi dirender dengan `reels-sumpah-pemuda-digital.html?dubbing` (adegan diregangkan mengikuti narasi), audio dengan `python3 audio_sumpah_pemuda.py <wav> --dubbing ../audio/elevenlabs-reels-sumpah-pemuda`.
