@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Reels — Sumpah Pemuda Versi Anak Muda Digital | BK SMANRICI</title>
+<style>
+  /* Animasi deterministik: semua keadaan dihitung dari waktu t (detik) di render(t).
+     Versi Reels dari carousel sumpah-pemuda-digital-carousel.html. Karakter: set 3D.
+     render(-1) = sampul/thumbnail. */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --toska: #0D9488; --toska-tua: #0F766E; --toska-muda: #CCFBF1;
+    --zamrud: #10B981; --zamrud-tua: #059669; --zamrud-muda: #D1FAE5;
+    --emas: #F59E0B; --emas-tua: #D97706; --emas-muda: #FEF3C7;
+    --mint: #F0FDF4; --tinta: #0F172A; --teks: #1E293B; --abu: #64748B; --merah: #E11D48;
+  }
+  @font-face {
+    font-family: 'Plus Jakarta Sans';
+    src: url('../brand/font/PlusJakartaSans-latin.woff2') format('woff2');
+    font-weight: 200 800;
+  }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  #stage { width: 1080px; height: 1920px; position: relative; overflow: hidden; font-family: 'Inter', sans-serif; color: var(--teks);
+           background: linear-gradient(180deg, var(--mint) 0%, #DDF7EE 100%); }
+  .abs { position: absolute; }
+  .judul { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; letter-spacing: -1.5px; color: var(--tinta); }
+  .bulat { border-radius: 50%; opacity: .5; }
+  .tokoh { bottom: 0; transform-origin: 50% 100%; filter: drop-shadow(0 16px 20px rgba(15,23,42,.18)); }
+
+  #hdr { top: 150px; left: 70px; display: flex; align-items: center; gap: 16px; z-index: 5;
+         font-weight: 800; font-size: 30px; letter-spacing: 2px; color: var(--toska-tua); }
+  #hdr img { width: 74px; height: 74px; border-radius: 50%; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+  #tag { top: 168px; right: 150px; z-index: 5; font-weight: 800; font-size: 26px; letter-spacing: 1px;
+         background: var(--emas); color: var(--tinta); padding: 10px 22px; border-radius: 999px; }
+
+  /* A · hook */
+  #latarHook { inset: 0; background: linear-gradient(165deg, var(--toska) 0%, var(--toska-tua) 100%); }
+  #hook { top: 300px; left: 70px; right: 150px; }
+  #hook .pre { font-size: 34px; font-weight: 800; letter-spacing: 5px; color: #FDE68A; }
+  #hook .besar { font-size: 112px; line-height: 1; margin-top: 18px; color: #fff; }
+  #hook .besar em { font-style: normal; color: #FDE68A; }
+  #hook .sub { font-size: 46px; color: var(--toska-muda); margin-top: 26px; line-height: 1.3; }
+  #hook .sub b { color: #fff; }
+  #stiker { top: 1060px; left: 110px; width: 240px; height: 240px; border-radius: 50%; border: 10px solid #fff;
+            background: var(--emas); display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-family: 'Plus Jakarta Sans'; box-shadow: 0 16px 0 rgba(0,0,0,.18); }
+  #stiker b { font-size: 92px; line-height: 1; color: var(--tinta); }
+  #stiker span { font-size: 28px; font-weight: 800; letter-spacing: 2px; color: var(--tinta); }
+
+  /* B · 1928 vs 2026 */
+  #judulB { top: 300px; left: 70px; right: 150px; font-size: 84px; line-height: 1.04; }
+  #judulB em, .jdl em { font-style: normal; color: var(--toska); }
+  .era { left: 70px; width: 860px; border-radius: 40px; padding: 34px 40px; box-shadow: 0 14px 34px rgba(15,23,42,.09); }
+  .era .th { font-family: 'Plus Jakarta Sans'; font-size: 76px; font-weight: 800; line-height: 1; }
+  .era p { font-size: 40px; line-height: 1.3; margin-top: 14px; }
+  #dulu { top: 560px; background: #fff; } #dulu .th { color: var(--emas-tua); }
+  #kini { top: 900px; background: var(--toska); color: #fff; } #kini .th { color: #FDE68A; }
+
+  /* C · 3 janji */
+  #judulC { top: 420px; left: 70px; right: 150px; font-size: 84px; line-height: 1.05; }
+  .pil { left: 120px; font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 64px; color: #fff; padding: 22px 50px; border-radius: 999px; }
+  #pil1 { top: 720px; background: var(--toska); box-shadow: 0 10px 0 var(--toska-tua); }
+  #pil2 { top: 880px; left: 190px; background: var(--zamrud); box-shadow: 0 10px 0 var(--zamrud-tua); }
+  #pil3 { top: 1040px; left: 260px; background: var(--emas); color: var(--tinta); box-shadow: 0 10px 0 var(--emas-tua); }
+
+  /* judul janji */
+  .jdl { top: 290px; left: 70px; right: 150px; }
+  .jdl .no { display: inline-flex; align-items: center; gap: 18px; font-size: 32px; font-weight: 800; letter-spacing: 4px; color: var(--emas-tua); }
+  .jdl .no b { width: 92px; height: 92px; border-radius: 50%; background: var(--emas-muda); display: flex; align-items: center;
+               justify-content: center; font-family: 'Plus Jakarta Sans'; font-size: 54px; letter-spacing: 0; }
+  .jdl h2 { font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 78px; line-height: 1.04; letter-spacing: -1.5px;
+            color: var(--tinta); margin-top: 14px; }
+
+  /* D · grup chat */
+  .hp { left: 70px; width: 660px; background: #fff; border-radius: 44px; box-shadow: 0 20px 50px rgba(15,23,42,.13); overflow: hidden; }
+  .hp .kepala { background: var(--toska-tua); color: #fff; font-size: 32px; font-weight: 800; padding: 24px 32px; display: flex; gap: 14px; align-items: center; }
+  .hp .kepala i { font-style: normal; font-size: 24px; font-weight: 600; opacity: .8; }
+  .hp .isi { padding: 26px 26px 30px; display: flex; flex-direction: column; gap: 16px; background: #ECFDF5; min-height: 460px; position: relative; }
+  .msg { max-width: 470px; padding: 18px 24px; border-radius: 28px; font-size: 34px; line-height: 1.28; background: #fff;
+         box-shadow: 0 4px 10px rgba(15,23,42,.06); align-self: flex-start; }
+  .msg small { display: block; font-size: 22px; font-weight: 800; color: var(--abu); margin-bottom: 4px; }
+  .msg.saya { align-self: flex-end; background: #DCFCE7; }
+  .foto { width: 300px; height: 150px; border-radius: 18px; background: repeating-linear-gradient(45deg, #CBD5E1 0 14px, #E2E8F0 14px 28px);
+          display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: #475569; margin-bottom: 8px; }
+  #cap { left: 150px; top: 860px; font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 46px; color: var(--merah);
+         border: 8px solid var(--merah); border-radius: 22px; padding: 10px 26px; background: rgba(255,255,255,.92); white-space: nowrap; }
+  #japri { top: 1330px; left: 70px; width: 660px; }
+  .aksi { background: #fff; border-radius: 34px; padding: 24px 32px; box-shadow: 0 12px 30px rgba(15,23,42,.09); border-left: 12px solid var(--zamrud); }
+  .aksi .lbl { font-size: 26px; font-weight: 800; letter-spacing: 3px; color: var(--zamrud-tua); }
+  .aksi p { font-size: 38px; line-height: 1.3; margin-top: 6px; }
+  .aksi p b { color: var(--toska-tua); }
+
+  /* E · kolom komentar */
+  #post { top: 640px; }
+  #post .gambar { height: 260px; background: linear-gradient(135deg, #FDE68A, #FCA5A5 60%, #C4B5FD); display: flex; align-items: center; justify-content: center;
+                  font-size: 40px; font-weight: 800; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.25); }
+  #post .area { padding: 24px 26px 28px; }
+  #komenJadi { display: flex; gap: 16px; align-items: flex-start; }
+  .av { width: 60px; height: 60px; border-radius: 50%; flex: none; background: var(--toska); }
+  #komenJadi .tx { font-size: 34px; line-height: 1.3; } #komenJadi small { font-size: 22px; font-weight: 800; color: var(--abu); display: block; }
+  #input { margin-top: 18px; border: 4px solid #E2E8F0; border-radius: 999px; padding: 18px 26px; font-size: 34px; line-height: 1.3;
+           min-height: 84px; display: flex; align-items: center; gap: 12px; }
+  #ketik { flex: 1; } #kursor { width: 4px; height: 40px; background: var(--toska); }
+  #kirim { font-size: 30px; font-weight: 800; color: var(--toska); }
+  .cek { top: 1230px; font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 46px; padding: 16px 34px; border-radius: 999px;
+         background: var(--toska-muda); color: var(--toska-tua); }
+  #cek1 { left: 70px; } #cek2 { left: 330px; } #cek3 { left: 560px; }
+  .cek.salah { background: #FFE4E6; color: var(--merah); }
+
+  /* F · beda */
+  .chip { font-size: 40px; font-weight: 800; padding: 14px 30px; border-radius: 999px; background: #fff; white-space: nowrap;
+          box-shadow: 0 8px 18px rgba(15,23,42,.08); }
+  #satu { left: 70px; top: 1020px; font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 48px; transform-origin: 0 50%; color: #fff; background: var(--toska);
+          padding: 22px 44px; border-radius: 999px; box-shadow: 0 10px 0 var(--toska-tua); white-space: nowrap; }
+  #aksiF { top: 1190px; left: 70px; width: 680px; }
+
+  /* G · aksi kecil */
+  #daftar { top: 560px; left: 70px; width: 740px; display: flex; flex-direction: column; gap: 20px; }
+  #daftar > div { display: flex; gap: 22px; align-items: center; background: #fff; border-radius: 30px; padding: 22px 28px;
+                  font-size: 38px; line-height: 1.25; box-shadow: 0 10px 24px rgba(15,23,42,.07); }
+  #daftar b { color: var(--tinta); }
+  #daftar .ik { width: 80px; height: 80px; border-radius: 24px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 44px; background: var(--toska-muda); }
+
+  /* H · penutup */
+  #akhir { inset: 0; background: linear-gradient(170deg, var(--toska) 0%, var(--toska-tua) 100%); }
+  #akhir .logo { position: absolute; left: 70px; top: 150px; width: 110px; height: 110px; border-radius: 50%; background: #fff; }
+  #akhir h3 { position: absolute; left: 70px; right: 150px; top: 320px; font-family: 'Plus Jakarta Sans'; font-weight: 800;
+              font-size: 96px; line-height: 1.04; color: #fff; letter-spacing: -1.5px; }
+  #akhir h3 em { font-style: normal; color: #FDE68A; }
+  #contoh { left: 70px; top: 640px; width: 860px; background: #fff; border-radius: 36px; padding: 28px 36px; font-size: 42px; line-height: 1.3;
+            color: var(--tinta); box-shadow: 0 16px 34px rgba(0,0,0,.18); }
+  #contoh small { display: block; font-size: 26px; font-weight: 800; color: var(--abu); }
+  #contoh b { color: var(--toska); }
+  #bk { left: 70px; top: 900px; width: 860px; font-size: 38px; line-height: 1.35; color: var(--toska-muda); }
+  #bk b { color: #fff; }
+  #kolab { left: 70px; top: 1130px; background: var(--emas); color: var(--tinta); font-weight: 800; font-size: 32px; padding: 14px 30px; border-radius: 999px; }
+  #akun { left: 70px; top: 1220px; font-size: 36px; font-weight: 800; color: #fff; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="abs bulat" id="b1" style="width:420px;height:420px;background:#CCFBF1;left:-120px;top:1300px"></div>
+  <div class="abs bulat" id="b2" style="width:300px;height:300px;background:#FEF3C7;right:-80px;top:420px"></div>
+
+  <!-- A · hook -->
+  <div id="sA" class="abs" style="inset:0">
+    <div id="latarHook" class="abs"></div>
+    <div id="hook" class="abs">
+      <div class="pre">28 OKTOBER · HARI SUMPAH PEMUDA</div>
+      <div class="besar judul">Sumpah Pemuda versi anak muda <em>digital</em> 📱</div>
+      <div class="sub"><b>3 janji kita</b> buat ruang digital yang lebih aman &amp; adem.</div>
+    </div>
+    <div id="stiker" class="abs"><b>98</b><span>TAHUN</span></div>
+    <img id="aGirl" class="abs tokoh" src="../brand/karakter/3d/siswi/utama.png" alt="" style="height:860px;left:470px">
+    <img id="aBoy" class="abs tokoh" src="../brand/karakter/3d/siswa/utama.png" alt="" style="height:900px;left:700px">
+  </div>
+
+  <!-- B · 1928 vs 2026 -->
+  <div id="sB" class="abs" style="inset:0">
+    <div id="judulB" class="abs judul">Ruangnya berubah,<br><em>semangatnya sama.</em></div>
+    <div id="dulu" class="abs era"><div class="th">1928</div><p>Pemuda dari berbagai daerah <b>berkumpul</b> dan berikrar: satu tanah air, satu bangsa, satu bahasa.</p></div>
+    <div id="kini" class="abs era"><div class="th">2026</div><p>Kita "berkumpul" di <b>grup chat, kolom komentar, dan FYP</b> setiap hari. 📱</p></div>
+  </div>
+
+  <!-- C · tiga janji -->
+  <div id="sC" class="abs" style="inset:0">
+    <div id="judulC" class="abs judul">Jadi, ini <span style="color:var(--toska)">3 janji kita</span> di ruang digital 👇</div>
+    <div id="pil1" class="abs pil">1 · Satu ruang</div>
+    <div id="pil2" class="abs pil">2 · Satu bahasa</div>
+    <div id="pil3" class="abs pil">3 · Satu tekad</div>
+  </div>
+  <img id="bGirl" class="abs tokoh" src="../brand/karakter/3d/siswi/pose-menunjuk.png" alt="" style="height:640px;left:760px">
+
+  <!-- D · janji 1 -->
+  <div id="sD" class="abs" style="inset:0">
+    <div class="abs jdl"><div class="no"><b>1</b>JANJI PERTAMA</div><h2>Satu ruang digital<br><em>tanpa perundungan.</em></h2></div>
+    <div id="grup" class="abs hp" style="top:620px">
+      <div class="kepala">🏫 Grup Kelas <i>· 36 anggota</i></div>
+      <div class="isi">
+        <div class="msg" id="m1"><small>akun_a</small><div class="foto">📸 foto teman</div>wkwk liat nih 🤭</div>
+        <div class="msg" id="m2"><small>akun_b</small>😂😂😂</div>
+        <div class="msg" id="m3"><small>akun_c</small>parah sih 😂</div>
+      </div>
+    </div>
+    <div id="cap" class="abs">❌ jangan ikut react</div>
+    <div id="japri" class="abs aksi"><div class="lbl">JAPRI KE TEMANMU 💬</div><p><b>"Kamu oke? Aku di pihakmu 🤍"</b></p></div>
+  </div>
+  <img id="dBoy" class="abs tokoh" src="../brand/karakter/3d/siswa/pose-menyilangkan-tangan.png" alt="" style="height:660px;left:760px">
+
+  <!-- E · janji 2 -->
+  <div id="sE" class="abs" style="inset:0">
+    <div class="abs jdl"><div class="no"><b>2</b>JANJI KEDUA</div><h2>Satu bahasa:<br><em>santun di kolom komentar.</em></h2></div>
+    <div id="post" class="abs hp">
+      <div class="gambar">🎤 penampilan pensi</div>
+      <div class="area">
+        <div id="komenJadi"><div class="av"></div><div class="tx"><small>kamu · baru saja</small><span id="teksJadi"></span> <span id="hati">❤️</span></div></div>
+        <div id="input"><span id="ketik"></span><span id="kursor"></span><span id="kirim">Kirim</span></div>
+      </div>
+    </div>
+    <div id="cek1" class="abs cek">Benar?</div>
+    <div id="cek2" class="abs cek">Perlu?</div>
+    <div id="cek3" class="abs cek">Baik?</div>
+  </div>
+  <img id="eGirl" class="abs tokoh" src="../brand/karakter/3d/siswi/pose-memegang-buku.png" alt="" style="height:620px;left:790px">
+
+  <!-- F · janji 3 -->
+  <div id="sF" class="abs" style="inset:0">
+    <div class="abs jdl"><div class="no"><b>3</b>JANJI KETIGA</div><h2>Satu tekad:<br><em>bersatu dalam beda.</em></h2></div>
+    <div class="abs chip" style="color:var(--toska-tua)">beda daerah</div>
+    <div class="abs chip" style="color:var(--emas-tua)">beda bahasa ibu</div>
+    <div class="abs chip" style="color:var(--zamrud-tua)">beda keyakinan</div>
+    <div class="abs chip" style="color:var(--toska-tua)">beda pendapat</div>
+    <div class="abs chip" style="color:var(--emas-tua)">beda selera musik</div>
+    <div class="abs chip" style="color:var(--zamrud-tua)">beda idola</div>
+    <div id="satu" class="abs">Kita satu, walau nggak sama 🇮🇩</div>
+    <div id="aksiF" class="abs aksi"><div class="lbl">AKSI KECILNYA</div><p>Nggak setuju? <b>Bantah idenya, bukan orangnya.</b></p></div>
+  </div>
+  <img id="fBoy" class="abs tokoh" src="../brand/karakter/3d/siswa/pose-mengacungkan-jempol.png" alt="" style="height:600px;left:690px">
+  <img id="fGirl" class="abs tokoh" src="../brand/karakter/3d/siswi/pose-semangat.png" alt="" style="height:580px;left:860px">
+
+  <!-- G · aksi kecil -->
+  <div id="sG" class="abs" style="inset:0">
+    <div class="abs jdl"><h2 style="font-size:88px">Mulai dari<br><em>jempol sendiri</em> 👍</h2></div>
+    <div id="daftar" class="abs">
+      <div><span class="ik">🔇</span><span><b>Mute / unfollow</b> akun penyebar kebencian</span></div>
+      <div><span class="ik">🚩</span><span><b>Laporkan</b> konten perundungan, <b>jangan di-share</b></span></div>
+      <div><span class="ik">💬</span><span>Ganti komentar nyinyir jadi <b>dukungan</b></span></div>
+      <div><span class="ik">🤝</span><span><b>Japri</b> teman yang sedang diserang</span></div>
+      <div><span class="ik">🔎</span><span><b>Cek fakta</b> sebelum meneruskan info</span></div>
+    </div>
+  </div>
+  <img id="gGuru" class="abs tokoh" src="../brand/karakter/3d/guru-bk-putri/pose-memberi-arahan.png" alt="" style="height:620px;left:800px">
+
+  <!-- header -->
+  <div id="hdr" class="abs"><img src="../brand/logo-bk-smanrici.png" alt=""><span id="hdrTeks">BK SMANRICI</span></div>
+  <div id="tag" class="abs">#RabuRuangAman</div>
+
+  <!-- H · penutup -->
+  <div id="akhir" class="abs">
+    <img class="logo" src="../brand/logo-bk-smanrici.png" alt="">
+    <h3>Tulis <em>janji digital</em>-mu di komentar 👇</h3>
+    <div id="contoh" class="abs"><small>contoh</small>"Aku janji <b>nggak ikut nge-share</b> aib teman di grup." 🤞</div>
+    <div id="bk" class="abs">Lagi jadi sasaran perundungan online? <b>Kamu nggak sendiri.</b> Simpan buktinya, lalu ceritakan ke orang yang kamu percaya, termasuk <b>Ruang BK</b>. 🤍</div>
+    <div id="kolab" class="abs">Bersama OSIS &amp; MPK SMANRICI</div>
+    <div id="akun" class="abs">@bksmanrici · Selamat Hari Sumpah Pemuda! 🇮🇩</div>
+    <img id="hGirl" class="abs tokoh" src="../brand/karakter/3d/siswi/tampak-depan.png" alt="" style="height:560px;left:360px">
+    <img id="hGuru" class="abs tokoh" src="../brand/karakter/3d/guru-bk-putri/tampak-depan.png" alt="" style="height:620px;left:530px">
+    <img id="hBoy" class="abs tokoh" src="../brand/karakter/3d/siswa/tampak-depan.png" alt="" style="height:580px;left:740px">
+  </div>
+</div>
+<script>
+const DURASI = 50;
+const $ = id => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const ease = x => { x = clamp(x); return x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; };
+const easeOut = x => 1 - Math.pow(1 - clamp(x), 3);
+const lerp = (a, b, p) => a + (b - a) * p;
+const tampil = (t, a, b, d = .4) => clamp((t - a) / d) * (1 - clamp((t - b) / d));
+const naik = (t, a, j = 40) => j * (1 - easeOut((t - a) / .5));
+const pop = (t, a) => t < a ? 0 : 1 + .12 * Math.sin(clamp((t - a) / .35) * Math.PI);   // skala "memantul" saat muncul
+function set(el, o, x = 0, y = 0, s = 1, r = 0) {
+  el.style.opacity = o;
+  el.style.transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`;
+  el.style.visibility = o <= 0.001 ? 'hidden' : 'visible';
+}
+// karakter: naik dari bawah saat muncul, bernapas & bergoyang pelan, turun saat hilang
+function tokoh(el, t, a, b, fase = 0) {
+  const o = tampil(t, a, b, .35);
+  const y = 260 * (1 - easeOut((t - a) / .6)) + 260 * ease((t - b) / .4);
+  el.style.opacity = o; el.style.visibility = o <= .001 ? 'hidden' : 'visible';
+  el.style.transform = `translateY(${y}px) rotate(${Math.sin(t * 1.3 + fase) * 1.2}deg) scale(1, ${1 + .008 * Math.sin(t * 1.8 + fase)})`;
+}
+const ketik = (teks, t, a, cps = 22) => Array.from(teks).slice(0, Math.max(0, Math.floor((t - a) * cps))).join('');
+
+// ---------- jadwal ----------
+// A 0–5,4 hook · B 5,4–11 1928/2026 · C 11–14 tiga janji · D 14–22 janji 1 · E 22–31 janji 2
+// F 31–38 janji 3 · G 38–44,6 aksi kecil · H 44,6–50 penutup
+const KASAR = 'jelek bgt sih, mending ga usah tampil 🙄';
+const BAIK = 'Berani tampil itu keren! Next time pasti makin mantap 🔥';
+const CHIP = [[640, 640], [120, 760], [560, 880], [90, 1000], [500, 1100], [180, 1210]];   // posisi acak awal
+const CHIP_RAPI = [[70, 620], [400, 620], [70, 730], [420, 730], [70, 840], [500, 840]];
+
+function render(t) {
+  const sampul = t < 0;
+  if (sampul) t = 2.8;
+  // latar: lingkaran melayang
+  set($('b1'), 1, Math.sin(t * .5) * 30, Math.cos(t * .4) * 30);
+  set($('b2'), 1, Math.cos(t * .45) * 26, Math.sin(t * .5) * 26);
+
+  // A · hook (latar toska; header putih)
+  const oA = sampul ? 1 : 1 - clamp((t - 5.2) / .4);
+  set($('sA'), oA);
+  set($('hook'), 1, 0, sampul ? 0 : naik(t, .2, 60));
+  set($('stiker'), sampul ? 1 : clamp((t - 1.4) / .2), 0, 0, sampul ? 1 : pop(t, 1.4), 10 + Math.sin(t * 2) * 3);
+  tokoh($('aGirl'), sampul ? 5 : t, sampul ? 0 : .5, 5.2, 0);
+  tokoh($('aBoy'), sampul ? 5 : t, sampul ? 0 : .8, 5.2, 1.5);
+  const putih = oA > .5;
+  $('hdr').style.color = putih ? '#fff' : 'var(--toska-tua)';
+
+  // B · 1928 vs 2026
+  set($('sB'), tampil(t, 5.4, 10.8));
+  set($('judulB'), 1, 0, naik(t, 5.4));
+  set($('dulu'), clamp((t - 6.2) / .4), -80 * (1 - easeOut((t - 6.2) / .5)));
+  set($('kini'), clamp((t - 7.8) / .4), 80 * (1 - easeOut((t - 7.8) / .5)));
+  tokoh($('bGirl'), t, 5.8, 13.8, .7);
+
+  // C · tiga janji
+  set($('sC'), tampil(t, 11, 13.8));
+  set($('judulC'), 1, 0, naik(t, 11));
+  [['pil1', 11.6], ['pil2', 12.1], ['pil3', 12.6]].forEach(([id, a]) => set($(id), clamp((t - a) / .2), 0, 0, pop(t, a)));
+
+  // D · janji 1: grup chat
+  set($('sD'), tampil(t, 14, 21.8));
+  [['m1', 15], ['m2', 15.7], ['m3', 16.3]].forEach(([id, a]) => set($(id), clamp((t - a) / .25), 0, 20 * (1 - easeOut((t - a) / .3))));
+  set($('cap'), clamp((t - 17.3) / .15), 0, 0, t < 17.3 ? 1 : 1 + .4 * (1 - easeOut((t - 17.3) / .3)), -8);
+  const pudar = 1 - .55 * clamp((t - 17.4) / .4);
+  ['m1', 'm2', 'm3'].forEach(id => { if (t > 17.4) $(id).style.opacity = pudar; });
+  set($('japri'), clamp((t - 18.6) / .3), 0, naik(t, 18.6));
+  tokoh($('dBoy'), t, 14.3, 21.8, 2);
+
+  // E · janji 2: kolom komentar
+  set($('sE'), tampil(t, 22, 30.8));
+  let isian = '', jadi = '';
+  if (t < 25.8) isian = ketik(KASAR, t, 22.8, 26);
+  else if (t < 26.8) isian = Array.from(KASAR).slice(0, Math.max(0, Array.from(KASAR).length - Math.floor((t - 25.8) * 60))).join('');
+  else if (t < 29.2) isian = ketik(BAIK, t, 26.9, 28);
+  else jadi = BAIK;
+  $('ketik').textContent = isian;
+  $('ketik').style.color = t < 26.8 ? 'var(--merah)' : 'var(--teks)';
+  $('kursor').style.opacity = (Math.floor(t * 2.4) % 2 || (t > 22.8 && t < 29.2 && isian)) ? 1 : 0;
+  $('teksJadi').textContent = jadi;
+  set($('komenJadi'), jadi ? clamp((t - 29.2) / .3) : 0, 0, jadi ? naik(t, 29.2, 20) : 0);
+  set($('hati'), clamp((t - 29.8) / .2), 0, 0, pop(t, 29.8));
+  [['cek1', 24.4], ['cek2', 24.8], ['cek3', 25.2]].forEach(([id, a]) => {
+    const el = $(id);
+    el.className = 'abs cek' + (t >= a && t < 26.8 ? ' salah' : '');
+    el.textContent = el.textContent.replace(/ [✗✓]$/, '') + (t >= a && t < 26.8 ? ' ✗' : t >= 28.4 ? ' ✓' : '');
+    set(el, clamp((t - a) / .2), 0, 0, pop(t, a) * (t >= 28.4 ? pop(t, 28.4 + (+id.slice(-1)) * .15) : 1));
+  });
+  tokoh($('eGirl'), t, 22.3, 30.8, 3);
+
+  // F · janji 3: chip berserakan lalu berkumpul
+  set($('sF'), tampil(t, 31, 37.8));
+  const kumpul = ease((t - 33.4) / 1.1);
+  document.querySelectorAll('#sF .chip').forEach((el, i) => {
+    const a = 31.6 + i * .25;
+    const [x0, y0] = CHIP[i], [x1, y1] = CHIP_RAPI[i];
+    el.style.left = lerp(x0, x1, kumpul) + 'px'; el.style.top = lerp(y0, y1, kumpul) + 'px';
+    const goyang = (1 - kumpul) * 10;
+    set(el, clamp((t - a) / .2), Math.sin(t * 2.2 + i) * goyang, Math.cos(t * 1.8 + i * 2) * goyang, pop(t, a), (1 - kumpul) * Math.sin(i * 2.3) * 8);
+  });
+  set($('satu'), clamp((t - 34.6) / .2), 0, 0, pop(t, 34.6));
+  set($('aksiF'), clamp((t - 35.6) / .3), 0, naik(t, 35.6));
+  tokoh($('fBoy'), t, 31.4, 37.8, 1);
+  tokoh($('fGirl'), t, 31.7, 37.8, 2.4);
+
+  // G · aksi kecil
+  set($('sG'), tampil(t, 38, 44.4));
+  document.querySelectorAll('#daftar > div').forEach((el, i) => {
+    const a = 38.8 + i * .9;
+    set(el, clamp((t - a) / .25), -60 * (1 - easeOut((t - a) / .4)));
+    el.querySelector('.ik').style.transform = `scale(${pop(t, a + .1)})`;
+  });
+  tokoh($('gGuru'), t, 38.3, 44.4, .4);
+
+  // header (H menutupinya)
+  const oHdr = 1 - clamp((t - 44.6) / .4);
+  set($('hdr'), oHdr); set($('tag'), oHdr);
+
+  // H · penutup
+  set($('akhir'), sampul ? 0 : clamp((t - 44.6) / .5));
+  set($('contoh'), clamp((t - 45.2) / .3), 0, naik(t, 45.2));
+  set($('bk'), clamp((t - 45.8) / .3), 0, naik(t, 45.8));
+  set($('kolab'), clamp((t - 46.4) / .2), 0, 0, pop(t, 46.4));
+  set($('akun'), clamp((t - 46.8) / .3));
+  tokoh($('hGirl'), t, 45.4, 99, 0); tokoh($('hGuru'), t, 45.6, 99, 1); tokoh($('hBoy'), t, 45.8, 99, 2);
+}
+window.render = render;
+window.DURASI = DURASI;
+if (!navigator.webdriver) {
+  const mulai = performance.now();
+  (function loop() { render(((performance.now() - mulai) / 1000) % DURASI); requestAnimationFrame(loop); })();
+} else { render(0); }
+</script>
+</body>
+</html>

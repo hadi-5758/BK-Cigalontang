@@ -40,3 +40,35 @@ Carousel 7 slide bergaya 3D dengan warna toska. Sampul: dua siswa SMA berseragam
 - Kalau ada komentar yang mengungkap sedang dirundung, jangan dibahas di publik: balas singkat dengan hangat, lalu ajak lewat DM / datang ke Ruang BK.
 - Stories pendukung (sesuai kalender): kuis Sumpah Pemuda dan stiker "Add Yours" janji digital.
 - Pertanyaan diskusi untuk bimbingan klasikal: "Pernah lihat perundungan di grup kelas? Apa yang bisa dilakukan saksi tanpa ikut jadi sasaran?"
+
+---
+
+# Versi Reels (animasi)
+
+**File:** `desain/reels-sumpah-pemuda-digital.html` → `desain/export/reels-sumpah-pemuda-digital-musik.mp4` (50 detik, 1080×1920, karakter 3D) · sampul `reels-sumpah-pemuda-digital-sampul.png` · musik & efek suara `desain/audio_sumpah_pemuda.py` (disintesis sendiri, bebas hak cipta).
+
+| Detik | Adegan |
+|---|---|
+| 0–5,4 | Hook: "Sumpah Pemuda versi anak muda digital 📱", stiker 98 tahun, Nisa & Raka |
+| 5,4–11 | 1928 vs 2026: dulu berkumpul & berikrar, kini berkumpul di grup chat, kolom komentar, FYP |
+| 11–14 | "3 janji kita": Satu ruang · Satu bahasa · Satu tekad |
+| 14–22 | Janji 1: grup kelas mulai menertawakan foto teman → cap "❌ jangan ikut react" → japri "Kamu oke? Aku di pihakmu 🤍" |
+| 22–31 | Janji 2: komentar nyinyir sedang diketik → cek Benar? Perlu? Baik? ✗ → dihapus → diganti komentar mendukung ✓ ❤️ |
+| 31–38 | Janji 3: label "beda daerah / bahasa ibu / keyakinan / pendapat / selera / idola" berkumpul → "Kita satu, walau nggak sama 🇮🇩" → "Bantah idenya, bukan orangnya" |
+| 38–44,6 | Mulai dari jempol sendiri: 5 aksi kecil, bersama Bu Guru BK |
+| 44,6–50 | Penutup: tulis janji digital di komentar, dukungan Ruang BK, Bersama OSIS & MPK |
+
+**Caption Reels** (lebih singkat dari carousel):
+
+98 tahun lalu pemuda bersatu lewat satu janji. Sekarang tempat kita berkumpul pindah ke grup chat dan kolom komentar, dan janjinya tetap penting 📱
+
+Satu ruang tanpa perundungan. Satu bahasa yang santun. Satu tekad: bersatu dalam beda.
+
+Tulis janji digital-mu di komentar 👇 Selamat Hari Sumpah Pemuda, SMANRICI! 🇮🇩
+
+.
+.
+.
+#BKSMANCigalontang #BimbinganKonseling #GuruBK #RemajaBerdaya #SumpahPemuda #HariSumpahPemuda #AntiBullying #StopCyberbullying #LiterasiDigital #RemajaSMA #SiswaIndonesia #TipsRemaja
+
+**Saran:** posting carousel dan Reels di hari yang sama dengan jeda beberapa jam (mis. carousel pagi, Reels sore), atau gabungkan sebagai Reels saja kalau ingin satu posting.
