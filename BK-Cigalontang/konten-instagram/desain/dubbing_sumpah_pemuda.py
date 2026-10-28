@@ -9,6 +9,9 @@ import sys
 
 import dubbing_hari_pertama as d
 
+# Bu Guru BK di Reels ini: Lani Eleonora (lebih rendah & hangat; Salsa terdengar terlalu cempreng di narasi ini)
+d.SUARA["Guru BK Lani"] = "WwYTGZjDYP0WzvTp4vRz"
+
 # urutan sama dengan DIALOG di audio_sumpah_pemuda.py
 BARIS = [
     (1, "Siswi", "[warmly] Sembilan puluh delapan tahun lalu, para pemuda bersatu lewat satu janji."),
@@ -23,8 +26,8 @@ BARIS = [
     (10, "Siswa", "[cheerful] Kalau nggak, ganti jadi kata-kata yang mendukung."),
     (11, "Siswa", "[confident] Janji ketiga: satu tekad, bersatu dalam beda."),
     (12, "Siswi", "[warmly] Kita satu, walau nggak sama. Nggak setuju? Bantah idenya, bukan orangnya."),
-    (13, "Guru BK", "[warmly] Mulai dari jempol sendiri. Mute, laporkan, dukung, japri, dan cek fakta."),
-    (14, "Guru BK", "[warmly] Tulis janji digital-mu di kolom komentar. Kalau kamu sedang dirundung, kamu nggak sendiri. Ruang BK selalu terbuka."),
+    (13, "Guru BK Lani", "[warmly] Mulai dari jempol sendiri. Bisukan, laporkan, dukung, japri, dan cek fakta."),
+    (14, "Guru BK Lani", "[warmly] Tulis janji digital-mu di kolom komentar. Kalau kamu sedang dirundung, kamu nggak sendiri. Ruang BK selalu terbuka."),
     (15, "Siswa", "[cheerful] Selamat Hari Sumpah Pemuda!"),
 ]
 

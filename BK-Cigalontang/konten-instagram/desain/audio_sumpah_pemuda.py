@@ -51,7 +51,7 @@ DIALOG = [
     (40.1, "Siswa", "Kalau nggak, ganti jadi kata-kata yang mendukung."),
     (46.0, "Siswa", "Janji ketiga: satu tekad, bersatu dalam beda."),
     (50.2, "Siswi", "Kita satu, walau nggak sama. Nggak setuju? Bantah idenya, bukan orangnya."),
-    (57.2, "Guru BK", "Mulai dari jempol sendiri. Mute, laporkan, dukung, japri, dan cek fakta."),
+    (57.2, "Guru BK", "Mulai dari jempol sendiri. Bisukan, laporkan, dukung, japri, dan cek fakta."),
     (65.4, "Guru BK", "Tulis janji digital-mu di kolom komentar. Kalau kamu sedang dirundung, kamu nggak sendiri. Ruang BK selalu terbuka."),
     (74.0, "Siswa", "Selamat Hari Sumpah Pemuda!"),
 ]

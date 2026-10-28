@@ -11,7 +11,7 @@
 3. **Janji 1: Satu ruang digital tanpa perundungan.** Tidak ikut menyebar, menertawakan, atau men-screenshot untuk mempermalukan. Aksi: jangan ikut react 😂, japri teman: "Kamu oke?"
 4. **Janji 2: Satu bahasa: santun di kolom komentar.** Contoh komentar nyinyir ❌ vs komentar mendukung ✅. Cek 3 detik: Benar? Perlu? Baik?
 5. **Janji 3: Satu tekad: bersatu dalam beda.** Beda daerah, bahasa ibu, keyakinan, pendapat, selera. Aksi: bantah idenya, bukan orangnya; jangan bawa-bawa SARA.
-6. **Mulai dari jempol sendiri:** mute/unfollow akun penyebar kebencian · laporkan konten perundungan, jangan di-share · ganti komentar nyinyir jadi dukungan · japri teman yang diserang · cek fakta sebelum meneruskan.
+6. **Mulai dari jempol sendiri:** bisukan (mute)/unfollow akun penyebar kebencian · laporkan konten perundungan, jangan di-share · ganti komentar nyinyir jadi dukungan · japri teman yang diserang · cek fakta sebelum meneruskan.
 7. **CTA:** Tulis janji digital-mu di komentar 👇 (contoh: "Aku janji nggak ikut nge-share aib teman di grup.") · Kalau sedang jadi sasaran perundungan online, kamu nggak sendiri: simpan bukti, cerita ke orang yang dipercaya, termasuk Ruang BK. · Bersama OSIS & MPK SMANRICI.
 
 ## Caption
@@ -73,4 +73,4 @@ Tulis janji digital-mu di komentar 👇 Selamat Hari Sumpah Pemuda, SMANRICI! �
 
 **Saran:** posting carousel dan Reels di hari yang sama dengan jeda beberapa jam (mis. carousel pagi, Reels sore), atau gabungkan sebagai Reels saja kalau ingin satu posting.
 
-**Versi dubbing (narasi):** `desain/export/reels-sumpah-pemuda-digital-dubbing.mp4` (77,5 detik). Narasi bergantian ElevenLabs (`desain/dubbing_sumpah_pemuda.py`, klip di `audio/elevenlabs-reels-sumpah-pemuda/`): Nisa = Velora, Raka = Ibnu, Bu Guru BK = Salsa (penutup & dukungan Ruang BK). Animasi dirender dengan `reels-sumpah-pemuda-digital.html?dubbing` (adegan diregangkan mengikuti narasi), audio dengan `python3 audio_sumpah_pemuda.py <wav> --dubbing ../audio/elevenlabs-reels-sumpah-pemuda`.
+**Versi dubbing (narasi):** `desain/export/reels-sumpah-pemuda-digital-dubbing.mp4` (77,5 detik). Narasi bergantian ElevenLabs (`desain/dubbing_sumpah_pemuda.py`, klip di `audio/elevenlabs-reels-sumpah-pemuda/`): Nisa = Velora, Raka = Ibnu, Bu Guru BK = **Lani Eleonora** (penutup & dukungan Ruang BK; dipilih karena lebih rendah & tidak cempreng dibanding Salsa). Kata "mute" diganti "bisukan" agar tidak salah ucap. Animasi dirender dengan `reels-sumpah-pemuda-digital.html?dubbing` (adegan diregangkan mengikuti narasi), audio dengan `python3 audio_sumpah_pemuda.py <wav> --dubbing ../audio/elevenlabs-reels-sumpah-pemuda`.
