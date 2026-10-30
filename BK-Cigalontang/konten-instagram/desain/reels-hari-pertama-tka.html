@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Reels — Pagi Hari Pertama TKA | BK SMANRICI</title>
+<style>
+  /* Animasi deterministik: semua keadaan dihitung dari waktu t (detik) di render(t).
+     Buka file ini di browser untuk pratinjau; render_reels.js merekamnya per frame.
+     Karakter: set 3D (brand/karakter/3d/). render(-1) = sampul/thumbnail. */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --toska: #0D9488; --toska-tua: #0F766E; --zamrud: #10B981;
+    --emas: #F59E0B; --emas-tua: #D97706; --emas-muda: #FEF3C7;
+    --mint: #F0FDF4; --toska-muda: #CCFBF1; --tinta: #0F172A; --teks: #1E293B;
+  }
+  @font-face {
+    font-family: 'Plus Jakarta Sans';
+    src: url('../brand/font/PlusJakartaSans-latin.woff2') format('woff2');
+    font-weight: 200 800;
+  }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  #stage { width: 1080px; height: 1920px; position: relative; overflow: hidden;
+           font-family: 'Inter', sans-serif; color: var(--teks); background: #E6F7F1; }
+  .abs { position: absolute; }
+  .judul { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; letter-spacing: -1.5px; color: var(--tinta); }
+
+  /* ---------- latar: pagi di depan gerbang sekolah ---------- */
+  #dunia { inset: 0; transform-origin: 540px 1500px; }
+  #langit { inset: 0; background: linear-gradient(180deg, #CFF3EA 0%, #E9F8F2 38%, #FDF3DC 62%, #FDEBD0 70%); }
+  #matahari { left: 720px; top: 560px; width: 230px; height: 230px; border-radius: 50%;
+              background: radial-gradient(circle, #FFE8A3 0%, #FCD27A 55%, rgba(252,210,122,0) 72%); }
+  .awan { background: #fff; border-radius: 999px; opacity: .85; }
+  #gedung { left: 60px; top: 870px; width: 960px; height: 400px; background: #F8FAFC; border-radius: 10px 10px 0 0;
+            box-shadow: inset 0 -30px 0 #E2E8F0; }
+  #atap { left: 30px; top: 830px; width: 1020px; height: 60px; background: var(--toska-tua); border-radius: 14px 14px 0 0; }
+  .jendela { width: 86px; height: 100px; background: #BFE9E1; border: 8px solid #fff; border-radius: 8px;
+             box-shadow: 0 0 0 3px #CBD5E1; }
+  #pohonKiri, #pohonKanan { width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #4ADE80, #15803D); }
+  .batang { width: 36px; height: 170px; background: #92400E; border-radius: 8px; }
+  #pagar { left: 0; right: 0; top: 1180px; height: 90px;
+           background: repeating-linear-gradient(90deg, #475569 0 10px, transparent 10px 46px); opacity: .55; }
+  #pagarAtas { left: 0; right: 0; top: 1180px; height: 12px; background: #475569; opacity: .55; }
+  .pilar { width: 92px; height: 470px; top: 820px; background: linear-gradient(90deg, #E2E8F0, #F8FAFC 45%, #CBD5E1);
+           border-radius: 10px 10px 0 0; box-shadow: 0 -10px 0 var(--toska-tua); }
+  #papan { left: 250px; top: 780px; width: 580px; height: 104px; background: var(--toska); border-radius: 18px;
+           color: #fff; text-align: center; padding-top: 14px; box-shadow: 0 10px 24px rgba(15,118,110,.25); }
+  #papan .b1 { font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 40px; letter-spacing: 3px; }
+  #papan .b2 { font-size: 22px; font-weight: 700; letter-spacing: 4px; color: var(--toska-muda); }
+  #tanah { left: 0; right: 0; top: 1270px; bottom: 0; background: linear-gradient(180deg, #A7E3B8 0%, #86D19E 100%); }
+  #jalan { left: 0; right: 0; top: 1270px; bottom: 0; background: linear-gradient(180deg, #E7E5E4, #D6D3D1);
+           clip-path: polygon(41% 0, 59% 0, 100% 100%, 0 100%); }
+  .bayangan { height: 34px; border-radius: 50%; background: rgba(15,23,42,.16); filter: blur(4px); }
+
+  /* ---------- tokoh: semua varian gambar ditumpuk, satu yang tampil ---------- */
+  .tokoh { left: 0; top: 0; width: 0; height: 0; }
+  .tokoh img { position: absolute; bottom: 0; left: 0; transform: translateX(-50%); opacity: 0; }
+
+  /* ---------- header ---------- */
+  #hdr { top: 150px; left: 70px; display: flex; align-items: center; gap: 16px;
+         font-weight: 800; font-size: 30px; letter-spacing: 2px; color: var(--toska-tua); }
+  #hdr img { width: 74px; height: 74px; border-radius: 50%; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+  #tag { top: 168px; right: 150px; font-weight: 800; font-size: 26px; letter-spacing: 1px;
+         background: var(--emas); color: var(--tinta); padding: 10px 22px; border-radius: 999px; }
+
+  /* ---------- teks ---------- */
+  #hook { top: 290px; left: 70px; right: 150px; }
+  #hook .kecil { font-size: 36px; font-weight: 800; color: var(--toska); letter-spacing: 5px; }
+  #hook .besar { font-size: 112px; line-height: 1; margin-top: 12px; }
+  #hook .besar em { font-style: normal; color: var(--toska); }
+  #hook .sub { font-size: 46px; font-weight: 700; color: var(--teks); margin-top: 22px; }
+
+  .gelembung { background: #fff; border-radius: 40px; padding: 28px 36px; font-size: 46px; line-height: 1.28;
+               font-weight: 700; color: var(--tinta); box-shadow: 0 12px 30px rgba(15,23,42,.13); max-width: 840px; white-space: nowrap; }
+  .gelembung b { color: var(--toska); }
+  .gelembung .nama { display: block; font-size: 26px; font-weight: 800; letter-spacing: 2px; color: var(--emas-tua);
+                     text-transform: uppercase; margin-bottom: 6px; }
+  .gelembung::after { content: ""; position: absolute; bottom: -40px; border: 22px solid transparent; border-top-color: #fff; }
+  .ekorKiri::after { left: 80px; } .ekorKanan::after { right: 90px; } .ekorTengah::after { left: calc(50% - 22px); }
+  .pikiran { border-radius: 60px; background: #F8FAFC; border: 4px dashed #CBD5E1; box-shadow: none; }
+  .pikiran::after { display: none; }
+
+  .chip { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 42px; color: #B45309;
+          background: #fff; border: 4px solid var(--emas-muda); padding: 10px 24px; border-radius: 22px;
+          box-shadow: 0 8px 20px rgba(217,119,6,.15); white-space: nowrap; }
+
+  /* ---------- close-up ---------- */
+  #closeup { inset: 0; background: radial-gradient(circle at 50% 62%, #FFFFFF 0%, #E3F6EF 55%, #CDEFE4 100%); }
+  #closeup.hangat { background: radial-gradient(circle at 50% 62%, #FFFDF5 0%, #FDF0D5 55%, #F8E1B5 100%); }
+  #bingkai { left: 160px; top: 760px; width: 760px; height: 900px; border-radius: 64px; overflow: hidden;
+             background: linear-gradient(180deg, #EEF2F1, #DCE7E3); box-shadow: 0 30px 70px rgba(15,23,42,.18);
+             border: 12px solid #fff; }
+  #bingkai img { position: absolute; left: 50%; bottom: 0; height: 104%; transform: translateX(-50%); opacity: 0; }
+  #label { top: 1690px; left: 0; right: 0; text-align: center; font-family: 'Plus Jakarta Sans'; font-weight: 800;
+           font-size: 34px; letter-spacing: 3px; color: var(--toska-tua); }
+
+  #napasChip { top: 330px; left: 70px; right: 150px; text-align: center; }
+  #napasChip .aksi { display: inline-block; font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 64px; color: var(--toska-tua);
+                     background: #fff; padding: 22px 50px; border-radius: 999px; box-shadow: 0 12px 30px rgba(13,148,136,.18); }
+  #napasChip .hitung { font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 96px; color: var(--emas-tua); margin-top: 14px; }
+
+  #pesan { top: 290px; left: 70px; right: 150px; }
+  #pesan .baris1 { font-size: 92px; line-height: 1.02; }
+  #pesan .baris2 { font-size: 66px; line-height: 1.1; margin-top: 18px; color: var(--toska-tua); }
+  #pesan .kecil { font-size: 40px; font-weight: 600; color: var(--teks); margin-top: 22px; }
+
+  #semangat { top: 300px; left: 70px; right: 150px; }
+  #semangat .besar { font-size: 100px; line-height: 1.02; }
+  #semangat .besar em { font-style: normal; color: var(--toska); }
+
+  /* ---------- kartu penutup ---------- */
+  #akhir { inset: 0; background: linear-gradient(170deg, var(--toska) 0%, var(--toska-tua) 100%);
+           display: flex; flex-direction: column; align-items: center; padding: 300px 120px 0; text-align: center; }
+  #akhir .logo { width: 240px; height: 240px; border-radius: 50%; background: #fff; box-shadow: 0 18px 40px rgba(0,0,0,.2); }
+  #akhir h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 80px; line-height: 1.08;
+              color: #fff; margin-top: 50px; letter-spacing: -1px; }
+  #akhir p { font-size: 42px; color: var(--toska-muda); margin-top: 26px; line-height: 1.35; }
+  #akhir .pil { margin-top: 46px; background: var(--emas); color: var(--tinta); font-weight: 800; font-size: 40px;
+                padding: 24px 46px; border-radius: 999px; }
+  #akhir .akun { margin-top: 34px; font-size: 36px; font-weight: 800; color: #fff; letter-spacing: 1px; }
+  #akhirTokoh { left: 0; right: 0; bottom: 0; height: 520px; }
+  #akhirTokoh img { position: absolute; bottom: -10px; height: 470px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- ===== dunia (adegan lebar) ===== -->
+  <div id="dunia" class="abs">
+    <div id="langit" class="abs"></div>
+    <div id="matahari" class="abs"></div>
+    <div class="abs awan" id="awan1" style="width:260px;height:70px;top:640px"></div>
+    <div class="abs awan" id="awan2" style="width:180px;height:54px;top:730px"></div>
+    <div id="atap" class="abs"></div>
+    <div id="gedung" class="abs">
+      <div class="abs jendela" style="left:60px;top:70px"></div><div class="abs jendela" style="left:190px;top:70px"></div>
+      <div class="abs jendela" style="left:680px;top:70px"></div><div class="abs jendela" style="left:810px;top:70px"></div>
+      <div class="abs jendela" style="left:60px;top:220px"></div><div class="abs jendela" style="left:190px;top:220px"></div>
+      <div class="abs jendela" style="left:680px;top:220px"></div><div class="abs jendela" style="left:810px;top:220px"></div>
+    </div>
+    <div class="abs batang" style="left:42px;top:1100px"></div><div id="pohonKiri" class="abs" style="left:-70px;top:900px"></div>
+    <div class="abs batang" style="left:1002px;top:1100px"></div><div id="pohonKanan" class="abs" style="left:890px;top:900px"></div>
+    <div id="pagar" class="abs"></div><div id="pagarAtas" class="abs"></div>
+    <div class="abs pilar" style="left:250px"></div>
+    <div class="abs pilar" style="left:738px"></div>
+    <div id="papan" class="abs"><div class="b1">SMA NEGERI 1</div><div class="b2">CIGALONTANG</div></div>
+    <div id="tanah" class="abs"></div>
+    <div id="jalan" class="abs"></div>
+    <!-- tokoh (urutan = lapisan) -->
+    <div id="bayGuru" class="abs bayangan"></div>
+    <div id="guru" class="abs tokoh"></div>
+    <div id="bayGirl" class="abs bayangan"></div>
+    <div id="girl" class="abs tokoh"></div>
+    <div id="bayBoy" class="abs bayangan"></div>
+    <div id="boy" class="abs tokoh"></div>
+  </div>
+
+  <!-- ===== close-up ===== -->
+  <div id="closeup" class="abs">
+    <div id="bingkai" class="abs"></div>
+    <div id="label" class="abs"></div>
+  </div>
+
+  <!-- ===== teks & gelembung ===== -->
+  <div id="hook" class="abs">
+    <div class="kecil">SENIN, 26 OKTOBER</div>
+    <div class="besar judul">Hari pertama<br><em>TKA.</em></div>
+    <div class="sub">Siapa yang deg-degan? 🙋</div>
+  </div>
+  <div id="pikir1" class="abs gelembung pikiran">Duh… gimana kalau nanti<br>aku <b>blank</b>? 😣</div>
+  <div id="pikir2" class="abs gelembung pikiran">Kalau waktunya nggak cukup?<br>Kalau <b>nilainya jelek</b>?</div>
+  <div class="abs chip" id="c1">Blank?</div>
+  <div class="abs chip" id="c2">Waktu kurang?</div>
+  <div class="abs chip" id="c3">Nilai?</div>
+  <div class="abs chip" id="c4">Soal HOTS?</div>
+
+  <div id="bubBoy1" class="abs gelembung ekorKanan"><span class="nama">Raka</span>Pagi! Tenang… kita kan<br><b>udah latihan bareng.</b></div>
+  <div id="bubBoy2" class="abs gelembung ekorKanan"><span class="nama">Raka</span>Kerjain sebisanya.<br><b>Satu soal, satu soal.</b> 👍</div>
+  <div id="bubGirl1" class="abs gelembung pikiran">Iya juga, ya…<br>aku udah <b>berusaha</b>. 🙂</div>
+  <div id="bubGuru" class="abs gelembung ekorTengah"><span class="nama">Bu Guru BK</span>Selamat pagi! Sebelum masuk,<br><b>tarik napas dulu, yuk.</b></div>
+  <div id="napasChip" class="abs"><div class="aksi" id="aksi">Tarik napas…</div><div class="hitung" id="hitung">1</div></div>
+  <div id="pesan" class="abs">
+    <div class="baris1 judul">Kamu sudah<br>berusaha.</div>
+    <div class="baris2 judul">Hasil bukan satu-satunya ukuran dirimu. 🤍</div>
+    <div class="kecil" id="pesanKecil">Kerjakan dengan jujur, lakukan yang terbaik.</div>
+  </div>
+  <div id="bubGirl2" class="abs gelembung ekorTengah"><span class="nama">Nisa</span>Makasih, Bu!<br><b>Bismillah.</b> 💪</div>
+  <div id="semangat" class="abs"><div class="besar judul">Deg-degan boleh,<br><em>nyerah jangan.</em></div></div>
+
+  <!-- header selalu tampil -->
+  <div id="hdr" class="abs"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div>
+  <div id="tag" class="abs">#SeninStarter</div>
+
+  <!-- ===== penutup ===== -->
+  <div id="akhir" class="abs">
+    <img class="logo" src="../brand/logo-bk-smanrici.png" alt="">
+    <h3>Semangat TKA<br>hari pertama,<br>SMANRICI! 🤍</h3>
+    <p>Hasil bukan satu-satunya ukuran dirimu.<br>Ruang BK selalu terbuka.</p>
+    <div class="pil">Kirim semangat untuk temanmu 👇</div>
+    <div class="akun">@bksmanrici</div>
+    <div id="akhirTokoh" class="abs">
+      <img id="akhirGirl" src="../brand/karakter/3d/siswi/pose-semangat.png" alt="" style="left:110px">
+      <img id="akhirGuru" src="../brand/karakter/3d/guru-bk-putri/tampak-depan.png" alt="" style="left:430px;height:500px">
+      <img id="akhirBoy" src="../brand/karakter/3d/siswa/pose-mengacungkan-jempol.png" alt="" style="left:770px">
+    </div>
+  </div>
+</div>
+<script>
+// Waktu nyata video -> waktu timeline animasi (pasangan [detik video, detik timeline], linier di antaranya).
+// Versi biasa: momen napas bersama (timeline 26,8–30,2) diputar dalam 6 detik.
+// Versi dubbing (?dubbing): adegan berdialog diregangkan mengikuti panjang suara ElevenLabs
+// (jadwal suaranya di audio_hari_pertama.py, DIALOG).
+const TEMPO = location.search.includes('dubbing')
+  ? [[0, 0], [4.8, 4.8], [5.2, 5.2], [8.6, 7.4], [9.1, 7.9], [12.7, 10.4], [12.9, 10.6], [15.5, 13.2],
+     [19.8, 15.9], [20.0, 16.1], [23.9, 18.6], [24.1, 18.8], [24.7, 19.4], [28.6, 21.4], [28.8, 21.6],
+     [31.0, 23.8], [35.4, 26.6], [35.6, 26.8], [41.6, 30.2], [42.0, 30.6], [44.0, 32], [47.5, 34.4],
+     [51.4, 37.4], [51.7, 37.7], [54.3, 39.8], [54.5, 40], [62.5, 48]]
+  : [[0, 0], [26.8, 26.8], [32.8, 30.2], [50.6, 48]];
+const DURASI = TEMPO[TEMPO.length - 1][0];
+function waktuAsli(t) {
+  for (let i = 1; i < TEMPO.length; i++) {
+    const [r0, a0] = TEMPO[i - 1], [r1, a1] = TEMPO[i];
+    if (t <= r1) return a0 + (t - r0) / (r1 - r0) * (a1 - a0);
+  }
+  return TEMPO[TEMPO.length - 1][1];
+}
+const $ = id => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const ease = x => { x = clamp(x); return x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; };
+const easeOut = x => 1 - Math.pow(1 - clamp(x), 3);
+const lerp = (a, b, p) => a + (b - a) * p;
+// muncul di a (durasi d), hilang di b (durasi d)
+const tampil = (t, a, b, d = .4) => clamp((t - a) / d) * (1 - clamp((t - b) / d));
+function set(el, o, x = 0, y = 0, s = 1, r = 0) {
+  el.style.opacity = o;
+  el.style.transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`;
+  el.style.visibility = o <= 0.001 ? 'hidden' : 'visible';
+}
+const naik = (t, a) => 30 * (1 - easeOut((t - a) / .5));   // teks naik sedikit saat muncul
+
+// ---------- tokoh: tumpukan varian gambar ----------
+const K3 = '../brand/karakter/3d/';
+function buatTokoh(id, folder, varian) {
+  const wadah = $(id), img = {};
+  varian.forEach(v => { const i = new Image(); i.src = K3 + folder + '/' + v + '.png'; wadah.appendChild(i); img[v] = i; });
+  return { wadah, img };
+}
+const girl = buatTokoh('girl', 'siswi', ['pose-berjalan', 'tampak-depan', 'menghadap-kanan', 'tampak-belakang']);
+const boy = buatTokoh('boy', 'siswa', ['pose-berjalan', 'menghadap-kiri', 'pose-melambaikan-tangan',
+                                       'pose-mengacungkan-jempol', 'tampak-depan', 'tampak-belakang']);
+const guru = buatTokoh('guru', 'guru-bk-putri', ['tampak-depan', 'menghadap-kiri']);
+// tampilkan satu varian: cx = tengah, bawah = garis kaki, h = tinggi badan (px)
+// cermin=-1 membalik horizontal; napas/goyang/lompat untuk gerak hidup
+function tokoh(T, bay, varian, { cx, bawah, h, o = 1, r = 0, dy = 0, napas = 1, cermin = 1 }) {
+  for (const [v, i] of Object.entries(T.img)) i.style.opacity = v === varian ? 1 : 0;
+  const i = T.img[varian];
+  i.style.height = h + 'px';
+  T.wadah.style.left = cx + 'px'; T.wadah.style.top = bawah + 'px';
+  T.wadah.style.opacity = o; T.wadah.style.visibility = o <= .001 ? 'hidden' : 'visible';
+  T.wadah.style.transform = `translateY(${dy}px) rotate(${r}deg) scale(${cermin}, ${napas})`;
+  T.wadah.style.transformOrigin = '0 0';
+  const w = h * .34;   // bayangan kaki
+  Object.assign(bay.style, { left: (cx - w / 2) + 'px', top: (bawah - 18) + 'px', width: w + 'px',
+    opacity: o * (1 - clamp(-dy / 80) * .5), visibility: o <= .001 ? 'hidden' : 'visible' });
+}
+// langkah berjalan: pantulan & goyang
+const langkah = (t, cepat = 2.2) => ({ dy: -Math.abs(Math.sin(t * cepat * Math.PI)) * 16, r: Math.sin(t * cepat * Math.PI) * 1.6 });
+const hidup = (t, fase = 0) => 1 + .007 * Math.sin(t * 1.7 + fase);    // napas pelan saat diam
+
+// ---------- close-up: ekspresi dalam bingkai ----------
+const CU = {};
+[['siswi', 'ekspresi-sedih'], ['siswi', 'ekspresi-terkejut'], ['siswi', 'ekspresi-serius'], ['siswi', 'ekspresi-normal'],
+ ['siswi', 'ekspresi-senang'], ['siswi', 'ekspresi-tertawa'], ['guru-bk-putri', 'ekspresi-normal-ramah'],
+ ['guru-bk-putri', 'ekspresi-senyum-terbuka']].forEach(([f, v]) => {
+  const i = new Image(); i.src = K3 + f + '/' + v + '.png'; $('bingkai').appendChild(i); CU[f + '/' + v] = i;
+});
+// tampilkan close-up dengan silang-pudar dari a ke b (p = 0..1)
+function closeup(a, b, p, zoom, geser = 0) {
+  for (const [k, i] of Object.entries(CU)) {
+    const o = k === a ? 1 - p : k === b ? p : 0;
+    i.style.opacity = o;
+    i.style.transform = `translateX(calc(-50% + ${geser}px)) scale(${zoom})`;
+    i.style.transformOrigin = '50% 100%';
+  }
+}
+
+// ---------- jadwal adegan ----------
+// A lebar   0–4.8   hook, Nisa (siswi) berjalan ke gerbang
+// B dekat   4.8–10.6 Nisa cemas
+// C lebar  10.6–18.8 Raka (siswa) datang menyemangati
+// D dekat  18.8–21.6 Nisa mulai tenang
+// E lebar  21.6–30.4 Bu Guru BK keluar dari gerbang, napas bersama
+// F dekat  30.4–37.4 pesan utama Bu Guru BK
+// G dekat  37.4–40   Nisa: "Bismillah"
+// H lebar  40–44.2   masuk gerbang bersama
+// I        44.2–48   kartu penutup
+function render(t) {
+  const sampul = t < 0;
+  if (sampul) t = 2.6;
+  const dekat = (t >= 4.8 && t < 10.6) || (t >= 18.8 && t < 21.6) || (t >= 30.4 && t < 40);
+  $('dunia').style.visibility = dekat ? 'hidden' : 'visible';
+  $('closeup').style.visibility = dekat ? 'visible' : 'hidden';
+
+  // ---------- kamera adegan lebar ----------
+  let zoom = 1, kamX = 0;
+  if (t < 4.8) zoom = 1.02 + .04 * ease(t / 4.8);
+  else if (t < 18.8) zoom = 1.03 - .03 * ease((t - 10.6) / 1.5);
+  else if (t < 30.4) zoom = 1 + .05 * ease((t - 26.5) / 3.9);
+  else zoom = 1.04 - .04 * ease((t - 40) / 1.2);
+  $('dunia').style.transform = `translate(${kamX}px,0) scale(${zoom})`;
+  set($('awan1'), 1, 120 + t * 9, 0); set($('awan2'), 1, 560 + t * 6, 0);
+
+  const LANTAI = 1730, H_SISWA = 830, H_GURU = 900;
+  // ---------- Nisa (siswi) ----------
+  if (t < 4.6) {                                   // berjalan dari kiri
+    const p = clamp((t - .2) / 4.2), l = langkah(t);
+    tokoh(girl, $('bayGirl'), 'pose-berjalan', { cx: lerp(-160, 330, easeOut(p)), bawah: LANTAI, h: H_SISWA,
+      dy: p < 1 ? l.dy : 0, r: p < 1 ? l.r : 0, o: clamp(t / .3) });
+  } else if (t < 21.6) {                           // berdiri, menoleh ke Raka setelah ia datang
+    const keRaka = t >= 11.4;
+    const tegang = t < 10.6 ? Math.sin(t * 30) * .6 : 0;
+    tokoh(girl, $('bayGirl'), keRaka ? 'menghadap-kanan' : 'tampak-depan',
+      { cx: 330, bawah: LANTAI, h: H_SISWA, napas: hidup(t), r: tegang + (keRaka ? Math.sin(t * 1.3) * .6 : 0) });
+  } else if (t < 40) {                             // bergeser ke kiri saat Bu Guru datang, lalu bernapas
+    const p = ease((t - 21.8) / 1.4), tarik = napasBersama(t);
+    tokoh(girl, $('bayGirl'), 'tampak-depan', { cx: lerp(330, 220, p), bawah: LANTAI, h: H_SISWA,
+      napas: hidup(t) + .03 * tarik, dy: -10 * tarik, r: Math.sin(t * 1.2) * .5 });
+  } else {                                         // berjalan masuk gerbang (menjauh)
+    const p = ease((t - 40.4) / 3.4), l = langkah(t, 2);
+    tokoh(girl, $('bayGirl'), 'tampak-belakang', { cx: lerp(300, 470, p), bawah: lerp(LANTAI, 1330, p),
+      h: lerp(H_SISWA, 380, p), dy: l.dy * (1 - p), r: l.r, o: 1 - clamp((t - 43.4) / .6) });
+  }
+  // ---------- Raka (siswa) ----------
+  if (t < 10.9) {
+    tokoh(boy, $('bayBoy'), 'tampak-depan', { cx: 0, bawah: LANTAI, h: H_SISWA, o: 0 });
+  } else if (t < 13) {                             // berjalan masuk dari kanan, menghadap kiri
+    const p = clamp((t - 10.9) / 2), l = langkah(t);
+    tokoh(boy, $('bayBoy'), 'pose-berjalan', { cx: lerp(1260, 760, easeOut(p)), bawah: LANTAI, h: H_SISWA,
+      dy: p < 1 ? l.dy : 0, r: p < 1 ? l.r : 0 });
+  } else if (t < 21.6) {
+    const sapa = t < 16;
+    const ayun = sapa ? Math.sin((t - 13) * 7) * 2.5 * (1 - clamp((t - 15.4) / .5)) : 0;
+    const mendarat = Math.sin(clamp((t - 13) / .3) * Math.PI);
+    tokoh(boy, $('bayBoy'), sapa ? 'pose-melambaikan-tangan' : 'pose-mengacungkan-jempol',
+      { cx: 760, bawah: LANTAI, h: H_SISWA, r: ayun, napas: hidup(t, 1) - .02 * mendarat,
+        dy: t >= 16 ? -14 * Math.sin(clamp((t - 16) / .35) * Math.PI) : 0 });
+  } else if (t < 40) {
+    const p = ease((t - 21.8) / 1.4), tarik = napasBersama(t);
+    tokoh(boy, $('bayBoy'), 'tampak-depan', { cx: lerp(760, 860, p), bawah: LANTAI, h: H_SISWA,
+      napas: hidup(t, 1) + .03 * tarik, dy: -10 * tarik, r: Math.sin(t * 1.1 + 1) * .5 });
+  } else {
+    const p = ease((t - 40.2) / 3.4), l = langkah(t + .2, 2);
+    tokoh(boy, $('bayBoy'), 'tampak-belakang', { cx: lerp(680, 610, p), bawah: lerp(LANTAI, 1330, p),
+      h: lerp(H_SISWA, 380, p), dy: l.dy * (1 - p), r: l.r, o: 1 - clamp((t - 43.4) / .6) });
+  }
+  // ---------- Bu Guru BK: keluar dari gerbang (dari jauh ke depan) ----------
+  if (t < 21.6) {
+    tokoh(guru, $('bayGuru'), 'tampak-depan', { cx: 540, bawah: 1330, h: 380, o: 0 });
+  } else if (t < 40) {
+    const p = easeOut((t - 21.6) / 2.2), l = langkah(t, 1.8), tarik = napasBersama(t);
+    const jalan = t < 23.8;
+    tokoh(guru, $('bayGuru'), 'tampak-depan', { cx: 540, bawah: lerp(1330, 1660, p), h: lerp(380, H_GURU, p),
+      o: clamp((t - 21.6) / .4), dy: jalan ? l.dy * .7 : -8 * tarik, r: jalan ? l.r * .7 : Math.sin(t * 1.4) * .7,
+      napas: hidup(t, 2) + .025 * tarik });
+  } else {                                         // menoleh, melihat murid masuk sekolah
+    tokoh(guru, $('bayGuru'), 'menghadap-kiri', { cx: 930, bawah: 1760, h: H_GURU,
+      napas: hidup(t, 2) });
+  }
+
+  // ---------- close-up ----------
+  $('closeup').className = 'abs' + (t >= 30.4 && t < 37.4 ? ' hangat' : '');
+  if (t >= 4.8 && t < 10.6) {
+    const s = t - 4.8, gemetar = Math.sin(t * 34) * 3 * clamp((s - 3) / .5);
+    closeup('siswi/ekspresi-sedih', 'siswi/ekspresi-terkejut', clamp((s - 3.1) / .12), 1 + .05 * ease(s / 5.8), gemetar);
+    $('label').textContent = 'NISA · KELAS XI';
+    set($('bingkai'), clamp(s / .35), 0, 30 * (1 - easeOut(s / .45)));
+  } else if (t >= 18.8 && t < 21.6) {
+    const s = t - 18.8;
+    closeup('siswi/ekspresi-serius', 'siswi/ekspresi-normal', clamp((s - 1) / .12), 1 + .03 * ease(s / 2.8));
+    $('label').textContent = 'NISA';
+    set($('bingkai'), clamp(s / .3));
+  } else if (t >= 30.4 && t < 37.4) {
+    const s = t - 30.4;
+    closeup('guru-bk-putri/ekspresi-normal-ramah', 'guru-bk-putri/ekspresi-senyum-terbuka', clamp((s - 3.6) / .12),
+            1 + .05 * ease(s / 7));
+    $('label').textContent = 'BU GURU BK';
+    set($('bingkai'), clamp(s / .35), 0, 260, .78);
+  } else if (t >= 37.4 && t < 40) {
+    const s = t - 37.4;
+    closeup('siswi/ekspresi-senang', 'siswi/ekspresi-tertawa', clamp((s - 1.4) / .12), 1 + .03 * ease(s / 2.6));
+    $('label').textContent = 'NISA';
+    set($('bingkai'), 1, 0, 0, 1 + .015 * Math.sin(clamp(s / .4) * Math.PI));
+  }
+  if (!dekat) set($('bingkai'), 0);   // anak dengan visibility sendiri tidak ikut tersembunyi
+  set($('label'), dekat && !(t >= 30.4 && t < 37.4) ? 1 : 0);
+
+  // ---------- teks ----------
+  set($('hook'), sampul ? 1 : tampil(t, .3, 4.5), 0, sampul ? 0 : naik(t, .3));
+  const p1 = $('pikir1'); p1.style.left = '110px'; p1.style.top = '320px';
+  set(p1, tampil(t, 5.2, 7.4), 0, naik(t, 5.2));
+  const p2 = $('pikir2'); p2.style.left = '90px'; p2.style.top = '320px';
+  set(p2, tampil(t, 7.9, 10.4), 0, naik(t, 7.9));
+  [['c1', 80, 560], ['c2', 600, 610], ['c3', 120, 1640], ['c4', 620, 1600]].forEach(([id, x, y], i) => {
+    const el = $(id); el.style.left = x + 'px'; el.style.top = y + 'px';
+    set(el, tampil(t, 8.2 + i * .3, 10.4), Math.sin(t * 3 + i) * 12, Math.cos(t * 2.4 + i * 2) * 12, 1, Math.sin(t * 2 + i) * 6);
+  });
+  const b1 = $('bubBoy1'); b1.style.right = '150px'; b1.style.top = '560px';
+  set(b1, tampil(t, 13.2, 15.9), 0, naik(t, 13.2));
+  const b2 = $('bubBoy2'); b2.style.right = '150px'; b2.style.top = '560px';
+  set(b2, tampil(t, 16.1, 18.6), 0, naik(t, 16.1));
+  const g1 = $('bubGirl1'); g1.style.left = '160px'; g1.style.top = '400px';
+  set(g1, tampil(t, 19.4, 21.4), 0, naik(t, 19.4));
+  const bg = $('bubGuru'); bg.style.left = '110px'; bg.style.top = '470px';
+  set(bg, tampil(t, 23.8, 26.6), 0, naik(t, 23.8));
+  // napas bersama 26.8–30.2: tarik 4 hitungan, hembus 4 hitungan (lebih lambat dari detik agar tenang)
+  set($('napasChip'), tampil(t, 26.8, 30.2), 0, naik(t, 26.8));
+  if (t >= 26.8 && t < 30.4) {
+    const p = clamp((t - 27) / 3.2), tarik = p < .5;
+    $('aksi').textContent = tarik ? 'Tarik napas… 🌬️' : 'Hembuskan pelan… 😮‍💨';
+    $('hitung').textContent = String(Math.min(4, Math.floor((p % .5) / .5 * 4) + 1));
+  }
+  set($('pesan'), tampil(t, 30.6, 37.2), 0, naik(t, 30.6));
+  $('pesan').querySelector('.baris2').style.opacity = clamp((t - 32) / .5);
+  $('pesanKecil').style.opacity = clamp((t - 34.4) / .5);
+  const g2 = $('bubGirl2'); g2.style.left = '230px'; g2.style.top = '420px';
+  set(g2, tampil(t, 37.7, 39.8), 0, naik(t, 37.7));
+  set($('semangat'), tampil(t, 40.6, 44), 0, naik(t, 40.6));
+
+  // ---------- header & penutup ----------
+  const hdr = sampul ? 1 : 1 - clamp((t - 44.2) / .4);
+  set($('hdr'), hdr); set($('tag'), hdr);
+  const ak = sampul ? 0 : clamp((t - 44.2) / .5);
+  set($('akhir'), ak, 0, 0, .96 + .04 * easeOut((t - 44.2) / .6));
+  [['akhirGirl', 0], ['akhirGuru', .15], ['akhirBoy', .3]].forEach(([id, jeda]) => {
+    const p = easeOut((t - 44.6 - jeda) / .6);
+    $(id).style.transform = `translateY(${(1 - p) * 300 + Math.sin(t * 2 + jeda * 9) * 4}px)`;
+  });
+  if (sampul) {   // sampul: hanya hook + Nisa di depan gerbang
+    ['pikir1', 'pikir2', 'c1', 'c2', 'c3', 'c4'].forEach(id => set($(id), 0));
+  }
+}
+// tarikan napas bersama (0 = hembus habis, 1 = penuh), 27–30.2 s
+function napasBersama(t) {
+  if (t < 27 || t > 30.2) return 0;
+  const p = (t - 27) / 3.2;
+  return p < .5 ? ease(p / .5) : 1 - ease((p - .5) / .5);
+}
+const renderAsli = render;  // simpan dulu: window.render menimpa fungsi global render
+window.render = t => renderAsli(t < 0 ? t : waktuAsli(t));
+window.DURASI = DURASI;
+// pratinjau di browser biasa
+if (!navigator.webdriver) {
+  const mulai = performance.now();
+  (function loop() { window.render(((performance.now() - mulai) / 1000) % DURASI); requestAnimationFrame(loop); })();
+} else { window.render(0); }
+</script>
+</body>
+</html>

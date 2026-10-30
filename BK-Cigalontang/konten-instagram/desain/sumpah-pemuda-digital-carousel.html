@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carousel — Sumpah Pemuda Versi Anak Muda Digital | BK SMANRICI</title>
+<style>
+  /* Rabu, 28 Oktober 2026 · #RabuRuangAman · Sosial · karakter 3D (brand/karakter/3d/) */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --toska: #0D9488; --toska-tua: #0F766E; --toska-muda: #CCFBF1;
+    --zamrud: #10B981; --zamrud-tua: #059669; --zamrud-muda: #D1FAE5;
+    --emas: #F59E0B; --emas-tua: #D97706; --emas-muda: #FEF3C7;
+    --mint: #F0FDF4; --tinta: #0F172A; --teks: #1E293B; --abu: #475569;
+    --merah: #E11D48;
+  }
+  @font-face {
+    font-family: 'Plus Jakarta Sans';
+    src: url('../brand/font/PlusJakartaSans-latin.woff2') format('woff2');
+    font-weight: 200 800;
+  }
+  body { font-family: 'Inter', sans-serif; background: #d9dee5; padding: 40px 20px; color: var(--teks); }
+  .grid { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; }
+  .wrap { width: 540px; height: 675px; }
+  .wrap .slide { transform: scale(.5); transform-origin: top left; }
+  body.render { padding: 0; background: none; }
+  body.render .wrap { width: auto; height: auto; }
+  body.render .wrap .slide { transform: none; }
+
+  .slide { width: 1080px; height: 1350px; position: relative; overflow: hidden;
+           display: flex; flex-direction: column; padding: 64px 76px 56px;
+           background: linear-gradient(180deg, var(--mint) 0%, #E3F7EE 100%); }
+  .judul, h1, h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; color: var(--tinta); letter-spacing: -1.5px; }
+  .bar { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 3;
+         font-size: 26px; font-weight: 800; letter-spacing: 2px; color: var(--toska-tua); }
+  .bar .logo { display: flex; align-items: center; gap: 14px; }
+  .bar img { width: 68px; height: 68px; border-radius: 50%; background: #fff; }
+  .bar .hal { font-size: 24px; opacity: .7; letter-spacing: 1px; }
+  .gelap .bar { color: #fff; }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 3;
+          font-size: 24px; font-weight: 700; color: var(--toska-tua); opacity: .8; }
+  .gelap .foot { color: #fff; }
+  .garis { width: 110px; height: 10px; border-radius: 5px; background: var(--zamrud); margin-top: 20px; }
+  .tokoh { position: absolute; bottom: 0; z-index: 1; filter: drop-shadow(0 14px 18px rgba(15,23,42,.18)); }
+
+  /* ---------- 1: sampul ---------- */
+  .s1 { background: linear-gradient(160deg, var(--toska) 0%, var(--toska-tua) 100%); }
+  .s1 .pre { margin-top: 56px; font-size: 30px; font-weight: 800; letter-spacing: 5px; color: #FDE68A; }
+  .s1 h1 { font-size: 100px; line-height: 1.02; color: #fff; margin-top: 18px; position: relative; z-index: 2; }
+  .s1 h1 em { font-style: normal; color: #FDE68A; }
+  .s1 .sub { font-size: 40px; color: var(--toska-muda); margin-top: 24px; line-height: 1.3; position: relative; z-index: 2; }
+  .s1 .sub b { color: #fff; }
+  .stiker { position: absolute; top: 820px; left: 110px; width: 200px; height: 200px; border-radius: 50%;
+            border: 8px solid #fff; background: var(--emas); color: var(--tinta); transform: rotate(10deg);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 14px 0 rgba(0,0,0,.18); font-family: 'Plus Jakarta Sans', sans-serif; z-index: 2; }
+  .stiker b { font-size: 76px; line-height: 1; }
+  .stiker span { font-size: 24px; font-weight: 800; letter-spacing: 2px; }
+  .s1 .lantai { position: absolute; left: 0; right: 0; bottom: 0; height: 170px; background: rgba(255,255,255,.12); }
+
+  /* ---------- 2: dulu vs sekarang ---------- */
+  .s2 h2 { font-size: 76px; line-height: 1.06; margin-top: 50px; }
+  .s2 h2 em { font-style: normal; color: var(--toska); }
+  .era { display: flex; gap: 26px; margin-top: 44px; position: relative; z-index: 2; }
+  .era .k { flex: 1; border-radius: 36px; padding: 34px 32px; box-shadow: 0 12px 30px rgba(15,23,42,.07); }
+  .era .k .th { font-family: 'Plus Jakarta Sans'; font-size: 64px; font-weight: 800; line-height: 1; }
+  .era .k p { font-size: 33px; line-height: 1.32; margin-top: 16px; }
+  .k.dulu { background: #fff; } .k.dulu .th { color: var(--emas-tua); }
+  .k.kini { background: var(--toska); color: #fff; } .k.kini .th { color: #FDE68A; }
+  .s2 .inti { margin-top: 36px; font-size: 42px; line-height: 1.3; font-weight: 700; color: var(--tinta); position: relative; z-index: 2; width: 600px; }
+  .s2 .inti b { color: var(--toska); }
+
+.tiga { margin-top: 30px; display: flex; flex-direction: column; gap: 16px; position: relative; z-index: 2; }
+  .tiga span { align-self: flex-start; font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 40px; color: #fff;
+               background: var(--toska); padding: 14px 32px; border-radius: 999px; box-shadow: 0 8px 0 var(--toska-tua); }
+  .tiga span:nth-child(2) { background: var(--zamrud); box-shadow: 0 8px 0 var(--zamrud-tua); margin-left: 40px; }
+  .tiga span:nth-child(3) { background: var(--emas); color: var(--tinta); box-shadow: 0 8px 0 var(--emas-tua); margin-left: 80px; }
+
+  /* ---------- 3–5: janji ---------- */
+  .janji .nomor { margin-top: 44px; display: inline-flex; align-items: center; gap: 18px; font-size: 30px; font-weight: 800;
+                  letter-spacing: 4px; color: var(--emas-tua); }
+  .janji .nomor b { width: 86px; height: 86px; border-radius: 50%; background: var(--emas-muda); display: flex; align-items: center;
+                    justify-content: center; font-family: 'Plus Jakarta Sans'; font-size: 50px; letter-spacing: 0; }
+  .janji h2 { font-size: 78px; line-height: 1.04; margin-top: 18px; position: relative; z-index: 2; }
+  .janji h2 em { font-style: normal; color: var(--toska); }
+  .janji .isi { font-size: 38px; line-height: 1.38; margin-top: 26px; position: relative; z-index: 2; }
+  .janji .isi b { color: var(--tinta); }
+  .aksi { margin-top: 30px; background: #fff; border-radius: 34px; padding: 26px 32px; position: relative; z-index: 2;
+          box-shadow: 0 12px 30px rgba(15,23,42,.08); border-left: 12px solid var(--zamrud); }
+  .aksi .lbl { font-size: 26px; font-weight: 800; letter-spacing: 3px; color: var(--zamrud-tua); }
+  .aksi p { font-size: 35px; line-height: 1.34; margin-top: 8px; }
+  .aksi p b { color: var(--toska-tua); }
+
+  /* kolom komentar (janji 2) */
+  .komen { margin-top: 28px; display: flex; flex-direction: column; gap: 18px; position: relative; z-index: 2; width: 640px; }
+  .kmn { display: flex; gap: 18px; align-items: flex-start; background: #fff; border-radius: 30px; padding: 22px 26px;
+         box-shadow: 0 10px 24px rgba(15,23,42,.07); }
+  .kmn .av { width: 64px; height: 64px; border-radius: 50%; flex: none; }
+  .kmn .nm { font-size: 24px; font-weight: 800; color: var(--abu); }
+  .kmn .tx { font-size: 34px; line-height: 1.3; margin-top: 4px; }
+  .kmn.buruk { opacity: .75; }
+  .kmn.buruk .tx { text-decoration: line-through; text-decoration-color: var(--merah); text-decoration-thickness: 4px; color: #64748B; }
+  .kmn.baik { border: 4px solid var(--zamrud); }
+  .tanda { margin-left: auto; font-size: 40px; flex: none; }
+  .cek3 { margin-top: 26px; display: flex; gap: 14px; position: relative; z-index: 2; }
+  .cek3 span { font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 34px; color: var(--toska-tua);
+               background: var(--toska-muda); padding: 12px 26px; border-radius: 999px; }
+
+  /* chip perbedaan (janji 3) */
+  .chips { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 28px; width: 640px; position: relative; z-index: 2; }
+  .chips span { font-size: 30px; font-weight: 800; padding: 12px 24px; border-radius: 999px; background: #fff;
+                box-shadow: 0 6px 14px rgba(15,23,42,.06); }
+  .chips span:nth-child(3n+1) { color: var(--toska-tua); } .chips span:nth-child(3n+2) { color: var(--emas-tua); }
+  .chips span:nth-child(3n) { color: var(--zamrud-tua); }
+
+  /* ---------- 6: aksi kecil ---------- */
+  .s6 h2 { font-size: 74px; line-height: 1.05; margin-top: 46px; }
+  .s6 h2 em { font-style: normal; color: var(--toska); }
+  .daftar { margin-top: 34px; display: flex; flex-direction: column; gap: 18px; width: 700px; position: relative; z-index: 2; }
+  .daftar div { display: flex; gap: 20px; align-items: center; background: #fff; border-radius: 28px; padding: 20px 26px;
+                font-size: 34px; line-height: 1.25; box-shadow: 0 10px 24px rgba(15,23,42,.06); }
+  .daftar div b { color: var(--tinta); }
+  .daftar .ik { width: 72px; height: 72px; border-radius: 22px; flex: none; display: flex; align-items: center; justify-content: center;
+                font-size: 40px; background: var(--toska-muda); }
+
+  /* ---------- 7: CTA ---------- */
+  .s7 { background: linear-gradient(160deg, var(--toska) 0%, var(--toska-tua) 100%); }
+  .s7 h2 { color: #fff; font-size: 84px; line-height: 1.04; margin-top: 46px; position: relative; z-index: 2; }
+  .s7 h2 em { font-style: normal; color: #FDE68A; }
+  .contoh { margin-top: 30px; background: #fff; border-radius: 34px; padding: 26px 32px; position: relative; z-index: 2; width: 760px;
+            font-size: 36px; line-height: 1.32; color: var(--tinta); box-shadow: 0 14px 30px rgba(0,0,0,.15); }
+  .contoh .nm { font-size: 24px; font-weight: 800; color: var(--abu); }
+  .contoh b { color: var(--toska); }
+  .s7 .bk { margin-top: 30px; font-size: 34px; line-height: 1.35; color: var(--toska-muda); width: 600px; position: relative; z-index: 2; }
+  .s7 .bk b { color: #fff; }
+  .s7 .kolab { margin-top: 22px; display: inline-block; align-self: flex-start; background: var(--emas); color: var(--tinta);
+               font-weight: 800; font-size: 28px; padding: 12px 26px; border-radius: 999px; position: relative; z-index: 2; }
+</style>
+</head>
+<body>
+<div class="grid">
+
+<!-- 1 · SAMPUL -->
+<div class="wrap"><section class="slide s1 gelap" id="slide-1">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">#RabuRuangAman</div></div>
+  <div class="pre">28 OKTOBER · HARI SUMPAH PEMUDA</div>
+  <h1>Sumpah Pemuda<br>versi anak muda<br><em>digital</em> 📱</h1>
+  <div class="sub"><b>3 janji kita</b> buat ruang digital<br>yang lebih aman &amp; adem.</div>
+  <div class="stiker"><b>98</b><span>TAHUN</span></div>
+  <div class="lantai"></div>
+  <img class="tokoh" src="../brand/karakter/3d/siswi/utama.png" alt="" style="height:640px;left:560px">
+  <img class="tokoh" src="../brand/karakter/3d/siswa/utama.png" alt="" style="height:680px;left:760px">
+  <div class="foot" style="width:440px">Geser →</div>
+</section></div>
+
+<!-- 2 · DULU vs SEKARANG -->
+<div class="wrap"><section class="slide s2" id="slide-2">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">2 / 7</div></div>
+  <h2>Ruangnya berubah,<br><em>semangatnya sama.</em></h2>
+  <div class="garis"></div>
+  <div class="era">
+    <div class="k dulu"><div class="th">1928</div><p>Pemuda dari berbagai daerah <b>berkumpul</b> dan berikrar: satu tanah air, satu bangsa, satu bahasa.</p></div>
+    <div class="k kini"><div class="th">2026</div><p>Kita "berkumpul" di <b>grup chat, kolom komentar, dan FYP</b> tiap hari.</p></div>
+  </div>
+  <div class="inti">Jadi, apa <b>janji kita</b> di ruang digital? 🤔</div>
+  <div class="tiga"><span>Satu ruang</span><span>Satu bahasa</span><span>Satu tekad</span></div>
+  <img class="tokoh" src="../brand/karakter/3d/siswi/pose-menunjuk.png" alt="" style="height:500px;right:90px">
+  <div class="foot">Ini 3 janjinya →</div>
+</section></div>
+
+<!-- 3 · JANJI 1 -->
+<div class="wrap"><section class="slide janji" id="slide-3">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">3 / 7</div></div>
+  <div class="nomor"><b>1</b>JANJI PERTAMA</div>
+  <h2>Satu ruang digital<br><em>tanpa perundungan.</em></h2>
+  <div class="isi" style="width:640px">Kami <b>tidak ikut menyebar, menertawakan,</b> atau men-screenshot untuk mempermalukan siapa pun.</div>
+  <div class="aksi" style="width:650px"><div class="lbl">AKSI KECILNYA</div>
+    <p>Lihat teman diejek di grup? <b>Jangan ikut react 😂.</b> Japri dia: <b>"Kamu oke?"</b></p></div>
+  <img class="tokoh" src="../brand/karakter/3d/siswa/pose-menyilangkan-tangan.png" alt="" style="height:560px;right:60px">
+  <div class="foot" style="width:640px">Saksi yang peduli = pembela 💪</div>
+</section></div>
+
+<!-- 4 · JANJI 2 -->
+<div class="wrap"><section class="slide janji" id="slide-4">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">4 / 7</div></div>
+  <div class="nomor"><b>2</b>JANJI KEDUA</div>
+  <h2>Satu bahasa:<br><em>santun di kolom komentar.</em></h2>
+  <div class="komen">
+    <div class="kmn buruk"><div class="av" style="background:#CBD5E1"></div><div><div class="nm">akun_sebelah</div><div class="tx">jelek bgt sih, mending ga usah tampil 🙄</div></div><div class="tanda">❌</div></div>
+    <div class="kmn baik"><div class="av" style="background:var(--toska)"></div><div><div class="nm">kamu</div><div class="tx">Berani tampil itu keren! Next time pasti makin mantap 🔥</div></div><div class="tanda">✅</div></div>
+  </div>
+  <div class="cek3"><span>Benar?</span><span>Perlu?</span><span>Baik?</span></div>
+  <div class="isi" style="width:640px;font-size:32px;margin-top:16px">Cek 3 detik sebelum kirim. Kalau ragu, <b>nggak usah dikirim.</b></div>
+  <img class="tokoh" src="../brand/karakter/3d/siswi/pose-memegang-buku.png" alt="" style="height:520px;right:56px">
+  <div class="foot">Jempolmu, tanggung jawabmu.</div>
+</section></div>
+
+<!-- 5 · JANJI 3 -->
+<div class="wrap"><section class="slide janji" id="slide-5">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">5 / 7</div></div>
+  <div class="nomor"><b>3</b>JANJI KETIGA</div>
+  <h2>Satu tekad:<br><em>bersatu dalam beda.</em></h2>
+  <div class="isi" style="width:640px">Beda itu bukan alasan saling serang. <b>Beda itu yang bikin kita kaya.</b></div>
+  <div class="chips"><span>beda daerah</span><span>beda bahasa ibu</span><span>beda keyakinan</span><span>beda pendapat</span><span>beda selera musik</span><span>beda idola</span><span>beda gaya</span></div>
+  <div class="aksi" style="width:650px"><div class="lbl">AKSI KECILNYA</div>
+    <p>Nggak setuju? <b>Bantah idenya, bukan orangnya.</b> Jangan bawa-bawa SARA.</p></div>
+  <img class="tokoh" src="../brand/karakter/3d/siswa/pose-mengacungkan-jempol.png" alt="" style="height:520px;right:150px">
+  <img class="tokoh" src="../brand/karakter/3d/siswi/pose-semangat.png" alt="" style="height:500px;right:20px">
+  <div class="foot">Kita satu, walau nggak sama 🇮🇩</div>
+</section></div>
+
+<!-- 6 · AKSI KECIL -->
+<div class="wrap"><section class="slide s6" id="slide-6">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">6 / 7</div></div>
+  <h2>Mulai dari<br><em>jempol sendiri</em> 👍</h2>
+  <div class="garis"></div>
+  <div class="daftar">
+    <div><span class="ik">🔇</span><span><b>Bisukan (mute) / unfollow</b> akun yang menyebar kebencian</span></div>
+    <div><span class="ik">🚩</span><span><b>Laporkan</b> konten perundungan, <b>jangan di-share</b></span></div>
+    <div><span class="ik">💬</span><span>Ganti 1 komentar nyinyir jadi <b>dukungan</b></span></div>
+    <div><span class="ik">🤝</span><span><b>Japri</b> teman yang sedang diserang</span></div>
+    <div><span class="ik">🔎</span><span><b>Cek fakta</b> sebelum meneruskan info</span></div>
+  </div>
+  <img class="tokoh" src="../brand/karakter/3d/guru-bk-putri/pose-memberi-arahan.png" alt="" style="height:500px;right:24px">
+  <div class="foot">Kecil, tapi nyata.</div>
+</section></div>
+
+<!-- 7 · CTA -->
+<div class="wrap"><section class="slide s7 gelap" id="slide-7">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">7 / 7</div></div>
+  <h2>Tulis <em>janji digital</em>-mu<br>di komentar 👇</h2>
+  <div class="contoh"><div class="nm">contoh</div>"Aku janji <b>nggak ikut nge-share</b> aib teman di grup." 🤞</div>
+  <div class="bk">Kalau kamu sedang jadi sasaran perundungan online, <b>kamu nggak sendiri.</b> Simpan buktinya, lalu ceritakan ke orang yang kamu percaya, termasuk <b>Ruang BK</b>. 🤍</div>
+  <div class="kolab">Bersama OSIS &amp; MPK SMANRICI</div>
+  <img class="tokoh" src="../brand/karakter/3d/siswi/tampak-depan.png" alt="" style="height:500px;left:640px">
+  <img class="tokoh" src="../brand/karakter/3d/guru-bk-putri/tampak-depan.png" alt="" style="height:560px;left:760px">
+  <img class="tokoh" src="../brand/karakter/3d/siswa/tampak-depan.png" alt="" style="height:520px;left:900px">
+  <div class="foot" style="width:560px">@bksmanrici · Selamat Hari Sumpah Pemuda!</div>
+</section></div>
+
+</div>
+</body>
+</html>
