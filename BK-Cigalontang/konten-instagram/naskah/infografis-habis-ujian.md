@@ -15,18 +15,14 @@
 
 ## Caption
 
-Bel bunyi, keluar kelas, terus langsung ada yang nanya: "Nomor 15 jawabanmu apa?" 😅
+"Nomor 15 jawabanmu apa?" 😅 Yang sudah lewat, biarkan lewat. Simpan energimu buat tes berikutnya 💪
 
-Wajar kok penasaran. Tapi kalau ujung-ujungnya bikin kepikiran semalaman, mending berhenti dulu. Jawaban yang sudah dikumpulkan nggak bisa diubah lagi, sementara energimu masih dibutuhkan buat tes berikutnya.
-
-Coba jalan sebentar, ngobrol hal lain, atau istirahat dulu. Buat kelas XII, semangat TKA mulai Senin! 💪
-
-Kamu tim mana? Komen A (tim bahas jawaban) atau B (tim langsung lupa) 👇
+Kamu tim mana? Komen A atau B 👇
 
 .
 .
 .
-#BKSMANCigalontang #BimbinganKonseling #GuruBK #RemajaBerdaya #TKA2026 #MotivasiBelajar #TipsStudy #BelajarItuAsik #KesehatanMentalRemaja #Overthinking #RemajaSMA #SiswaIndonesia #TipsRemaja
+#BKSMANCigalontang #BimbinganKonseling #GuruBK #RemajaBerdaya #TKA2026 #MotivasiBelajar #Overthinking #RemajaSMA #SiswaIndonesia #TipsRemaja
 
 ## Alt text
 
