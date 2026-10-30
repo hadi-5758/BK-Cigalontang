@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infografis — Habis Ujian, Stop Bahas Jawaban | BK SMANRICI</title>
+<style>
+  /* Jumat, 30 Oktober 2026 · #JumatNgobrolBK · Belajar · karakter 3D (brand/karakter/3d/) */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --toska: #0D9488; --toska-tua: #0F766E; --toska-muda: #CCFBF1;
+    --zamrud: #10B981; --zamrud-tua: #059669; --zamrud-muda: #D1FAE5;
+    --emas: #F59E0B; --emas-tua: #D97706; --emas-muda: #FEF3C7;
+    --mint: #F0FDF4; --tinta: #0F172A; --teks: #1E293B; --abu: #475569;
+  }
+  @font-face {
+    font-family: 'Plus Jakarta Sans';
+    src: url('../brand/font/PlusJakartaSans-latin.woff2') format('woff2');
+    font-weight: 200 800;
+  }
+  body { font-family: 'Inter', sans-serif; background: #d9dee5; padding: 40px 20px; color: var(--teks); }
+  body.render { padding: 0; background: none; }
+  .wrap { width: 540px; height: 675px; margin: 0 auto; }
+  .wrap .slide { transform: scale(.5); transform-origin: top left; }
+  body.render .wrap { width: auto; height: auto; }
+  body.render .wrap .slide { transform: none; }
+
+  .slide { width: 1080px; height: 1350px; position: relative; overflow: hidden;
+           padding: 64px 70px 56px; display: flex; flex-direction: column;
+           background: linear-gradient(180deg, var(--mint) 0%, #E3F7EE 100%); }
+  .bar { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 3;
+         font-size: 26px; font-weight: 800; letter-spacing: 2px; color: var(--toska-tua); }
+  .bar .logo { display: flex; align-items: center; gap: 14px; }
+  .bar img { width: 68px; height: 68px; border-radius: 50%; background: #fff; }
+  .tag { background: var(--emas); color: var(--tinta); font-size: 22px; letter-spacing: 1px; padding: 8px 20px; border-radius: 999px; }
+
+  .judul { position: relative; z-index: 2; margin-top: 30px; width: 600px; }
+  .eyebrow { font-size: 26px; font-weight: 800; letter-spacing: 4px; color: var(--zamrud-tua); }
+  h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 74px; line-height: 1.02;
+       letter-spacing: -2px; color: var(--tinta); margin-top: 10px; }
+  h1 em { font-style: normal; color: var(--toska); }
+
+  /* adegan kecil kanan atas */
+  .tokoh { position: absolute; z-index: 1; filter: drop-shadow(0 12px 16px rgba(15,23,42,.16)); }
+  .gel { position: absolute; z-index: 2; background: #fff; border-radius: 26px; padding: 14px 20px; font-size: 25px;
+         font-weight: 700; color: var(--tinta); line-height: 1.25; box-shadow: 0 10px 22px rgba(15,23,42,.10); }
+  .gel small { display: block; font-size: 18px; font-weight: 800; letter-spacing: 1px; color: var(--emas-tua); }
+  .gel::after { content: ""; position: absolute; bottom: -18px; border: 10px solid transparent; border-top-color: #fff; }
+  .gel.kanan::after { right: 34px; } .gel.kiri::after { left: 34px; }
+  .gel.pikir { background: #F8FAFC; border: 3px dashed #CBD5E1; }
+  .gel.pikir::after { display: none; }
+
+  .kartu { position: relative; z-index: 2; background: #fff; border-radius: 34px; padding: 26px 30px;
+           box-shadow: 0 12px 30px rgba(15,23,42,.07); }
+  .kenapa { margin-top: 26px; display: flex; gap: 22px; align-items: center; }
+  .kenapa .ik { width: 88px; height: 88px; border-radius: 26px; flex: none; background: var(--emas-muda);
+                display: flex; align-items: center; justify-content: center; font-size: 48px; }
+  .kenapa h2 { font-family: 'Plus Jakarta Sans'; font-size: 34px; font-weight: 800; color: var(--tinta); }
+  .kenapa p { font-size: 28px; line-height: 1.35; margin-top: 6px; }
+  .kenapa b { color: var(--emas-tua); }
+
+  .sub { position: relative; z-index: 2; margin-top: 28px; font-family: 'Plus Jakarta Sans'; font-size: 38px; font-weight: 800;
+         color: var(--tinta); letter-spacing: -.5px; }
+  .sub em { font-style: normal; color: var(--toska); }
+  .tiga { position: relative; z-index: 2; display: flex; gap: 18px; margin-top: 16px; }
+  .tiga .kartu { flex: 1; padding: 24px 22px; text-align: center; }
+  .tiga .no { width: 54px; height: 54px; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;
+              font-family: 'Plus Jakarta Sans'; font-size: 30px; font-weight: 800; }
+  .tiga .em { font-size: 64px; margin-top: 10px; line-height: 1; }
+  .tiga h3 { font-family: 'Plus Jakarta Sans'; font-size: 30px; font-weight: 800; color: var(--tinta); margin-top: 12px; line-height: 1.1; }
+  .tiga p { font-size: 23px; line-height: 1.3; color: var(--abu); margin-top: 8px; }
+  .k1 .no { background: var(--toska-muda); color: var(--toska-tua); }
+  .k2 .no { background: var(--emas-muda); color: var(--emas-tua); }
+  .k3 .no { background: var(--zamrud-muda); color: var(--zamrud-tua); }
+
+  .kaki { margin-top: auto; position: relative; z-index: 2; border-radius: 34px; overflow: hidden;
+          background: linear-gradient(120deg, var(--toska) 0%, var(--toska-tua) 100%); color: #fff; }
+  .kaki .atas { padding: 22px 30px 18px; font-family: 'Plus Jakarta Sans'; font-size: 34px; font-weight: 800; line-height: 1.2; }
+  .kaki .atas span { color: #FDE68A; }
+  .poll { display: flex; gap: 14px; padding: 0 30px 24px; align-items: center; }
+  .poll .q { font-size: 24px; font-weight: 700; color: var(--toska-muda); white-space: nowrap; }
+  .poll .opsi { flex: 1; background: #fff; color: var(--tinta); border-radius: 18px; padding: 12px 16px; font-size: 25px; font-weight: 800; text-align: center; }
+  .poll .opsi b { color: var(--emas-tua); }
+  .xii { position: relative; z-index: 2; margin-top: 14px; font-size: 23px; font-weight: 700; color: var(--toska-tua); text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap"><section class="slide" id="habis-ujian">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="tag">#JumatNgobrolBK</div></div>
+
+  <!-- adegan: Raka bertanya, Nisa jadi cemas -->
+  <img class="tokoh" src="../brand/karakter/3d/siswa/pose-menunjuk.png" alt="" style="height:380px;right:250px;top:200px">
+  <img class="tokoh" src="../brand/karakter/3d/siswi/pose-memegang-buku.png" alt="" style="height:370px;right:70px;top:210px">
+  <div class="gel kanan" style="right:310px;top:118px"><small>RAKA</small>"Nomor 15 jawabanmu apa?"</div>
+  <div class="gel pikir" style="right:40px;top:150px">Duh… beda 😰</div>
+
+  <div class="judul">
+    <div class="eyebrow">HABIS UJIAN</div>
+    <h1>Stop bahas jawaban sampai <em>overthinking</em> 🌀</h1>
+  </div>
+
+  <div class="kartu kenapa">
+    <div class="ik">🤯</div>
+    <div><h2>Kenapa bikin cemas?</h2>
+      <p>Jawabannya <b>udah nggak bisa diubah</b>, tapi rasa cemasnya <b>kebawa ke ujian berikutnya</b>.</p></div>
+  </div>
+
+  <div class="sub">3 cara <em>lepas tegang</em> habis ujian</div>
+  <div class="tiga">
+    <div class="kartu k1"><div class="no">1</div><div class="em">🚶</div><h3>Jalan sebentar</h3><p>Gerak 10 menit bikin kepala lebih ringan</p></div>
+    <div class="kartu k2"><div class="no">2</div><div class="em">💬</div><h3>Ngobrol hal lain</h3><p>Bahas makan siang, bukan nomor 15</p></div>
+    <div class="kartu k3"><div class="no">3</div><div class="em">😴</div><h3>Istirahat dulu</h3><p>Makan, minum, tidur cukup malamnya</p></div>
+  </div>
+
+  <div class="kaki">
+    <div class="atas">Yang sudah lewat, biarkan lewat. <span>Simpan energimu buat tes berikutnya.</span> 💪</div>
+    <div class="poll"><div class="q">Kamu tim mana?</div>
+      <div class="opsi"><b>A</b> · Tim bahas jawaban</div><div class="opsi"><b>B</b> · Tim langsung lupa</div></div>
+  </div>
+  <div class="xii">Kelas XII, Senin giliranmu. Semangat! · Komen A atau B 👇 · @bksmanrici</div>
+</section></div>
+</body>
+</html>
