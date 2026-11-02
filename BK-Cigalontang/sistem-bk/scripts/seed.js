@@ -80,6 +80,17 @@ transaksi(() => {
     nisList.forEach(n => db.prepare('INSERT INTO layanan_siswa (layanan_id, nis) VALUES (?, ?)').run(r.lastInsertRowid, n));
   }
 
+  // Catatan perkembangan & anekdot contoh
+  const sisipPerkembangan = db.prepare(`INSERT INTO catatan_perkembangan (nis, tanggal, jenis, poin, kategori, keterangan, pengguna_id) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+  [[0, '2026-10-07', 'Apresiasi', 10, 'Akademik', 'Juara 2 lomba cerdas cermat sekolah'],
+   [2, '2026-10-14', 'Apresiasi', 5, 'Sosial', 'Membantu teman yang kesulitan memahami tugas kelompok'],
+   [16, '2026-10-27', 'Pembinaan', 5, 'Kedisiplinan', 'Terlambat masuk kelas tiga kali dalam satu minggu'],
+   [9, '2026-10-13', 'Pembinaan', 10, 'Sosial', 'Terlibat perselisihan dengan teman sekelas'],
+   [9, '2026-10-30', 'Apresiasi', 5, 'Sosial', 'Menyampaikan permintaan maaf dan berdamai dengan teman']]
+    .forEach(([i, tanggal, jenis, poin, kategori, ket]) => sisipPerkembangan.run(siswa[i].nis, tanggal, jenis, poin, kategori, ket, koordinator.id));
+  db.prepare(`INSERT INTO catatan_anekdot (nis, tanggal, waktu, tempat, deskripsi_enc, pengguna_id) VALUES (?, ?, ?, ?, ?, ?)`)
+    .run(siswa[16].nis, '2026-10-27', '07:20', 'Gerbang sekolah', keamanan.enkripsi('Siswa tiba pukul 07.20 setelah gerbang ditutup, berjalan sambil membawa kantong plastik berisi sarapan.'), koordinator.id);
+
   // Asesmen: AKPD kelas X-1, RIASEC kelas XI-1 (sebagian siswa sudah mengisi)
   const buatAsesmen = (instrumen, kelasId) => Number(db.prepare('INSERT INTO asesmen (instrumen, kelas_id, token, pengguna_id) VALUES (?, ?, ?, ?)')
     .run(instrumen, kelasId, keamanan.tokenAcak(), koordinator.id).lastInsertRowid);

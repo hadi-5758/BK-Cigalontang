@@ -10,7 +10,7 @@ const ExcelJS = require('exceljs');
 
 const { db, ambilPengaturan, catatAudit, transaksi } = require('./lib/db');
 const keamanan = require('./lib/keamanan');
-const { JENIS_LAYANAN, BIDANG, KATEGORI_KASUS, STATUS, POLA_NIS } = require('./lib/referensi');
+const { JENIS_LAYANAN, BIDANG, KATEGORI_KASUS, STATUS, POLA_NIS, TIPE_KLASIKAL, JENIS_PERKEMBANGAN, KATEGORI_PERKEMBANGAN, TEKNIK_KONSELING } = require('./lib/referensi');
 const { INSTRUMEN, TIPE_RIASEC, nilai } = require('./lib/instrumen');
 const { rekapBulanan, buatPdfLaporanBulanan } = require('./lib/laporan');
 
@@ -201,7 +201,7 @@ app.put('/api/pengaturan', perluKoordinator, rute(req => {
 }));
 
 app.get('/api/referensi', rute(() => ({
-  jenisLayanan: JENIS_LAYANAN, bidang: BIDANG, kategoriKasus: KATEGORI_KASUS, status: STATUS,
+  jenisLayanan: JENIS_LAYANAN, bidang: BIDANG, kategoriKasus: KATEGORI_KASUS, status: STATUS, tipeKlasikal: TIPE_KLASIKAL, jenisPerkembangan: JENIS_PERKEMBANGAN, kategoriPerkembangan: KATEGORI_PERKEMBANGAN, teknikKonseling: TEKNIK_KONSELING,
   instrumen: Object.fromEntries(Object.entries(INSTRUMEN).map(([k, v]) => [k, v.nama])),
   tipeRiasec: TIPE_RIASEC,
 })));
@@ -374,8 +374,13 @@ app.get('/api/siswa/:nis', rute(req => {
   const asesmen = db.prepare(`SELECT a.instrumen, j.hasil, j.dikirim, j.setuju_dibagikan FROM jawaban_asesmen j
     JOIN asesmen a ON a.id = j.asesmen_id WHERE j.nis = ? ORDER BY j.dikirim DESC`).all(s.nis)
     .map(r => ({ ...r, hasil: JSON.parse(r.hasil) }));
+  const perkembangan = db.prepare(`SELECT id, tanggal, jenis, poin, kategori, keterangan FROM catatan_perkembangan
+    WHERE nis = ? AND status = 'Aktif' ORDER BY tanggal DESC`).all(s.nis);
+  const anekdot = db.prepare(`SELECT id, tanggal, waktu, tempat, deskripsi_enc FROM catatan_anekdot
+    WHERE nis = ? AND status = 'Aktif' ORDER BY tanggal DESC`).all(s.nis)
+    .map(({ deskripsi_enc, ...r }) => ({ ...r, deskripsi: keamanan.dekripsi(deskripsi_enc) }));
   catatAudit(req.pengguna.id, 'lihat_siswa', s.nis);
-  return { ...s, kontak_ortu: kontak, layanan, asesmen };
+  return { ...s, kontak_ortu: kontak, layanan, asesmen, perkembangan, anekdot };
 }));
 
 app.put('/api/siswa/:nis/status', perluKoordinator, rute(req => {
@@ -460,14 +465,24 @@ app.get('/api/layanan', rute(req => {
   const arg = [];
   if (req.query.jenis) { syarat.push('l.jenis = ?'); arg.push(req.query.jenis); }
   if (req.query.bulan) { syarat.push('l.tanggal LIKE ?'); arg.push(`${req.query.bulan}-%`); }
+  if (req.query.kelas_id) { syarat.push('l.kelas_id = ?'); arg.push(req.query.kelas_id); }
+  if (req.query.bidang) { syarat.push('l.bidang = ?'); arg.push(req.query.bidang); }
+  if (req.query.q) {
+    syarat.push(`(l.topik LIKE ? OR EXISTS (SELECT 1 FROM layanan_siswa ls JOIN siswa s ON s.nis = ls.nis WHERE ls.layanan_id = l.id AND (s.nama LIKE ? OR s.nis LIKE ?)))`);
+    arg.push(`%${req.query.q}%`, `%${req.query.q}%`, `%${req.query.q}%`);
+  }
   if (req.query.status) { syarat.push('l.status = ?'); arg.push(req.query.status); } else syarat.push(`l.status != 'Arsip'`);
   if (req.pengguna.peran !== 'koordinator') { syarat.push('l.pengguna_id = ?'); arg.push(req.pengguna.id); }
   return db.prepare(`SELECT l.id, l.kode, l.jenis, l.tanggal, l.bidang, l.topik, l.kategori_kasus, l.status, l.tindak_lanjut,
+      l.skala_pra, l.skala_pasca, l.materi, l.tipe_klasikal, l.capaian, l.teknik, l.kelas_id,
       k.nama AS kelas, p.nama AS pencatat,
-      (SELECT GROUP_CONCAT(s.nama, ', ') FROM layanan_siswa ls JOIN siswa s ON s.nis = ls.nis WHERE ls.layanan_id = l.id) AS siswa
+      (SELECT GROUP_CONCAT(s.nama, ', ') FROM layanan_siswa ls JOIN siswa s ON s.nis = ls.nis WHERE ls.layanan_id = l.id) AS siswa,
+      (SELECT COUNT(*) FROM layanan_siswa ls WHERE ls.layanan_id = l.id) AS jumlah_siswa
     FROM layanan l LEFT JOIN kelas k ON k.id = l.kelas_id JOIN pengguna p ON p.id = l.pengguna_id
     WHERE ${syarat.join(' AND ')} ORDER BY l.tanggal DESC, l.id DESC LIMIT 500`).all(...arg);
 }));
+
+const teksAtauNull = v => (v === undefined || v === null || String(v).trim() === '' ? null : String(v).trim());
 
 app.post('/api/layanan', rute(req => {
   const b = req.body;
@@ -479,6 +494,7 @@ app.post('/api/layanan', rute(req => {
   const status = b.status || (b.jenis === 'kasus' ? 'Baru' : 'Selesai');
   if (!STATUS.includes(status)) throw new GalatPengguna('Status tidak valid.');
   if (b.jenis === 'kasus' && !KATEGORI_KASUS[b.kategori_kasus]) throw new GalatPengguna('Pilih kategori kasus (A–F).');
+  if (b.tipe_klasikal && !TIPE_KLASIKAL.includes(b.tipe_klasikal)) throw new GalatPengguna('Tipe layanan klasikal tidak valid.');
 
   let kelasId = null;
   const daftarNis = Array.isArray(b.nis) ? [...new Set(b.nis.map(String))] : [];
@@ -496,11 +512,14 @@ app.post('/api/layanan', rute(req => {
   const id = transaksi(() => {
     const kode = buatKode(b.jenis, b.tanggal);
     const { lastInsertRowid } = db.prepare(`INSERT INTO layanan
-      (kode, jenis, tanggal, bidang, topik, kelas_id, kategori_kasus, catatan_enc, tindak_lanjut, status, pengguna_id, skala_pra, skala_pasca)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+      (kode, jenis, tanggal, bidang, topik, kelas_id, kategori_kasus, catatan_enc, tindak_lanjut, status, pengguna_id,
+       skala_pra, skala_pasca, intake_enc, prognosis_enc, teknik, materi, tipe_klasikal, capaian)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
       kode, b.jenis, b.tanggal, b.bidang, String(b.topik).trim(), kelasId,
       b.jenis === 'kasus' ? b.kategori_kasus : null,
-      keamanan.enkripsi(b.catatan), b.tindak_lanjut || null, status, req.pengguna.id, pra, pasca);
+      keamanan.enkripsi(b.catatan), teksAtauNull(b.tindak_lanjut), status, req.pengguna.id, pra, pasca,
+      keamanan.enkripsi(b.intake), keamanan.enkripsi(b.prognosis), teksAtauNull(b.teknik),
+      teksAtauNull(b.materi), teksAtauNull(b.tipe_klasikal), teksAtauNull(b.capaian));
     const sisip = db.prepare('INSERT INTO layanan_siswa (layanan_id, nis) VALUES (?, ?)');
     daftarNis.forEach(n => sisip.run(lastInsertRowid, n));
     return Number(lastInsertRowid);
@@ -520,23 +539,112 @@ function ambilLayananBerhak(pengguna, id) {
 app.get('/api/layanan/:id', rute(req => {
   const l = ambilLayananBerhak(req.pengguna, req.params.id);
   const siswa = db.prepare('SELECT s.nis, s.nama FROM layanan_siswa ls JOIN siswa s ON s.nis = ls.nis WHERE ls.layanan_id = ?').all(l.id);
+  const kelas = l.kelas_id ? db.prepare('SELECT nama FROM kelas WHERE id = ?').get(l.kelas_id)?.nama : null;
   catatAudit(req.pengguna.id, 'buka_catatan', l.kode);
-  const { catatan_enc, ...sisa } = l;
-  return { ...sisa, catatan: keamanan.dekripsi(catatan_enc), siswa };
+  const { catatan_enc, intake_enc, prognosis_enc, ...sisa } = l;
+  return {
+    ...sisa, kelas, siswa,
+    catatan: keamanan.dekripsi(catatan_enc), intake: keamanan.dekripsi(intake_enc), prognosis: keamanan.dekripsi(prognosis_enc),
+  };
 }));
 
 app.put('/api/layanan/:id', rute(req => {
   const l = ambilLayananBerhak(req.pengguna, req.params.id);
-  const { status, tindak_lanjut, catatan, skala_pra, skala_pasca } = req.body;
-  if (status && !STATUS.includes(status)) throw new GalatPengguna('Status tidak valid.');
-  db.prepare('UPDATE layanan SET status = ?, tindak_lanjut = ?, catatan_enc = ?, skala_pra = ?, skala_pasca = ? WHERE id = ?').run(
-    status || l.status, tindak_lanjut ?? l.tindak_lanjut,
-    catatan !== undefined ? keamanan.enkripsi(catatan) : l.catatan_enc,
-    skala_pra !== undefined ? bacaSkala(skala_pra) : l.skala_pra,
-    skala_pasca !== undefined ? bacaSkala(skala_pasca) : l.skala_pasca, l.id);
-  catatAudit(req.pengguna.id, 'ubah_layanan', l.kode);
+  const b = req.body;
+  if (b.status && !STATUS.includes(b.status)) throw new GalatPengguna('Status tidak valid.');
+  if (b.tipe_klasikal && !TIPE_KLASIKAL.includes(b.tipe_klasikal)) throw new GalatPengguna('Tipe layanan klasikal tidak valid.');
+  const pilih = (kolom, ubah = v => v) => (b[kolom] !== undefined ? ubah(b[kolom]) : l[kolom]);
+  const sandi = (kolom, kolomEnc) => (b[kolom] !== undefined ? keamanan.enkripsi(b[kolom]) : l[kolomEnc]);
+  db.prepare(`UPDATE layanan SET status = ?, tindak_lanjut = ?, catatan_enc = ?, skala_pra = ?, skala_pasca = ?,
+      intake_enc = ?, prognosis_enc = ?, teknik = ?, materi = ?, tipe_klasikal = ?, capaian = ? WHERE id = ?`).run(
+    b.status || l.status, pilih('tindak_lanjut', teksAtauNull), sandi('catatan', 'catatan_enc'),
+    pilih('skala_pra', bacaSkala), pilih('skala_pasca', bacaSkala),
+    sandi('intake', 'intake_enc'), sandi('prognosis', 'prognosis_enc'),
+    pilih('teknik', teksAtauNull), pilih('materi', teksAtauNull), pilih('tipe_klasikal', teksAtauNull), pilih('capaian', teksAtauNull), l.id);
+  catatAudit(req.pengguna.id, b.status === 'Arsip' ? 'arsip_layanan' : 'ubah_layanan', l.kode);
   return { ok: true };
 }));
+
+// ============================================================
+// Catatan Perkembangan (poin apresiasi / pembinaan)
+// ============================================================
+/** Syarat & argumen untuk membatasi catatan per siswa sesuai akses kelas. */
+function lingkupSiswa(req, aliasSiswa = 's') {
+  const f = filterKelas(req.pengguna);
+  const syarat = [f.sql];
+  const arg = [...f.arg];
+  if (req.query.nis) { syarat.push(`${aliasSiswa}.nis = ?`); arg.push(req.query.nis); }
+  if (req.query.kelas_id) { syarat.push(`${aliasSiswa}.kelas_id = ?`); arg.push(req.query.kelas_id); }
+  return { syarat, arg };
+}
+
+app.get('/api/perkembangan', rute(req => {
+  const { syarat, arg } = lingkupSiswa(req);
+  syarat.push(`c.status = 'Aktif'`);
+  if (req.query.jenis) { syarat.push('c.jenis = ?'); arg.push(req.query.jenis); }
+  const sumber = `FROM catatan_perkembangan c JOIN siswa s ON s.nis = c.nis JOIN kelas k ON k.id = s.kelas_id WHERE ${syarat.join(' AND ')}`;
+  const daftar = db.prepare(`SELECT c.*, s.nama, k.nama AS kelas, p.nama AS pencatat ${sumber.replace('WHERE', 'JOIN pengguna p ON p.id = c.pengguna_id WHERE')}
+    ORDER BY c.tanggal DESC, c.id DESC LIMIT 500`).all(...arg);
+  const ringkas = db.prepare(`SELECT COALESCE(SUM(CASE WHEN c.jenis = 'Apresiasi' THEN c.poin END), 0) AS apresiasi,
+      COALESCE(SUM(CASE WHEN c.jenis = 'Pembinaan' THEN c.poin END), 0) AS pembinaan, COUNT(*) AS jumlah ${sumber}`).get(...arg);
+  const perSiswa = db.prepare(`SELECT s.nis, s.nama, k.nama AS kelas,
+      SUM(CASE WHEN c.jenis = 'Apresiasi' THEN c.poin ELSE -c.poin END) AS net, COUNT(*) AS jumlah
+    ${sumber} GROUP BY s.nis ORDER BY net DESC`).all(...arg);
+  return { daftar, ringkas, perSiswa };
+}));
+
+app.post('/api/perkembangan', rute(req => {
+  const b = req.body;
+  wajib(b, ['tanggal', 'nis', 'jenis', 'poin', 'keterangan']);
+  validasiTanggal(b.tanggal);
+  pastikanAksesSiswa(req.pengguna, String(b.nis));
+  if (!JENIS_PERKEMBANGAN.includes(b.jenis)) throw new GalatPengguna('Jenis catatan harus Apresiasi atau Pembinaan.');
+  const poin = Number(b.poin);
+  if (!Number.isInteger(poin) || poin < 1 || poin > 100) throw new GalatPengguna('Poin harus bilangan bulat 1–100.');
+  if (b.kategori && !KATEGORI_PERKEMBANGAN.includes(b.kategori)) throw new GalatPengguna('Kategori tidak valid.');
+  const { lastInsertRowid } = db.prepare(`INSERT INTO catatan_perkembangan (nis, tanggal, jenis, poin, kategori, keterangan, pengguna_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?)`).run(String(b.nis), b.tanggal, b.jenis, poin, b.kategori || null, String(b.keterangan).trim(), req.pengguna.id);
+  catatAudit(req.pengguna.id, 'catat_perkembangan', String(lastInsertRowid));
+  return { id: Number(lastInsertRowid) };
+}));
+
+// ============================================================
+// Catatan Anekdot (fakta perilaku, tanpa penafsiran)
+// ============================================================
+app.get('/api/anekdot', rute(req => {
+  const { syarat, arg } = lingkupSiswa(req);
+  syarat.push(`a.status = 'Aktif'`);
+  const daftar = db.prepare(`SELECT a.id, a.nis, a.tanggal, a.waktu, a.tempat, a.deskripsi_enc, a.pengguna_id, s.nama, k.nama AS kelas, p.nama AS pencatat
+    FROM catatan_anekdot a JOIN siswa s ON s.nis = a.nis JOIN kelas k ON k.id = s.kelas_id JOIN pengguna p ON p.id = a.pengguna_id
+    WHERE ${syarat.join(' AND ')} ORDER BY a.tanggal DESC, a.waktu DESC, a.id DESC LIMIT 300`).all(...arg)
+    .map(({ deskripsi_enc, ...r }) => ({ ...r, deskripsi: keamanan.dekripsi(deskripsi_enc) }));
+  catatAudit(req.pengguna.id, 'lihat_anekdot', req.query.nis || 'daftar');
+  return daftar;
+}));
+
+app.post('/api/anekdot', rute(req => {
+  const b = req.body;
+  wajib(b, ['tanggal', 'nis', 'deskripsi']);
+  validasiTanggal(b.tanggal);
+  pastikanAksesSiswa(req.pengguna, String(b.nis));
+  if (b.waktu && !/^\d{2}:\d{2}$/.test(b.waktu)) throw new GalatPengguna('Format waktu harus HH:MM.');
+  const { lastInsertRowid } = db.prepare(`INSERT INTO catatan_anekdot (nis, tanggal, waktu, tempat, deskripsi_enc, pengguna_id)
+    VALUES (?, ?, ?, ?, ?, ?)`).run(String(b.nis), b.tanggal, b.waktu || null, teksAtauNull(b.tempat), keamanan.enkripsi(String(b.deskripsi).trim()), req.pengguna.id);
+  catatAudit(req.pengguna.id, 'catat_anekdot', String(lastInsertRowid));
+  return { id: Number(lastInsertRowid) };
+}));
+
+// Arsipkan catatan perkembangan/anekdot (tidak dihapus) — hanya pencatat atau koordinator
+for (const [jalur, tabel] of [['perkembangan', 'catatan_perkembangan'], ['anekdot', 'catatan_anekdot']]) {
+  app.put(`/api/${jalur}/:id/arsip`, rute(req => {
+    const c = db.prepare(`SELECT id, pengguna_id FROM ${tabel} WHERE id = ?`).get(req.params.id);
+    if (!c) throw new GalatPengguna('Catatan tidak ditemukan.', 404);
+    if (req.pengguna.peran !== 'koordinator' && c.pengguna_id !== req.pengguna.id) throw new GalatPengguna('Catatan ini bukan milik Anda.', 403);
+    db.prepare(`UPDATE ${tabel} SET status = 'Arsip' WHERE id = ?`).run(c.id);
+    catatAudit(req.pengguna.id, `arsip_${jalur}`, String(c.id));
+    return { ok: true };
+  }));
+}
 
 // ============================================================
 // Asesmen

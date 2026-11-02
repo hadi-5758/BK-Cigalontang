@@ -112,6 +112,39 @@ tambahKolom('kelas', 'status', "TEXT NOT NULL DEFAULT 'Aktif'");    // 'Arsip' s
 tambahKolom('pengguna', 'akses_bebas', 'INTEGER NOT NULL DEFAULT 0'); // 1 = Guru BK boleh akses semua kelas
 tambahKolom('layanan', 'skala_pra', 'INTEGER');                     // evaluasi kondisi 1–5 sebelum layanan
 tambahKolom('layanan', 'skala_pasca', 'INTEGER');                   // evaluasi kondisi 1–5 sesudah layanan
+tambahKolom('layanan', 'intake_enc', 'TEXT');                       // intake & anamnesis (terenkripsi)
+tambahKolom('layanan', 'prognosis_enc', 'TEXT');                    // prognosis (terenkripsi)
+tambahKolom('layanan', 'teknik', 'TEXT');                           // pendekatan/teknik konseling
+tambahKolom('layanan', 'materi', 'TEXT');                           // materi bimbingan klasikal
+tambahKolom('layanan', 'tipe_klasikal', 'TEXT');
+tambahKolom('layanan', 'capaian', 'TEXT');                          // capaian / SKKPD
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS catatan_perkembangan (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nis TEXT NOT NULL REFERENCES siswa(nis),
+  tanggal TEXT NOT NULL,
+  jenis TEXT NOT NULL CHECK (jenis IN ('Apresiasi','Pembinaan')),
+  poin INTEGER NOT NULL CHECK (poin > 0),
+  kategori TEXT,
+  keterangan TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Aktif',
+  pengguna_id INTEGER NOT NULL REFERENCES pengguna(id),
+  dibuat TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS catatan_anekdot (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nis TEXT NOT NULL REFERENCES siswa(nis),
+  tanggal TEXT NOT NULL,
+  waktu TEXT,
+  tempat TEXT,
+  deskripsi_enc TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Aktif',
+  pengguna_id INTEGER NOT NULL REFERENCES pengguna(id),
+  dibuat TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+);
+`);
 
 const PENGATURAN_AWAL = {
   nama_sekolah: 'SMA Negeri 1 Cigalontang',

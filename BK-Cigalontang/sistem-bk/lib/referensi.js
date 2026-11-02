@@ -30,4 +30,12 @@ const STATUS = ['Baru', 'Proses', 'Tindak Lanjut', 'Selesai', 'Arsip'];
 // Sesuai CLAUDE.md: NIS 10 digit angka. Ubah pola ini jika format NIS sekolah berbeda.
 const POLA_NIS = /^\d{10}$/;
 
-module.exports = { JENIS_LAYANAN, BIDANG, KATEGORI_KASUS, STATUS, POLA_NIS };
+const TIPE_KLASIKAL = ['Klasikal Biasa', 'Klasikal Tematik', 'Klasikal Responsif', 'Bimbingan Kelas Besar', 'Bimbingan Lintas Kelas'];
+
+const JENIS_PERKEMBANGAN = ['Apresiasi', 'Pembinaan'];
+const KATEGORI_PERKEMBANGAN = ['Akademik', 'Sosial', 'Emosional', 'Karier', 'Fisik', 'Kedisiplinan'];
+
+// Pilihan pendekatan konseling (boleh diisi bebas juga)
+const TEKNIK_KONSELING = ['Konseling Behavioral', 'Konseling Kognitif (CBT/REBT)', 'Person-Centered', 'Konseling Realitas', 'Solution-Focused (SFBC)', 'Konseling Gestalt', 'Konseling Eklektik'];
+
+module.exports = { JENIS_LAYANAN, BIDANG, KATEGORI_KASUS, STATUS, POLA_NIS, TIPE_KLASIKAL, JENIS_PERKEMBANGAN, KATEGORI_PERKEMBANGAN, TEKNIK_KONSELING };

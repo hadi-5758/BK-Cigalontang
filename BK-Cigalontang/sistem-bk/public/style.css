@@ -142,6 +142,19 @@ h3.subjudul { font-size: .9rem; margin: 16px 0 6px; color: var(--teks-2); }
 .cek-kelas { display: flex; gap: 8px; align-items: flex-start; margin: 0; font-weight: 400; border: 1px solid var(--garis); border-radius: 8px; padding: 8px 10px; cursor: pointer; }
 .cek-kelas input { width: auto; margin-top: 4px; }
 .cek-kelas:has(input:checked) { border-color: var(--utama-2); background: var(--utama-muda); }
+.linimasa li.apresiasi::before { background: var(--sukses); }
+.linimasa li.pembinaan::before { background: var(--bahaya); }
+.linimasa li.anekdot::before { background: #8e44ad; }
+.cek-kelas.sudah { border-color: #a9dfbf; background: #f4fbf6; }
+
+/* Layanan BK */
+details.lipat { border: 1px solid var(--garis); border-radius: 8px; padding: 8px 12px; margin-top: 10px; }
+details.lipat summary { cursor: pointer; font-weight: 600; font-size: .9rem; }
+details.lipat textarea { margin-top: 6px; }
+.pilih-jenis { display: flex; gap: 8px; }
+.pilih-jenis .cek-kelas { flex: 1; }
+.anekdot { border-left: 4px solid #8e44ad; background: #fbf8fd; border-radius: 6px; padding: 10px 14px; margin-bottom: 10px; }
+.anekdot p { margin: 6px 0 0; white-space: pre-wrap; }
 details.panduan summary { cursor: pointer; }
 details.panduan ul { margin: 10px 0 0; padding-left: 20px; }
 

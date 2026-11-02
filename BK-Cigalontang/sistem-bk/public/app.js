@@ -76,7 +76,8 @@ function layarMasuk(perluSetup) {
 const MENU = [
   ['Utama', [['beranda', 'Beranda']]],
   ['Siswa & Kelas', [['siswa', 'Manajemen Siswa'], ['analitik', 'Analitik Siswa'], ['progres', 'Progres Siswa'], ['kelas', 'Manajemen Kelas'], ['penugasan', 'Penugasan Kelas BK']]],
-  ['Layanan BK', [['layanan', 'Catatan Layanan']]],
+  ['Layanan BK', [['konseling-individu', 'Konseling Individual'], ['konseling-kelompok', 'Konseling Kelompok'], ['klasikal', 'Layanan Klasikal'],
+    ['perkembangan', 'Catatan Perkembangan'], ['anekdot', 'Catatan Anekdot'], ['layanan', 'Semua Catatan Layanan']]],
   ['Asesmen', [['asesmen', 'Asesmen Siswa']]],
   ['Program & Laporan', [['laporan', 'Laporan Bulanan']]],
   ['Administrasi', [['pengaturan', 'Pengaturan']]],
@@ -586,13 +587,17 @@ HALAMAN.progres = async (w, nis) => {
     ...s.layanan.map(l => ({ tanggal: l.tanggal, jenis: 'layanan', judul: labelJenis(l.jenis), isi: `${l.topik} · ${l.bidang}`, status: l.status, href: `#layanan/${l.id}` })),
     ...s.asesmen.map(a => ({ tanggal: a.dikirim.slice(0, 10), jenis: 'asesmen', judul: keadaan.ref.instrumen[a.instrumen],
       isi: a.instrumen === 'riasec' ? `Kode Holland ${a.hasil.kodeHolland}` : `Bidang prioritas ${a.hasil.bidangPrioritas} (${a.hasil.totalDicentang} butir)` })),
+    ...s.perkembangan.map(c => ({ tanggal: c.tanggal, jenis: c.jenis === 'Apresiasi' ? 'apresiasi' : 'pembinaan',
+      judul: `${c.jenis} ${c.jenis === 'Apresiasi' ? '+' : '−'}${c.poin}`, isi: `${c.kategori ? c.kategori + ' · ' : ''}${c.keterangan}`, href: '#perkembangan' })),
+    ...s.anekdot.map(a => ({ tanggal: a.tanggal, jenis: 'anekdot', judul: 'Catatan anekdot',
+      isi: `${a.tempat ? a.tempat + ': ' : ''}${a.deskripsi}`, href: '#anekdot' })),
   ].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
 
   document.getElementById('isiProgres').innerHTML = `
   <div class="kisi">
     <div class="kartu statistik"><div class="redup">Total layanan</div><div class="angka">${s.layanan.length}</div></div>
     <div class="kartu statistik"><div class="redup">Kasus terbuka</div><div class="angka">${kasusTerbuka}</div></div>
-    <div class="kartu statistik"><div class="redup">Asesmen</div><div class="angka">${s.asesmen.length}</div></div>
+    <div class="kartu statistik"><div class="redup">Poin perkembangan</div><div class="angka">${(() => { const n = s.perkembangan.reduce((t, c) => t + (c.jenis === 'Apresiasi' ? c.poin : -c.poin), 0); return (n >= 0 ? '+' : '') + n; })()}</div></div>
     <div class="kartu statistik"><div class="redup">Layanan terakhir</div><div class="angka kecil-angka">${s.layanan[0] ? tgl(s.layanan[0].tanggal) : '-'}</div></div>
   </div>
   <div class="dua-kolom">
@@ -724,11 +729,34 @@ HALAMAN.penugasan = async (w, idGuru) => {
 // ============================================================
 // Layanan yang dievaluasi dengan skala kondisi 1–5 sebelum/sesudah
 const JENIS_DIEVALUASI = ['konseling_individu', 'konseling_kelompok', 'bimbingan_kelompok', 'bimbingan_klasikal'];
+const JENIS_KONSELING = ['konseling_individu', 'konseling_kelompok'];
 const LABEL_SKALA = [['', '— tidak diisi —'], [1, '1 · Sangat kurang'], [2, '2 · Kurang'], [3, '3 · Cukup'], [4, '4 · Baik'], [5, '5 · Sangat baik']];
 const isianSkala = (pra = '', pasca = '') => `<div class="dua-kolom">
   <div><label>Kondisi sebelum layanan (1–5)</label><select name="skala_pra">${opsi(LABEL_SKALA, pra ?? '')}</select></div>
   <div><label>Kondisi sesudah layanan (1–5)</label><select name="skala_pasca">${opsi(LABEL_SKALA, pasca ?? '')}</select></div>
-</div><p class="redup kecil">Opsional. Dipakai untuk grafik evaluasi pra/pasca di Analitik Siswa.</p>`;
+</div><p class="redup kecil">Opsional. Skala kondisi terkait topik, dinilai sebelum dan sesudah layanan. Dipakai untuk evaluasi pra/pasca di Analitik Siswa.</p>`;
+
+/** Bagian tambahan form sesuai jenis layanan (konseling / klasikal). */
+const isianKonseling = (l = {}) => `
+  <details class="lipat" ${l.intake || l.teknik || l.prognosis ? 'open' : ''}><summary>Intake &amp; anamnesis <span class="redup">(opsional, terenkripsi)</span></summary>
+    <textarea name="intake" placeholder="Gambaran masalah, riwayat layanan sebelumnya, harapan konseli…">${e(l.intake || '')}</textarea></details>
+  <details class="lipat" ${l.teknik || l.prognosis ? 'open' : ''}><summary>Teknik &amp; prognosis <span class="redup">(opsional)</span></summary>
+    <label>Pendekatan / teknik konseling</label>
+    <input name="teknik" list="dafTeknik" value="${e(l.teknik || '')}" placeholder="Pilih atau tulis sendiri">
+    <datalist id="dafTeknik">${keadaan.ref.teknikKonseling.map(t => `<option value="${e(t)}">`).join('')}</datalist>
+    <label>Prognosis <span class="redup">(terenkripsi)</span></label>
+    <textarea name="prognosis" placeholder="Perkiraan perkembangan dan dasar penilaian profesional…">${e(l.prognosis || '')}</textarea></details>`;
+
+const isianKlasikal = (l = {}) => `
+  <label>Materi</label><textarea name="materi" style="min-height:70px" placeholder="Pokok materi yang disampaikan">${e(l.materi || '')}</textarea>
+  <div class="dua-kolom">
+    <div><label>Tipe layanan</label><select name="tipe_klasikal"><option value="">— pilih tipe —</option>${opsi(keadaan.ref.tipeKlasikal.map(t => [t, t]), l.tipe_klasikal || '')}</select></div>
+    <div><label>Capaian / SKKPD</label><input name="capaian" value="${e(l.capaian || '')}" placeholder="mis. Siswa mampu mengenali gaya belajarnya"></div>
+  </div>`;
+
+const evaluasiSingkat = l => (l.skala_pra && l.skala_pasca
+  ? `${l.skala_pra} → ${l.skala_pasca} <b style="color:${l.skala_pasca >= l.skala_pra ? 'var(--sukses)' : 'var(--bahaya)'}">(${l.skala_pasca - l.skala_pra >= 0 ? '+' : ''}${l.skala_pasca - l.skala_pra})</b>`
+  : '<span class="redup">—</span>');
 
 // Rute: #layanan/baru/<nis atau ->/<jenis>
 HALAMAN.layanan = async (w, id, nisAwal, jenisAwal) => {
@@ -736,7 +764,7 @@ HALAMAN.layanan = async (w, id, nisAwal, jenisAwal) => {
   if (id) return detailLayanan(w, id);
   const r = keadaan.ref;
   w.innerHTML = `
-  <div class="kepala"><div><h1>Catatan Layanan</h1><div class="redup">Semua layanan masuk otomatis ke laporan bulanan.</div></div>
+  <div class="kepala"><div><h1>Semua Catatan Layanan</h1><div class="redup">Seluruh jenis layanan, termasuk buku kasus, kunjungan rumah, konferensi kasus, dan alih tangan kasus. Semua masuk otomatis ke laporan bulanan.</div></div>
     <a class="btn" href="#layanan/baru">+ Catat layanan</a></div>
   <div class="kartu">
     <div class="baris-aksi" style="margin-bottom:10px">
@@ -746,51 +774,155 @@ HALAMAN.layanan = async (w, id, nisAwal, jenisAwal) => {
     </div>
     <div class="tabel-gulir"><table><thead><tr><th>Tanggal</th><th>Kode</th><th>Jenis</th><th>Sasaran</th><th>Topik</th><th>Status</th></tr></thead><tbody id="daftarLayanan"></tbody></table></div>
   </div>`;
+  const fJenis = document.getElementById('fJenis'), fBulan = document.getElementById('fBulan'), fStatus = document.getElementById('fStatus');
   const muat = async () => {
     const q = new URLSearchParams({ jenis: fJenis.value, bulan: fBulan.value, status: fStatus.value });
     const data = await api('GET', '/api/layanan?' + q);
-    daftarLayanan.innerHTML = data.length ? data.map(l => `<tr class="klik" data-href="#layanan/${l.id}">
+    document.getElementById('daftarLayanan').innerHTML = data.length ? data.map(l => `<tr class="klik" data-href="#layanan/${l.id}">
       <td>${tgl(l.tanggal)}</td><td class="kecil">${e(l.kode)}</td><td>${e(labelJenis(l.jenis))}</td>
       <td>${e(l.kelas || l.siswa || '-')}</td><td>${e(l.topik)}<div class="redup kecil">${e(l.bidang)}</div></td><td>${lencanaStatus(l.status)}</td></tr>`).join('')
       : '<tr><td colspan="6" class="redup">Belum ada layanan pada filter ini.</td></tr>';
     barisKlik(w);
   };
-  const fJenis = document.getElementById('fJenis'), fBulan = document.getElementById('fBulan'), fStatus = document.getElementById('fStatus');
-  const daftarLayanan = document.getElementById('daftarLayanan');
   [fJenis, fBulan, fStatus].forEach(x => x.addEventListener('change', muat));
   await muat();
 };
 
+// ---------- Konseling Individual & Kelompok ----------
+function halamanKonseling(jenis) {
+  return async w => {
+    const individu = jenis === 'konseling_individu';
+    const judul = individu ? 'Konseling Individual' : 'Konseling Kelompok';
+    w.innerHTML = `
+    <div class="kepala"><div><h1>${judul}</h1>
+      <div class="redup">${individu ? 'Sesi konseling satu per satu dengan catatan intake, teknik, dan prognosis.' : 'Sesi konseling kelompok: peserta, proses, dan tindak lanjut.'}</div></div>
+      <a class="btn" href="#layanan/baru/-/${jenis}">+ Tambah sesi</a></div>
+    <div class="rahasia">🔒 Catatan sesi, intake, dan prognosis <b>dienkripsi</b> di server. Hanya pencatat dan Koordinator BK yang dapat membukanya.</div>
+    <div class="kisi" id="statKonseling" style="margin-top:14px"></div>
+    <div class="kartu">
+      <div class="baris-aksi" style="margin-bottom:10px">
+        <input id="fCari" placeholder="Cari siswa atau topik…" style="max-width:240px">
+        <input type="month" id="fBulan" style="max-width:170px" title="Kosongkan untuk semua bulan">
+        <select id="fStatus" style="max-width:170px"><option value="">Semua (kecuali arsip)</option>${opsi(keadaan.ref.status.map(s => [s, s]))}</select>
+        <span class="redup" id="jumlahSesi"></span>
+      </div>
+      <div class="tabel-gulir"><table><thead><tr><th>Tanggal</th><th>Kode</th><th>${individu ? 'Siswa' : 'Peserta'}</th><th>Topik</th><th>Evaluasi</th><th>Status</th></tr></thead><tbody id="daftarSesi"></tbody></table></div>
+    </div>`;
+    const $ = id => document.getElementById(id);
+    const muat = async () => {
+      const q = new URLSearchParams({ jenis, q: $('fCari').value, bulan: $('fBulan').value, status: $('fStatus').value });
+      const data = await api('GET', '/api/layanan?' + q);
+      const bulanIniData = data.filter(l => l.tanggal.startsWith(bulanIni()));
+      const dinilai = data.filter(l => l.skala_pra && l.skala_pasca);
+      const rerata = dinilai.length ? (dinilai.reduce((s, l) => s + l.skala_pasca - l.skala_pra, 0) / dinilai.length).toFixed(1) : '-';
+      $('statKonseling').innerHTML = [['Sesi ditampilkan', data.length], ['Bulan ini', bulanIniData.length],
+        ['Perlu tindak lanjut', data.filter(l => ['Baru', 'Proses', 'Tindak Lanjut'].includes(l.status)).length],
+        ['Rata-rata perubahan', rerata === '-' ? '-' : (rerata > 0 ? '+' : '') + rerata]]
+        .map(([l, n]) => `<div class="kartu statistik"><div class="redup">${l}</div><div class="angka">${n}</div></div>`).join('');
+      $('jumlahSesi').textContent = `${data.length} sesi`;
+      $('daftarSesi').innerHTML = data.length ? data.map(l => `<tr class="klik" data-href="#layanan/${l.id}">
+        <td>${tgl(l.tanggal)}</td><td class="kecil">${e(l.kode)}</td>
+        <td>${e(l.siswa)}${individu ? '' : ` <span class="redup kecil">(${l.jumlah_siswa})</span>`}</td>
+        <td>${e(l.topik)}<div class="redup kecil">${e(l.bidang)}${l.teknik ? ' · ' + e(l.teknik) : ''}</div></td>
+        <td class="kecil">${evaluasiSingkat(l)}</td><td>${lencanaStatus(l.status)}</td></tr>`).join('')
+        : `<tr><td colspan="6" class="redup">Belum ada sesi ${individu ? 'konseling' : 'kelompok'}. <a href="#layanan/baru/-/${jenis}">Tambahkan sesi pertama</a>.</td></tr>`;
+      barisKlik(w);
+    };
+    let jeda;
+    $('fCari').addEventListener('input', () => { clearTimeout(jeda); jeda = setTimeout(muat, 250); });
+    [$('fBulan'), $('fStatus')].forEach(x => x.addEventListener('change', muat));
+    await muat();
+  };
+}
+HALAMAN['konseling-individu'] = halamanKonseling('konseling_individu');
+HALAMAN['konseling-kelompok'] = halamanKonseling('konseling_kelompok');
+
+// ---------- Layanan Klasikal ----------
+HALAMAN.klasikal = async w => {
+  const [kelas] = await Promise.all([api('GET', '/api/kelas')]);
+  w.innerHTML = `
+  <div class="kepala"><div><h1>Layanan Klasikal</h1><div class="redup">Bimbingan di kelas: materi, topik, tipe layanan, dan evaluasi hasil.</div></div>
+    <div class="baris-aksi"><a class="btn kedua" href="#beranda">Catat cepat (4 isian)</a><a class="btn" href="#layanan/baru/-/bimbingan_klasikal">+ Tambah layanan</a></div></div>
+  <div class="kisi" id="statKlasikal"></div>
+  <div class="dua-kolom">
+    <div class="kartu"><h2>Cakupan kelas bulan ini</h2><div id="cakupanKelas"></div></div>
+    <div class="kartu"><h2>Pekerjaan BK berikutnya</h2>
+      <p class="redup kecil">Layanan yang belum dievaluasi atau masih punya rencana tindak lanjut.</p><div id="pekerjaanBerikut"></div></div>
+  </div>
+  <div class="kartu">
+    <div class="baris-aksi" style="margin-bottom:10px">
+      <select id="fKelas" style="max-width:170px"><option value="">Semua kelas</option>${opsi(kelas.map(k => [k.id, k.nama]))}</select>
+      <select id="fBidang" style="max-width:150px"><option value="">Semua bidang</option>${opsi(keadaan.ref.bidang.map(b => [b, b]))}</select>
+      <input type="month" id="fBulan" style="max-width:170px" title="Kosongkan untuk semua bulan">
+      <span class="redup" id="jumlahKlasikal"></span>
+    </div>
+    <div class="tabel-gulir"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Topik</th><th>Tipe</th><th>Evaluasi</th></tr></thead><tbody id="daftarKlasikal"></tbody></table></div>
+  </div>`;
+  const $ = id => document.getElementById(id);
+
+  // Ringkasan & pekerjaan berikutnya memakai semua data (tanpa filter)
+  const semua = await api('GET', '/api/layanan?jenis=bimbingan_klasikal');
+  const bulanIniData = semua.filter(l => l.tanggal.startsWith(bulanIni()));
+  const kelasTerlayani = new Set(bulanIniData.map(l => l.kelas_id));
+  $('statKlasikal').innerHTML = [['Total layanan', semua.length], ['Bulan ini', bulanIniData.length],
+    ['Kelas terlayani bulan ini', `${kelasTerlayani.size}/${kelas.length}`], ['Sudah dievaluasi', `${semua.filter(l => l.skala_pasca).length}/${semua.length}`]]
+    .map(([l, n]) => `<div class="kartu statistik"><div class="redup">${l}</div><div class="angka">${n}</div></div>`).join('');
+  $('cakupanKelas').innerHTML = kelas.length ? `<div class="kisi-cek">${kelas.map(k => `<div class="cek-kelas ${kelasTerlayani.has(k.id) ? 'sudah' : ''}">
+      <span>${kelasTerlayani.has(k.id) ? '✅' : '⬜'} <b>${e(k.nama)}</b><br><span class="redup kecil">${bulanIniData.filter(l => l.kelas_id === k.id).length} layanan</span></span></div>`).join('')}</div>`
+    : '<p class="redup">Belum ada kelas.</p>';
+  const tertunda = semua.filter(l => !l.skala_pasca || l.tindak_lanjut).slice(0, 6);
+  $('pekerjaanBerikut').innerHTML = tertunda.length ? `<ul class="daftar-tindakan">${tertunda.map(l => `<li><a href="#layanan/${l.id}">
+      ${tgl(l.tanggal)} · ${e(l.kelas)} · ${e(l.topik)} — ${!l.skala_pasca ? 'isi evaluasi' : 'tindak lanjut: ' + e(l.tindak_lanjut)}</a></li>`).join('')}</ul>`
+    : '<p class="redup">Tidak ada evaluasi atau tindak lanjut tertunda.</p>';
+
+  const muat = async () => {
+    const data = await api('GET', '/api/layanan?' + new URLSearchParams({ jenis: 'bimbingan_klasikal', kelas_id: $('fKelas').value, bidang: $('fBidang').value, bulan: $('fBulan').value }));
+    $('jumlahKlasikal').textContent = `${data.length} layanan`;
+    $('daftarKlasikal').innerHTML = data.length ? data.map(l => `<tr class="klik" data-href="#layanan/${l.id}">
+      <td>${tgl(l.tanggal)}</td><td>${e(l.kelas)}</td><td>${e(l.topik)}<div class="redup kecil">${e(l.bidang)}${l.capaian ? ' · ' + e(l.capaian) : ''}</div></td>
+      <td class="kecil">${e(l.tipe_klasikal || '-')}</td><td class="kecil">${evaluasiSingkat(l)}</td></tr>`).join('')
+      : '<tr><td colspan="5" class="redup">Belum ada layanan klasikal pada filter ini.</td></tr>';
+    barisKlik(w);
+  };
+  [$('fKelas'), $('fBidang'), $('fBulan')].forEach(x => x.addEventListener('change', muat));
+  await muat();
+};
+
+// ---------- Form & detail layanan ----------
 async function formLayanan(w, nisAwal, jenisAwal) {
   const r = keadaan.ref;
   const [kelas, siswa] = await Promise.all([api('GET', '/api/kelas'), api('GET', '/api/siswa')]);
   const terpilih = new Map();
   if (nisAwal) { const s = siswa.find(x => x.nis === nisAwal); if (s) terpilih.set(s.nis, s); }
+  const jenisMula = r.jenisLayanan[jenisAwal] ? jenisAwal : nisAwal ? 'konseling_individu' : 'bimbingan_klasikal';
+  const kembali = { konseling_individu: '#konseling-individu', konseling_kelompok: '#konseling-kelompok', bimbingan_klasikal: '#klasikal' }[jenisMula] || '#layanan';
 
   w.innerHTML = `
-  <div class="kepala"><div><a href="#layanan" class="kecil">← Catatan Layanan</a><h1>Catat layanan</h1></div></div>
+  <div class="kepala"><div><a href="${kembali}" class="kecil">← Kembali</a><h1>Catat layanan</h1></div></div>
   <form class="kartu" id="fLayanan">
     <div class="dua-kolom">
-      <div><label class="wajib">Jenis layanan</label><select name="jenis" id="jenis">${opsi(Object.entries(r.jenisLayanan).map(([k, v]) => [k, v.label]), r.jenisLayanan[jenisAwal] ? jenisAwal : nisAwal ? 'konseling_individu' : 'bimbingan_klasikal')}</select></div>
+      <div><label class="wajib">Jenis layanan</label><select name="jenis" id="jenis">${opsi(Object.entries(r.jenisLayanan).map(([k, v]) => [k, v.label]), jenisMula)}</select></div>
       <div><label class="wajib">Tanggal</label><input type="date" name="tanggal" value="${hariIni()}" max="${hariIni()}" required></div>
       <div><label class="wajib">Bidang</label><select name="bidang">${opsi(r.bidang.map(b => [b, b]))}</select></div>
       <div id="wadahKategori"><label class="wajib">Kategori kasus</label><select name="kategori_kasus">${opsi(Object.entries(r.kategoriKasus).map(([k, v]) => [k, `${k} — ${v}`]))}</select></div>
     </div>
     <label class="wajib">Topik / masalah</label><input name="topik" required maxlength="200" placeholder="Tulis umum, mis. 'Motivasi belajar' — detail di catatan">
     <div id="wadahKelas"><label class="wajib">Kelas</label><select name="kelas_id">${opsi(kelas.map(k => [k.id, k.nama]))}</select></div>
-    <div id="wadahSiswa"><label class="wajib">Siswa</label>
+    <div id="wadahSiswa"><label class="wajib" id="labelSiswa">Siswa</label>
       <input id="cariSiswa" placeholder="Ketik nama atau NIS lalu pilih…" list="dafSiswa" autocomplete="off">
       <datalist id="dafSiswa">${siswa.map(s => `<option value="${e(s.nis)} — ${e(s.nama)} (${e(s.kelas)})">`).join('')}</datalist>
       <div id="chipSiswa" class="baris-aksi" style="margin-top:6px"></div>
     </div>
-    <label>Catatan layanan</label>
+    <div id="wadahKlasikal">${isianKlasikal()}</div>
+    <label>Catatan sesi</label>
     <div class="rahasia">Catatan ini <b>dienkripsi</b> dan hanya bisa dibuka oleh Anda dan Koordinator BK. Tidak dicetak di laporan bulanan.</div>
     <textarea name="catatan" style="margin-top:6px" placeholder="Proses, hasil, kesepakatan…"></textarea>
+    <div id="wadahKonseling">${isianKonseling()}</div>
     <div class="dua-kolom">
       <div><label>Rencana tindak lanjut</label><input name="tindak_lanjut"></div>
       <div><label>Status</label><select name="status" id="status">${opsi(r.status.filter(s => s !== 'Arsip').map(s => [s, s]), 'Selesai')}</select></div>
     </div>
-    <div id="wadahSkala">${isianSkala()}</div>
+    <div id="wadahSkala"><h3 class="subjudul">Evaluasi hasil</h3>${isianSkala()}</div>
     <div id="pesanLayanan"></div>
     <p><button class="btn">Simpan catatan</button></p>
   </form>`;
@@ -802,12 +934,16 @@ async function formLayanan(w, nisAwal, jenisAwal) {
     document.querySelectorAll('[data-hapus]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); terpilih.delete(a.dataset.hapus); gambarChip(); }));
   };
   const sesuaikan = () => {
-    const sasaranKelas = r.jenisLayanan[jenis.value].sasaran === 'kelas';
+    const j = jenis.value;
+    const sasaranKelas = r.jenisLayanan[j].sasaran === 'kelas';
     document.getElementById('wadahKelas').hidden = !sasaranKelas;
     document.getElementById('wadahSiswa').hidden = sasaranKelas;
-    document.getElementById('wadahKategori').hidden = jenis.value !== 'kasus';
-    document.getElementById('wadahSkala').hidden = !JENIS_DIEVALUASI.includes(jenis.value);
-    document.getElementById('status').value = jenis.value === 'kasus' ? 'Baru' : 'Selesai';
+    document.getElementById('labelSiswa').textContent = j === 'konseling_individu' ? 'Siswa' : 'Peserta (bisa lebih dari satu)';
+    document.getElementById('wadahKategori').hidden = j !== 'kasus';
+    document.getElementById('wadahSkala').hidden = !JENIS_DIEVALUASI.includes(j);
+    document.getElementById('wadahKonseling').hidden = !JENIS_KONSELING.includes(j);
+    document.getElementById('wadahKlasikal').hidden = j !== 'bimbingan_klasikal';
+    document.getElementById('status').value = j === 'kasus' ? 'Baru' : 'Selesai';
   };
   jenis.addEventListener('change', sesuaikan);
   sesuaikan();
@@ -829,6 +965,10 @@ async function formLayanan(w, nisAwal, jenisAwal) {
     ev.preventDefault();
     const d = dataForm(ev.target);
     d.nis = [...terpilih.keys()];
+    // Kosongkan isian yang tidak relevan dengan jenis terpilih
+    if (!JENIS_KONSELING.includes(d.jenis)) ['intake', 'teknik', 'prognosis'].forEach(k => delete d[k]);
+    if (d.jenis !== 'bimbingan_klasikal') ['materi', 'tipe_klasikal', 'capaian'].forEach(k => delete d[k]);
+    if (!JENIS_DIEVALUASI.includes(d.jenis)) ['skala_pra', 'skala_pasca'].forEach(k => delete d[k]);
     try {
       const hasil = await api('POST', '/api/layanan', d);
       location.hash = '#layanan/' + hasil.id;
@@ -839,20 +979,24 @@ async function formLayanan(w, nisAwal, jenisAwal) {
 async function detailLayanan(w, id) {
   const l = await api('GET', '/api/layanan/' + id);
   const r = keadaan.ref;
+  const kembali = { konseling_individu: '#konseling-individu', konseling_kelompok: '#konseling-kelompok', bimbingan_klasikal: '#klasikal' }[l.jenis] || '#layanan';
   w.innerHTML = `
-  <div class="kepala"><div><a href="#layanan" class="kecil">← Catatan Layanan</a><h1>${e(labelJenis(l.jenis))}</h1>
+  <div class="kepala"><div><a href="${kembali}" class="kecil">← Kembali</a><h1>${e(labelJenis(l.jenis))}</h1>
     <div class="redup">${e(l.kode)} · ${tgl(l.tanggal)} · Bidang ${e(l.bidang)} ${l.kategori_kasus ? '· Kategori ' + e(l.kategori_kasus) : ''}</div></div>
     <div>${lencanaStatus(l.status)}</div></div>
   <div class="kartu">
     <p><b>Topik:</b> ${e(l.topik)}</p>
-    ${l.siswa.length ? `<p><b>Siswa:</b> ${l.siswa.map(s => `<a href="#siswa/${e(s.nis)}">${e(s.nama)}</a>`).join(', ')}</p>` : ''}
+    ${l.kelas ? `<p><b>Kelas:</b> ${e(l.kelas)}</p>` : ''}
+    ${l.siswa.length ? `<p><b>${l.siswa.length > 1 ? 'Peserta' : 'Siswa'}:</b> ${l.siswa.map(s => `<a href="#progres/${e(s.nis)}">${e(s.nama)}</a>`).join(', ')}</p>` : ''}
     <form id="fUbah">
-      <label>Catatan (terenkripsi)</label><textarea name="catatan">${e(l.catatan)}</textarea>
+      ${l.jenis === 'bimbingan_klasikal' ? isianKlasikal(l) : ''}
+      <label>Catatan sesi (terenkripsi)</label><textarea name="catatan">${e(l.catatan)}</textarea>
+      ${JENIS_KONSELING.includes(l.jenis) ? isianKonseling(l) : ''}
       <div class="dua-kolom">
         <div><label>Rencana tindak lanjut</label><input name="tindak_lanjut" value="${e(l.tindak_lanjut || '')}"></div>
         <div><label>Status</label><select name="status">${opsi(r.status.map(s => [s, s]), l.status)}</select></div>
       </div>
-      ${JENIS_DIEVALUASI.includes(l.jenis) ? isianSkala(l.skala_pra, l.skala_pasca) : ''}
+      ${JENIS_DIEVALUASI.includes(l.jenis) ? `<h3 class="subjudul">Evaluasi hasil</h3>${isianSkala(l.skala_pra, l.skala_pasca)}` : ''}
       <div id="pesanUbah"></div>
       <p><button class="btn">Simpan perubahan</button></p>
     </form>
@@ -863,6 +1007,173 @@ async function detailLayanan(w, id) {
     catch (err) { pesan('#pesanUbah', 'galat', err.message); }
   });
 }
+
+// ---------- Pemilih siswa sederhana (dipakai catatan perkembangan & anekdot) ----------
+const pemilihSiswa = (siswa, nama = 'nis', wajibIsi = true) => `
+  <input name="${nama}_cari" list="daf_${nama}" placeholder="Ketik nama atau NIS lalu pilih…" autocomplete="off" ${wajibIsi ? 'required' : ''}>
+  <datalist id="daf_${nama}">${siswa.map(s => `<option value="${e(s.nis)} — ${e(s.nama)} (${e(s.kelas)})">`).join('')}</datalist>`;
+const nisDariPilihan = teks => String(teks || '').split(' — ')[0].trim();
+
+// ---------- Catatan Perkembangan ----------
+HALAMAN.perkembangan = async w => {
+  const [siswa, kelas] = await Promise.all([api('GET', '/api/siswa'), api('GET', '/api/kelas')]);
+  const ref = keadaan.ref;
+  w.innerHTML = `
+  <div class="kepala"><div><h1>Catatan Perkembangan</h1>
+    <div class="redup">Catat apresiasi (poin positif) dan pembinaan (poin negatif) untuk memantau perkembangan siswa.</div></div>
+    <button class="btn" id="tombolTambahCatatan">+ Tambah catatan</button></div>
+  <form class="kartu" id="fPerkembangan" hidden><h2>Tambah catatan</h2>
+    <div class="dua-kolom">
+      <div><label class="wajib">Tanggal</label><input type="date" name="tanggal" value="${hariIni()}" max="${hariIni()}" required></div>
+      <div><label class="wajib">Siswa</label>${pemilihSiswa(siswa)}</div>
+      <div><label class="wajib">Jenis catatan</label>
+        <div class="pilih-jenis">${ref.jenisPerkembangan.map((j, i) => `<label class="cek-kelas"><input type="radio" name="jenis" value="${j}" ${i ? '' : 'checked'}> <span>${j === 'Apresiasi' ? '👍 Apresiasi (+)' : '📌 Pembinaan (−)'}</span></label>`).join('')}</div></div>
+      <div><label class="wajib">Poin</label><input type="number" name="poin" min="1" max="100" value="5" required>
+        <p class="redup kecil" id="infoPoin">Akan disimpan sebagai nilai positif.</p></div>
+      <div><label>Kategori</label><select name="kategori">${opsi(ref.kategoriPerkembangan.map(k => [k, k]))}</select></div>
+    </div>
+    <label class="wajib">Keterangan</label><textarea name="keterangan" required style="min-height:70px" placeholder="Perilaku atau capaian yang diamati"></textarea>
+    <div id="pesanPerkembangan"></div>
+    <p class="baris-aksi"><button class="btn">Simpan</button><button type="button" class="btn kedua" id="batalPerkembangan">Batal</button></p>
+  </form>
+  <div class="kisi" id="statPerkembangan"></div>
+  <div class="tata-beranda">
+    <div class="kartu"><h2>Riwayat catatan</h2>
+      <div class="baris-aksi" style="margin-bottom:10px">
+        <select id="fJenis" style="max-width:150px"><option value="">Semua jenis</option>${opsi(ref.jenisPerkembangan.map(j => [j, j]))}</select>
+        <select id="fKelas" style="max-width:150px"><option value="">Semua kelas</option>${opsi(kelas.map(k => [k.id, k.nama]))}</select>
+        <input id="fSiswa" list="daf_fsiswa" placeholder="Semua siswa" style="max-width:220px" autocomplete="off">
+        <datalist id="daf_fsiswa">${siswa.map(s => `<option value="${e(s.nis)} — ${e(s.nama)} (${e(s.kelas)})">`).join('')}</datalist>
+      </div>
+      <div class="tabel-gulir"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kategori</th><th>Keterangan</th><th>Poin</th><th></th></tr></thead><tbody id="daftarPerkembangan"></tbody></table></div>
+    </div>
+    <div class="kartu"><h2>Poin bersih per siswa</h2><div id="peringkat"></div></div>
+  </div>`;
+  const $ = id => document.getElementById(id);
+  const form = $('fPerkembangan');
+  $('tombolTambahCatatan').addEventListener('click', () => { form.hidden = false; form.scrollIntoView({ behavior: 'smooth' }); });
+  $('batalPerkembangan').addEventListener('click', () => { form.hidden = true; });
+  form.querySelectorAll('[name=jenis]').forEach(r => r.addEventListener('change', () => {
+    $('infoPoin').textContent = form.jenis.value === 'Apresiasi' ? 'Akan disimpan sebagai nilai positif.' : 'Akan dihitung sebagai pengurang (negatif).';
+  }));
+
+  const muat = async () => {
+    const q = new URLSearchParams({ jenis: $('fJenis').value, kelas_id: $('fKelas').value, nis: nisDariPilihan($('fSiswa').value) });
+    const d = await api('GET', '/api/perkembangan?' + q);
+    const net = d.ringkas.apresiasi - d.ringkas.pembinaan;
+    $('statPerkembangan').innerHTML = `
+      <div class="kartu statistik"><div class="redup">Total apresiasi</div><div class="angka" style="color:var(--sukses)">+${d.ringkas.apresiasi}</div><div class="redup kecil">Poin positif terkumpul</div></div>
+      <div class="kartu statistik"><div class="redup">Total pembinaan</div><div class="angka" style="color:var(--bahaya)">−${d.ringkas.pembinaan}</div><div class="redup kecil">Poin negatif terkumpul</div></div>
+      <div class="kartu statistik"><div class="redup">Poin bersih</div><div class="angka">${net >= 0 ? '+' : ''}${net}</div><div class="redup kecil">${d.ringkas.jumlah} catatan</div></div>`;
+    $('daftarPerkembangan').innerHTML = d.daftar.length ? d.daftar.map(c => `<tr>
+      <td>${tgl(c.tanggal)}</td><td><a href="#progres/${e(c.nis)}">${e(c.nama)}</a><div class="redup kecil">${e(c.kelas)}</div></td>
+      <td>${e(c.kategori || '-')}</td><td>${e(c.keterangan)}<div class="redup kecil">oleh ${e(c.pencatat)}</div></td>
+      <td><b style="color:${c.jenis === 'Apresiasi' ? 'var(--sukses)' : 'var(--bahaya)'}">${c.jenis === 'Apresiasi' ? '+' : '−'}${c.poin}</b></td>
+      <td><button class="btn kecil kedua" data-arsip="${c.id}" title="Arsipkan">Arsip</button></td></tr>`).join('')
+      : '<tr><td colspan="6" class="redup">Belum ada catatan perkembangan.</td></tr>';
+    $('peringkat').innerHTML = d.perSiswa.length ? `<table><tbody>${d.perSiswa.slice(0, 15).map(s => `<tr class="klik" data-href="#progres/${e(s.nis)}">
+      <td>${e(s.nama)}<div class="redup kecil">${e(s.kelas)} · ${s.jumlah} catatan</div></td>
+      <td><b style="color:${s.net >= 0 ? 'var(--sukses)' : 'var(--bahaya)'}">${s.net >= 0 ? '+' : ''}${s.net}</b></td></tr>`).join('')}</tbody></table>
+      <p class="redup kecil">Poin adalah catatan perkembangan, bukan hukuman. Siswa dengan poin bersih negatif dapat menjadi prioritas pendampingan.</p>`
+      : '<p class="redup">Belum ada data.</p>';
+    w.querySelectorAll('[data-arsip]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Arsipkan catatan ini? Catatan tidak dihapus, hanya disembunyikan dari rekap.')) return;
+      await api('PUT', `/api/perkembangan/${b.dataset.arsip}/arsip`);
+      muat();
+    }));
+    barisKlik(w);
+  };
+  [$('fJenis'), $('fKelas'), $('fSiswa')].forEach(x => x.addEventListener('change', muat));
+
+  form.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const d = dataForm(form);
+    d.nis = nisDariPilihan(d.nis_cari);
+    if (!siswa.some(s => s.nis === d.nis)) return pesan('#pesanPerkembangan', 'galat', 'Pilih siswa dari daftar.');
+    try {
+      await api('POST', '/api/perkembangan', d);
+      pesan('#pesanPerkembangan', 'sukses', 'Catatan tersimpan.');
+      form.reset(); form.tanggal.value = hariIni();
+      muat();
+    } catch (err) { pesan('#pesanPerkembangan', 'galat', err.message); }
+  });
+  await muat();
+};
+
+// ---------- Catatan Anekdot ----------
+HALAMAN.anekdot = async w => {
+  const siswa = await api('GET', '/api/siswa');
+  w.innerHTML = `
+  <div class="kepala"><div><h1>Catatan Anekdot</h1>
+    <div class="redup">Rekam fakta satu kejadian atau perilaku spesifik siswa: kapan, di mana, dan apa yang teramati — tanpa penafsiran, kesimpulan, atau penilaian.</div></div>
+    <button class="btn" id="tombolTambahAnekdot">+ Tambah catatan</button></div>
+  <div class="dua-kolom">
+    <div class="pesan sukses kecil">✅ <b>Deskripsi objektif:</b> "Saat jam istirahat di kantin, A mendorong temannya hingga terjatuh, lalu meninggalkan tempat."</div>
+    <div class="pesan galat kecil">✖ <b>Interpretasi (hindari):</b> "A anak yang agresif dan tidak punya empati."</div>
+  </div>
+  <p class="redup kecil">Berbeda dari Catatan Perkembangan: di sini tidak ada skor, kategori, atau kesimpulan. Deskripsi disimpan terenkripsi.</p>
+  <form class="kartu" id="fAnekdot" hidden><h2>Tambah catatan anekdot</h2>
+    <div class="dua-kolom">
+      <div><label class="wajib">Tanggal</label><input type="date" name="tanggal" value="${hariIni()}" max="${hariIni()}" required></div>
+      <div><label>Waktu (opsional)</label><input type="time" name="waktu"></div>
+      <div><label class="wajib">Siswa</label>${pemilihSiswa(siswa)}</div>
+      <div><label>Tempat / lokasi (opsional)</label><input name="tempat" placeholder="mis. Kantin, lapangan, kelas X-1"></div>
+    </div>
+    <label class="wajib">Deskripsi perilaku</label>
+    <textarea name="deskripsi" required placeholder="Tulis apa yang benar-benar terjadi dan teramati — hindari label atau kesimpulan."></textarea>
+    <div id="peringatanLabel"></div>
+    <div id="pesanAnekdot"></div>
+    <p class="baris-aksi"><button class="btn">Simpan</button><button type="button" class="btn kedua" id="batalAnekdot">Batal</button></p>
+  </form>
+  <div class="kartu"><div class="kepala-kartu"><h2>Riwayat catatan anekdot</h2><span class="redup" id="jumlahAnekdot"></span></div>
+    <div class="baris-aksi" style="margin-bottom:10px">
+      <input id="fSiswa" list="daf_fanek" placeholder="Semua siswa" style="max-width:260px" autocomplete="off">
+      <datalist id="daf_fanek">${siswa.map(s => `<option value="${e(s.nis)} — ${e(s.nama)} (${e(s.kelas)})">`).join('')}</datalist>
+    </div>
+    <div id="daftarAnekdot"></div></div>`;
+  const $ = id => document.getElementById(id);
+  const form = $('fAnekdot');
+  $('tombolTambahAnekdot').addEventListener('click', () => { form.hidden = false; form.scrollIntoView({ behavior: 'smooth' }); });
+  $('batalAnekdot').addEventListener('click', () => { form.hidden = true; });
+
+  // Pengingat lembut bila deskripsi memuat kata label/penilaian
+  const KATA_LABEL = ['nakal', 'malas', 'agresif', 'bodoh', 'kurang ajar', 'tidak sopan', 'bandel', 'pemalas', 'egois', 'jahat', 'selalu', 'tidak pernah'];
+  form.deskripsi.addEventListener('input', () => {
+    const t = form.deskripsi.value.toLowerCase();
+    const temu = KATA_LABEL.filter(k => t.includes(k));
+    $('peringatanLabel').innerHTML = temu.length ? `<div class="pesan info kecil">Ada kata yang terdengar seperti label/penilaian: <b>${temu.map(e).join(', ')}</b>. Coba ganti dengan perilaku yang teramati.</div>` : '';
+  });
+
+  const muat = async () => {
+    const data = await api('GET', '/api/anekdot?' + new URLSearchParams({ nis: nisDariPilihan($('fSiswa').value) }));
+    $('jumlahAnekdot').textContent = `${data.length} catatan`;
+    $('daftarAnekdot').innerHTML = data.length ? data.map(a => `<div class="anekdot">
+      <div class="kepala-kartu"><div><a href="#progres/${e(a.nis)}"><b>${e(a.nama)}</b></a> <span class="redup kecil">${e(a.kelas)}</span></div>
+        <button class="btn kecil kedua" data-arsip="${a.id}">Arsip</button></div>
+      <div class="redup kecil">📅 ${tgl(a.tanggal)}${a.waktu ? ' · 🕒 ' + e(a.waktu) : ''}${a.tempat ? ' · 📍 ' + e(a.tempat) : ''} · dicatat ${e(a.pencatat)}</div>
+      <p>${e(a.deskripsi)}</p></div>`).join('')
+      : '<p class="redup">Belum ada catatan anekdot.</p>';
+    w.querySelectorAll('[data-arsip]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Arsipkan catatan anekdot ini? Catatan tidak dihapus.')) return;
+      try { await api('PUT', `/api/anekdot/${b.dataset.arsip}/arsip`); muat(); } catch (err) { alert(err.message); }
+    }));
+  };
+  $('fSiswa').addEventListener('change', muat);
+
+  form.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const d = dataForm(form);
+    d.nis = nisDariPilihan(d.nis_cari);
+    if (!siswa.some(s => s.nis === d.nis)) return pesan('#pesanAnekdot', 'galat', 'Pilih siswa dari daftar.');
+    try {
+      await api('POST', '/api/anekdot', d);
+      pesan('#pesanAnekdot', 'sukses', 'Catatan anekdot tersimpan.');
+      form.reset(); form.tanggal.value = hariIni(); $('peringatanLabel').innerHTML = '';
+      muat();
+    } catch (err) { pesan('#pesanAnekdot', 'galat', err.message); }
+  });
+  await muat();
+};
 
 // ============================================================
 // Asesmen
