@@ -543,24 +543,78 @@ app.post('/api/tes/:token', rute(req => {
 // ============================================================
 // Beranda & laporan
 // ============================================================
+function bulanSebelum(bulan) {
+  const [th, bl] = bulan.split('-').map(Number);
+  return bl === 1 ? `${th - 1}-12` : `${th}-${String(bl - 1).padStart(2, '0')}`;
+}
+
 app.get('/api/beranda', rute(req => {
-  const bulan = hariIniIso().slice(0, 7);
+  const u = req.pengguna;
+  const koor = u.peran === 'koordinator';
+  const hariIni = hariIniIso();
+  const bulan = hariIni.slice(0, 7);
+  const bulanLalu = bulanSebelum(bulan);
   const r = rekapBulanan(bulan);
-  const hitung = sql => db.prepare(sql).get().n;
-  const kasusTerbuka = db.prepare(`SELECT l.id, l.kode, l.tanggal, l.topik, l.status,
+  const rLalu = rekapBulanan(bulanLalu);
+  const fk = filterKelas(u);
+  const satu = (sql, ...arg) => db.prepare(sql).get(...arg).n;
+  const milikSaya = koor ? '' : `AND l.pengguna_id = ${Number(u.id)}`;
+
+  // Cakupan (Koordinator: seluruh sekolah, Guru BK: kelas binaannya)
+  const siswaTotal = satu(`SELECT COUNT(*) AS n FROM siswa s JOIN kelas k ON k.id = s.kelas_id WHERE s.status = 'Aktif' AND ${fk.sql}`, ...fk.arg);
+  const kelasTotal = satu(`SELECT COUNT(*) AS n FROM kelas k WHERE ${fk.sql}`, ...fk.arg);
+  const kelasKlasikal = satu(`SELECT COUNT(DISTINCT l.kelas_id) AS n FROM layanan l JOIN kelas k ON k.id = l.kelas_id
+    WHERE l.jenis = 'bimbingan_klasikal' AND l.tanggal LIKE ? AND l.status != 'Arsip' AND ${fk.sql}`, `${bulan}-%`, ...fk.arg);
+  const siswaTerlayani = satu(`SELECT COUNT(DISTINCT ls.nis) AS n FROM layanan_siswa ls JOIN layanan l ON l.id = ls.layanan_id
+    JOIN siswa s ON s.nis = ls.nis JOIN kelas k ON k.id = s.kelas_id
+    WHERE l.tanggal LIKE ? AND l.status != 'Arsip' AND ${fk.sql}`, `${bulan}-%`, ...fk.arg);
+  const siswaAsesmen = satu(`SELECT COUNT(DISTINCT j.nis) AS n FROM jawaban_asesmen j JOIN siswa s ON s.nis = j.nis
+    JOIN kelas k ON k.id = s.kelas_id WHERE s.status = 'Aktif' AND ${fk.sql}`, ...fk.arg);
+
+  const tindakLanjut = db.prepare(`SELECT l.id, l.kode, l.jenis, l.tanggal, l.topik, l.status, l.tindak_lanjut,
       (SELECT GROUP_CONCAT(s.nama, ', ') FROM layanan_siswa ls JOIN siswa s ON s.nis = ls.nis WHERE ls.layanan_id = l.id) AS siswa
-    FROM layanan l WHERE l.jenis = 'kasus' AND l.status IN ('Baru','Proses','Tindak Lanjut')
-    ${req.pengguna.peran === 'koordinator' ? '' : 'AND l.pengguna_id = ' + Number(req.pengguna.id)}
-    ORDER BY l.tanggal LIMIT 10`).all();
+    FROM layanan l WHERE l.status IN ('Baru','Proses','Tindak Lanjut') ${milikSaya}
+    ORDER BY CASE l.status WHEN 'Baru' THEN 0 WHEN 'Proses' THEN 1 ELSE 2 END, l.tanggal LIMIT 8`).all();
+
+  const aksesSiswa = db.prepare(`SELECT a.id, a.instrumen, a.token, a.tenggat, k.nama AS kelas,
+      (SELECT COUNT(*) FROM siswa s WHERE s.kelas_id = a.kelas_id AND s.status = 'Aktif') AS jumlah_siswa,
+      (SELECT COUNT(*) FROM jawaban_asesmen j WHERE j.asesmen_id = a.id) AS jumlah_jawaban
+    FROM asesmen a JOIN kelas k ON k.id = a.kelas_id WHERE a.aktif = 1 AND ${fk.sql} ORDER BY a.dibuat DESC LIMIT 5`).all(...fk.arg);
+
+  const tim = koor ? db.prepare(`SELECT p.id, p.nama, p.peran,
+      (SELECT COUNT(*) FROM kelas k WHERE k.guru_bk_id = p.id) AS kelas,
+      (SELECT COUNT(*) FROM siswa s JOIN kelas k ON k.id = s.kelas_id WHERE k.guru_bk_id = p.id AND s.status = 'Aktif') AS siswa,
+      (SELECT COUNT(*) FROM layanan l WHERE l.pengguna_id = p.id AND l.tanggal LIKE ? AND l.status != 'Arsip') AS layanan
+    FROM pengguna p WHERE p.status = 'Aktif' ORDER BY p.peran, p.nama`).all(`${bulan}-%`) : [];
+
+  // Daftar "perlu tindakan" — dihitung dari kondisi data, bukan diisi manual
+  const perluTindakan = [];
+  const tambah = (teks, href, tingkat = 'sedang') => perluTindakan.push({ teks, href, tingkat });
+  if (siswaTotal === 0) {
+    tambah(koor ? 'Belum ada data siswa. Impor dari Excel untuk mulai.' : 'Belum ada kelas binaan. Minta Koordinator menugaskan kelas.', koor ? '#siswa' : '#kelas', 'tinggi');
+  }
+  if (koor && !ambilPengaturan().kepala_sekolah) tambah('Nama kepala sekolah belum diisi untuk tanda tangan laporan.', '#pengaturan');
+  if (koor) {
+    const tanpaGuru = satu('SELECT COUNT(*) AS n FROM kelas WHERE guru_bk_id IS NULL');
+    if (tanpaGuru) tambah(`${tanpaGuru} kelas belum punya guru BK.`, '#kelas');
+  }
+  if (siswaTotal > 0 && rLalu.total === 0) tambah(`Belum ada layanan tercatat di bulan lalu — laporan ${bulanLalu} akan kosong.`, `#laporan/${bulanLalu}`, 'tinggi');
+  const kasusLama = satu(`SELECT COUNT(*) AS n FROM layanan l WHERE l.jenis = 'kasus' AND l.status = 'Baru' AND l.tanggal <= date(?, '-7 days') ${milikSaya}`, hariIni);
+  if (kasusLama) tambah(`${kasusLama} kasus berstatus Baru lebih dari 7 hari.`, '#layanan', 'tinggi');
+  const lewatTenggat = satu(`SELECT COUNT(*) AS n FROM asesmen a JOIN kelas k ON k.id = a.kelas_id WHERE a.aktif = 1 AND a.tenggat < ? AND ${fk.sql}`, hariIni, ...fk.arg);
+  if (lewatTenggat) tambah(`${lewatTenggat} asesmen sudah lewat tenggat tetapi masih terbuka.`, '#asesmen');
+  if (kelasTotal > kelasKlasikal && siswaTotal > 0) tambah(`${kelasTotal - kelasKlasikal} kelas belum mendapat bimbingan klasikal bulan ini.`, '#layanan/baru');
+
   return {
-    bulan,
-    siswa: hitung(`SELECT COUNT(*) AS n FROM siswa WHERE status = 'Aktif'`),
-    kelas: hitung('SELECT COUNT(*) AS n FROM kelas'),
-    layananBulanIni: r.total,
+    bulan, bulanLalu, hariIni,
+    sekolah: ambilPengaturan().nama_sekolah,
+    perluTindakan,
+    cakupan: { siswaTotal, siswaTerlayani, kelasTotal, kelasKlasikal, siswaAsesmen },
     perBidang: r.perBidang,
-    asesmenAktif: hitung('SELECT COUNT(*) AS n FROM asesmen WHERE aktif = 1'),
-    kasusTerbuka,
-    pengaturanLengkap: !!ambilPengaturan().kepala_sekolah,
+    laporan: { bulanIni: r.total, bulanLalu: rLalu.total },
+    tindakLanjut,
+    aksesSiswa,
+    tim,
   };
 }));
 

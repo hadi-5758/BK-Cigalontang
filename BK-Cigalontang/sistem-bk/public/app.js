@@ -72,15 +72,18 @@ function layarMasuk(perluSetup) {
 // ============================================================
 // Kerangka & navigasi
 // ============================================================
+// Menu dikelompokkan per alur kerja BK
 const MENU = [
-  ['beranda', 'Beranda'],
-  ['layanan', 'Catatan Layanan'],
-  ['siswa', 'Data Siswa'],
-  ['kelas', 'Kelas & Penugasan'],
-  ['asesmen', 'Asesmen'],
-  ['laporan', 'Laporan Bulanan'],
-  ['pengaturan', 'Pengaturan'],
+  ['Utama', [['beranda', 'Beranda']]],
+  ['Siswa & Kelas', [['siswa', 'Data Siswa'], ['kelas', 'Kelas & Penugasan']]],
+  ['Layanan BK', [['layanan', 'Catatan Layanan']]],
+  ['Asesmen', [['asesmen', 'Asesmen Siswa']]],
+  ['Program & Laporan', [['laporan', 'Laporan Bulanan']]],
+  ['Administrasi', [['pengaturan', 'Pengaturan']]],
 ];
+
+// Navigasi bawah untuk layar HP
+const NAV_BAWAH = [['beranda', '⌂', 'Beranda'], ['layanan/baru', '✎', 'Catat'], ['siswa', '☺', 'Siswa'], ['asesmen', '✓', 'Asesmen'], ['laporan', '▤', 'Laporan']];
 
 function kerangka() {
   akar.innerHTML = `
@@ -88,7 +91,7 @@ function kerangka() {
     <nav class="sisi" id="sisi">
       <div class="merek">Sistem BK</div>
       <div class="sekolah">${e(keadaan.sekolah)}</div>
-      ${MENU.map(([k, l]) => `<a href="#${k}" data-menu="${k}">${l}</a>`).join('')}
+      ${MENU.map(([grup, isi]) => `<div class="grup-menu">${e(grup)}</div>${isi.map(([k, l]) => `<a href="#${k}" data-menu="${k}">${l}</a>`).join('')}`).join('')}
       <div class="bawah">
         <div>${e(keadaan.pengguna.nama)}</div>
         <div class="redup" style="color:#cfe0ee">${keadaan.pengguna.peran === 'koordinator' ? 'Koordinator BK' : 'Guru BK'}</div>
@@ -99,6 +102,7 @@ function kerangka() {
       <button class="btn kedua tombol-menu" id="tombolMenu">☰ Menu</button>
       <div id="halaman"></div>
     </main>
+    <nav class="nav-bawah">${NAV_BAWAH.map(([k, ikon, l]) => `<a href="#${k}" data-menu="${k.split('/')[0]}"><span>${ikon}</span>${l}</a>`).join('')}</nav>
   </div>`;
   document.getElementById('tombolKeluar').addEventListener('click', async ev => {
     ev.preventDefault();
@@ -139,29 +143,178 @@ async function mulai() {
 // ============================================================
 // Beranda
 // ============================================================
+const TIPS_BK = [
+  'Catat layanan di hari yang sama selagi ingatan masih segar — cukup ringkas, detail di catatan terenkripsi.',
+  'Tulis topik secara umum ("Motivasi belajar"), simpan rincian pribadi siswa hanya di kolom catatan.',
+  'Hasil asesmen adalah pembuka percakapan, bukan label untuk siswa.',
+  'Seimbangkan bidang layanan klasikal: Pribadi, Sosial, Belajar, dan Karier.',
+  'Kasus berstatus Baru sebaiknya ditanggapi dalam satu minggu.',
+  'Cadangkan folder data/ setiap bulan, termasuk kunci enkripsi.',
+];
+
+const ALUR_KERJA = [
+  { judul: 'Kenali kebutuhan', isi: 'Sebar angket kebutuhan (AKPD) dan minat karier ke kelas. Rekap kelas menunjukkan bidang yang paling dibutuhkan.', aksi: [['#asesmen', 'Buka asesmen']] },
+  { judul: 'Susun rencana', isi: 'Gunakan bidang prioritas dan butir yang paling banyak dicentang sebagai dasar topik bimbingan klasikal dan kelompok.', aksi: [['#asesmen', 'Lihat rekap kelas']] },
+  { judul: 'Dampingi & catat', isi: 'Laksanakan layanan, lalu catat. Catatan konseling terenkripsi dan hanya terbuka untuk Anda dan Koordinator.', aksi: [['#layanan/baru/-/bimbingan_klasikal', 'Bimbingan klasikal'], ['#layanan/baru/-/konseling_individu', 'Konseling individu'], ['#layanan/baru/-/kasus', 'Buku kasus']] },
+  { judul: 'Tinjau & laporkan', isi: 'Pantau kasus yang belum selesai, lalu unduh laporan bulanan berkop untuk Kepala Sekolah.', aksi: [['#layanan', 'Tinjau layanan'], ['#laporan', 'Laporan bulanan']] },
+];
+
+const PINTASAN = [
+  ['#layanan/baru/-/konseling_individu', '💬', 'Konseling Individu'],
+  ['#layanan/baru/-/bimbingan_klasikal', '🏫', 'Bimbingan Klasikal'],
+  ['#layanan/baru/-/kasus', '📒', 'Buku Kasus'],
+  ['#layanan/baru/-/kunjungan_rumah', '🏠', 'Kunjungan Rumah'],
+  ['#siswa', '👥', 'Data Siswa'],
+  ['#asesmen', '📋', 'Asesmen Siswa'],
+  ['#laporan', '📄', 'Laporan Bulanan'],
+  ['#kelas', '🧭', 'Kelas & Penugasan'],
+];
+
+function sapaan() {
+  const j = new Date().getHours();
+  return j < 11 ? 'Selamat pagi' : j < 15 ? 'Selamat siang' : j < 18 ? 'Selamat sore' : 'Selamat malam';
+}
+
+const persen = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+
 HALAMAN.beranda = async w => {
   const d = await api('GET', '/api/beranda');
+  const koor = keadaan.pengguna.peran === 'koordinator';
+  const kelas = await api('GET', '/api/kelas');
+  const c = d.cakupan;
   const maks = Math.max(1, ...Object.values(d.perBidang));
+  const tanggalPanjang = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const tip = TIPS_BK[new Date().getDate() % TIPS_BK.length];
+
+  const tabPrioritas = {
+    cakupan: `
+      <div class="baris-batang lebar"><span>Siswa dilayani bulan ini</span><div class="batang"><span style="width:${persen(c.siswaTerlayani, c.siswaTotal)}%"></span></div><span>${c.siswaTerlayani}/${c.siswaTotal}</span></div>
+      <div class="baris-batang lebar"><span>Kelas mendapat klasikal</span><div class="batang"><span style="width:${persen(c.kelasKlasikal, c.kelasTotal)}%"></span></div><span>${c.kelasKlasikal}/${c.kelasTotal}</span></div>
+      <div class="baris-batang lebar"><span>Siswa sudah asesmen</span><div class="batang"><span style="width:${persen(c.siswaAsesmen, c.siswaTotal)}%"></span></div><span>${c.siswaAsesmen}/${c.siswaTotal}</span></div>
+      <h3 class="subjudul">Layanan per bidang bulan ini</h3>
+      ${Object.entries(d.perBidang).map(([b, n]) => `<div class="baris-batang"><span>${e(b)}</span><div class="batang"><span style="width:${(n / maks) * 100}%"></span></div><span>${n}</span></div>`).join('')}`,
+    tindak: d.tindakLanjut.length
+      ? `<table><tbody>${d.tindakLanjut.map(k => `<tr class="klik" data-href="#layanan/${k.id}"><td class="kecil">${tgl(k.tanggal)}</td>
+          <td>${e(k.siswa || labelJenis(k.jenis))}<div class="redup kecil">${e(labelJenis(k.jenis))} · ${e(k.topik)}${k.tindak_lanjut ? ' → ' + e(k.tindak_lanjut) : ''}</div></td>
+          <td>${lencanaStatus(k.status)}</td></tr>`).join('')}</tbody></table>`
+      : '<p class="redup">Tidak ada layanan yang menunggu tindak lanjut.</p>',
+    tim: `<table><thead><tr><th>Nama</th><th>Kelas</th><th>Siswa binaan</th><th>Layanan bulan ini</th></tr></thead><tbody>
+      ${d.tim.map(t => `<tr><td>${e(t.nama)}<div class="redup kecil">${t.peran === 'koordinator' ? 'Koordinator' : 'Guru BK'}</div></td><td>${t.kelas}</td>
+        <td>${t.siswa}${t.siswa > 150 ? ' <span class="lencana Baru">&gt;150</span>' : ''}</td><td>${t.layanan}</td></tr>`).join('')}</tbody></table>
+      <p><a href="#kelas">Atur penugasan kelas →</a></p>`,
+    laporan: `<table><tbody>
+      <tr><td>${judulBulan(d.bulan)} <span class="redup kecil">(berjalan)</span></td><td>${d.laporan.bulanIni} layanan</td><td><a href="#laporan/${d.bulan}">Lihat</a></td></tr>
+      <tr><td>${judulBulan(d.bulanLalu)}</td><td>${d.laporan.bulanLalu} layanan</td><td><a href="#laporan/${d.bulanLalu}">Lihat</a> · <a href="/api/laporan/${d.bulanLalu}/pdf" target="_blank" rel="noopener">PDF</a></td></tr>
+    </tbody></table>`,
+  };
+  const daftarTab = [['cakupan', 'Cakupan'], ['tindak', `Tindak lanjut (${d.tindakLanjut.length})`], ...(koor ? [['tim', 'Tim BK']] : []), ['laporan', 'Laporan bulanan']];
+
   w.innerHTML = `
-  <div class="kepala"><div><h1>Selamat datang, ${e(keadaan.pengguna.nama)}</h1>
-    <div class="redup">${judulBulan(d.bulan)}</div></div>
-    <a class="btn" href="#layanan/baru">+ Catat layanan</a></div>
-  ${!d.pengaturanLengkap && keadaan.pengguna.peran === 'koordinator' ? '<div class="pesan info">Lengkapi nama Kepala Sekolah di <a href="#pengaturan">Pengaturan</a> agar laporan bulanan siap ditandatangani.</div>' : ''}
-  ${d.siswa === 0 ? '<div class="pesan info">Belum ada data siswa. Mulai dari <a href="#siswa">Data Siswa → Impor Excel</a>.</div>' : ''}
-  <div class="kisi">
-    <div class="kartu statistik"><div class="redup">Siswa aktif</div><div class="angka">${d.siswa}</div></div>
-    <div class="kartu statistik"><div class="redup">Kelas</div><div class="angka">${d.kelas}</div></div>
-    <div class="kartu statistik"><div class="redup">Layanan bulan ini</div><div class="angka">${d.layananBulanIni}</div></div>
-    <div class="kartu statistik"><div class="redup">Asesmen terbuka</div><div class="angka">${d.asesmenAktif}</div></div>
-  </div>
-  <div class="dua-kolom">
-    <div class="kartu"><h2>Layanan per bidang (bulan ini)</h2>
-      ${Object.entries(d.perBidang).map(([b, n]) => `<div class="baris-batang"><span>${e(b)}</span><div class="batang"><span style="width:${(n / maks) * 100}%"></span></div><span>${n}</span></div>`).join('')}
+  <section class="kartu sambutan">
+    <div>
+      <div class="label-atas">${koor ? 'Koordinasi BK Sekolah' : 'Ruang Kerja Guru BK'}</div>
+      <h1>${sapaan()}, ${e(keadaan.pengguna.nama)}</h1>
+      <div class="redup">${e(d.sekolah)} — ${koor ? 'Koordinator Bimbingan dan Konseling' : 'Guru Bimbingan dan Konseling'}</div>
+      <div class="redup kecil">${e(tanggalPanjang)}</div>
     </div>
-    <div class="kartu"><h2>Kasus yang masih terbuka</h2>
-      ${d.kasusTerbuka.length ? `<table><tbody>${d.kasusTerbuka.map(k => `<tr class="klik" data-href="#layanan/${k.id}"><td>${tgl(k.tanggal)}</td><td>${e(k.siswa)}<div class="redup kecil">${e(k.topik)}</div></td><td>${lencanaStatus(k.status)}</td></tr>`).join('')}</tbody></table>` : '<p class="redup">Tidak ada kasus terbuka.</p>'}
+    <a class="btn" href="#layanan/baru">+ Catat layanan</a>
+  </section>
+
+  <div class="tata-beranda">
+    <div class="kolom-utama">
+      <section class="kartu">
+        <div class="kepala-kartu"><h2>Perlu tindakan</h2><span class="lencana ${d.perluTindakan.length ? 'Baru' : 'Selesai'}">${d.perluTindakan.length} butir</span></div>
+        ${d.perluTindakan.length ? `<ul class="daftar-tindakan">${d.perluTindakan.map(t => `<li class="${t.tingkat}"><a href="${e(t.href)}">${e(t.teks)}</a></li>`).join('')}</ul>`
+          : '<p class="redup">Semua beres. Tidak ada yang perlu ditindaklanjuti saat ini.</p>'}
+      </section>
+
+      <section class="kartu catat-cepat">
+        <h2>Catat cepat bimbingan klasikal</h2>
+        <p class="redup kecil">Empat isian, kurang dari satu menit. Langsung masuk ke laporan bulanan.</p>
+        ${kelas.length ? `<form id="fCepat">
+          <div class="empat-kolom">
+            <div><label class="wajib">1. Kelas</label><select name="kelas_id">${opsi(kelas.map(k => [k.id, k.nama]))}</select></div>
+            <div><label class="wajib">2. Topik</label><input name="topik" required maxlength="200" placeholder="mis. Mengelola stres ujian"></div>
+            <div><label class="wajib">3. Tanggal</label><input type="date" name="tanggal" value="${hariIni()}" max="${hariIni()}" required></div>
+            <div><label class="wajib">Bidang</label><select name="bidang">${opsi(keadaan.ref.bidang.map(b => [b, b]))}</select></div>
+          </div>
+          <label>4. Catatan singkat</label><input name="catatan" placeholder="Opsional: respons siswa, evaluasi singkat">
+          <div id="pesanCepat"></div>
+          <p><button class="btn">Simpan</button></p>
+        </form>` : '<p class="redup">Tambahkan data siswa dulu agar kelas tersedia.</p>'}
+      </section>
+
+      <section class="kartu">
+        <div class="kepala-kartu"><h2>Prioritas ${koor ? 'koordinasi' : 'saya'}</h2></div>
+        <div class="tab" role="tablist">${daftarTab.map(([k, l], i) => `<button role="tab" class="${i ? '' : 'aktif'}" data-tab="${k}">${l}</button>`).join('')}</div>
+        <div id="isiTab">${tabPrioritas.cakupan}</div>
+      </section>
+
+      <section class="kartu">
+        <h2>Ruang kerja BK</h2>
+        <div class="alur">${ALUR_KERJA.map((a, i) => `<button class="${i === 2 ? 'aktif' : ''}" data-alur="${i}"><span>Langkah ${i + 1}</span>${e(a.judul)}</button>`).join('')}</div>
+        <div id="isiAlur"></div>
+      </section>
     </div>
+
+    <aside class="kolom-samping">
+      <section class="kartu">
+        <h2>Pintasan</h2>
+        <div class="pintasan">${PINTASAN.map(([h, ikon, l]) => `<a href="${h}"><span>${ikon}</span>${e(l)}</a>`).join('')}</div>
+      </section>
+
+      <section class="kartu">
+        <h2>Akses siswa</h2>
+        <p class="redup kecil">Tautan tes yang sedang terbuka. Bagikan ke grup kelas.</p>
+        ${d.aksesSiswa.length ? d.aksesSiswa.map(a => `<div class="akses">
+            <div><b>${e(keadaan.ref.instrumen[a.instrumen])}</b> · ${e(a.kelas)}
+              <div class="redup kecil">${a.jumlah_jawaban}/${a.jumlah_siswa} terisi${a.tenggat ? ' · tenggat ' + tgl(a.tenggat) : ''}</div></div>
+            <div class="baris-aksi"><button class="btn kecil kedua" data-salin="${e(location.origin + '/tes/' + a.token)}">Salin</button><a class="btn kecil kedua" href="#asesmen/${a.id}">Hasil</a></div>
+          </div>`).join('')
+          : '<p class="redup">Belum ada tes terbuka. <a href="#asesmen">Buka asesmen</a>.</p>'}
+      </section>
+
+      <section class="kartu tips">
+        <h2>💡 Tips hari ini</h2>
+        <p>${e(tip)}</p>
+      </section>
+    </aside>
   </div>`;
+
+  // Tab prioritas
+  const isiTab = document.getElementById('isiTab');
+  w.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
+    w.querySelectorAll('[data-tab]').forEach(x => x.classList.toggle('aktif', x === b));
+    isiTab.innerHTML = tabPrioritas[b.dataset.tab];
+    barisKlik(isiTab);
+  }));
+
+  // Alur kerja 4 langkah
+  const isiAlur = document.getElementById('isiAlur');
+  const tampilAlur = i => {
+    const a = ALUR_KERJA[i];
+    w.querySelectorAll('[data-alur]').forEach(x => x.classList.toggle('aktif', Number(x.dataset.alur) === i));
+    isiAlur.innerHTML = `<p>${e(a.isi)}</p><div class="baris-aksi">${a.aksi.map(([h, l]) => `<a class="btn kecil kedua" href="${h}">${e(l)}</a>`).join('')}</div>`;
+  };
+  w.querySelectorAll('[data-alur]').forEach(b => b.addEventListener('click', () => tampilAlur(Number(b.dataset.alur))));
+  tampilAlur(2);
+
+  // Salin tautan tes
+  w.querySelectorAll('[data-salin]').forEach(b => b.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(b.dataset.salin); b.textContent = 'Tersalin ✓'; }
+    catch { prompt('Salin tautan ini:', b.dataset.salin); }
+  }));
+
+  // Catat cepat
+  document.getElementById('fCepat')?.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const data = { ...dataForm(ev.target), jenis: 'bimbingan_klasikal', status: 'Selesai' };
+    try {
+      const r = await api('POST', '/api/layanan', data);
+      pesan('#pesanCepat', 'sukses', `Tersimpan sebagai ${r.kode}.`);
+      setTimeout(() => HALAMAN.beranda(w), 900);
+    } catch (err) { pesan('#pesanCepat', 'galat', err.message); }
+  });
   barisKlik(w);
 };
 
@@ -310,8 +463,9 @@ HALAMAN.kelas = async w => {
 // ============================================================
 // Layanan
 // ============================================================
-HALAMAN.layanan = async (w, id, nisAwal) => {
-  if (id === 'baru') return formLayanan(w, nisAwal);
+// Rute: #layanan/baru/<nis atau ->/<jenis>
+HALAMAN.layanan = async (w, id, nisAwal, jenisAwal) => {
+  if (id === 'baru') return formLayanan(w, nisAwal === '-' ? null : nisAwal, jenisAwal);
   if (id) return detailLayanan(w, id);
   const r = keadaan.ref;
   w.innerHTML = `
@@ -340,7 +494,7 @@ HALAMAN.layanan = async (w, id, nisAwal) => {
   await muat();
 };
 
-async function formLayanan(w, nisAwal) {
+async function formLayanan(w, nisAwal, jenisAwal) {
   const r = keadaan.ref;
   const [kelas, siswa] = await Promise.all([api('GET', '/api/kelas'), api('GET', '/api/siswa')]);
   const terpilih = new Map();
@@ -350,7 +504,7 @@ async function formLayanan(w, nisAwal) {
   <div class="kepala"><div><a href="#layanan" class="kecil">← Catatan Layanan</a><h1>Catat layanan</h1></div></div>
   <form class="kartu" id="fLayanan">
     <div class="dua-kolom">
-      <div><label class="wajib">Jenis layanan</label><select name="jenis" id="jenis">${opsi(Object.entries(r.jenisLayanan).map(([k, v]) => [k, v.label]), nisAwal ? 'konseling_individu' : 'bimbingan_klasikal')}</select></div>
+      <div><label class="wajib">Jenis layanan</label><select name="jenis" id="jenis">${opsi(Object.entries(r.jenisLayanan).map(([k, v]) => [k, v.label]), r.jenisLayanan[jenisAwal] ? jenisAwal : nisAwal ? 'konseling_individu' : 'bimbingan_klasikal')}</select></div>
       <div><label class="wajib">Tanggal</label><input type="date" name="tanggal" value="${hariIni()}" max="${hariIni()}" required></div>
       <div><label class="wajib">Bidang</label><select name="bidang">${opsi(r.bidang.map(b => [b, b]))}</select></div>
       <div id="wadahKategori"><label class="wajib">Kategori kasus</label><select name="kategori_kasus">${opsi(Object.entries(r.kategoriKasus).map(([k, v]) => [k, `${k} — ${v}`]))}</select></div>
