@@ -92,7 +92,7 @@ function batasiPercobaan(kunci, maks = 10, jendelaMs = 15 * 60 * 1000) {
 function muatPengguna(req, res, next) {
   const sesi = keamanan.bacaTokenSesi(bacaCookie(req, NAMA_COOKIE));
   if (sesi) {
-    req.pengguna = db.prepare(`SELECT id, nama, email, nip, peran FROM pengguna WHERE id = ? AND status = 'Aktif'`).get(sesi.uid);
+    req.pengguna = db.prepare(`SELECT id, nama, email, nip, peran, akses_bebas FROM pengguna WHERE id = ? AND status = 'Aktif'`).get(sesi.uid);
   }
   next();
 }
@@ -108,17 +108,19 @@ function perluKoordinator(req, res, next) {
 }
 
 /**
- * Batas akses kelas: Koordinator melihat semua kelas,
- * Guru BK hanya kelas yang ditugaskan kepadanya.
+ * Batas akses kelas: Koordinator dan Guru BK dengan mode "Bebas Kelas" melihat semua kelas,
+ * Guru BK lain hanya kelas yang ditugaskan kepadanya.
  */
+const aksesSemuaKelas = pengguna => pengguna.peran === 'koordinator' || !!pengguna.akses_bebas;
+
 function filterKelas(pengguna, alias = 'k') {
-  return pengguna.peran === 'koordinator' ? { sql: '1=1', arg: [] } : { sql: `${alias}.guru_bk_id = ?`, arg: [pengguna.id] };
+  return aksesSemuaKelas(pengguna) ? { sql: '1=1', arg: [] } : { sql: `${alias}.guru_bk_id = ?`, arg: [pengguna.id] };
 }
 
 function pastikanAksesSiswa(pengguna, nis) {
   const s = db.prepare('SELECT s.nis, k.guru_bk_id FROM siswa s LEFT JOIN kelas k ON k.id = s.kelas_id WHERE s.nis = ?').get(nis);
   if (!s) throw new GalatPengguna(`Siswa dengan NIS ${nis} tidak ditemukan.`, 404);
-  if (pengguna.peran !== 'koordinator' && s.guru_bk_id !== pengguna.id) throw new GalatPengguna('Siswa ini bukan binaan Anda.', 403);
+  if (!aksesSemuaKelas(pengguna) && s.guru_bk_id !== pengguna.id) throw new GalatPengguna('Siswa ini bukan binaan Anda.', 403);
 }
 
 app.get('/api/status', rute(req => ({
@@ -173,7 +175,7 @@ app.put('/api/password', rute(req => {
 // Pengguna (tim BK) & pengaturan
 // ============================================================
 app.get('/api/pengguna', rute(() =>
-  db.prepare(`SELECT p.id, p.nama, p.email, p.nip, p.peran, p.status,
+  db.prepare(`SELECT p.id, p.nama, p.email, p.nip, p.peran, p.status, p.akses_bebas,
       (SELECT COUNT(*) FROM kelas k WHERE k.guru_bk_id = p.id) AS jumlah_kelas
     FROM pengguna p ORDER BY p.peran, p.nama`).all()));
 
@@ -210,16 +212,23 @@ app.get('/api/referensi', rute(() => ({
 app.get('/api/kelas', rute(req => {
   const f = filterKelas(req.pengguna);
   return db.prepare(`SELECT k.*, p.nama AS guru_bk,
-      (SELECT COUNT(*) FROM siswa s WHERE s.kelas_id = k.id AND s.status = 'Aktif') AS jumlah_siswa
+      (SELECT COUNT(*) FROM siswa s WHERE s.kelas_id = k.id AND s.status = 'Aktif') AS jumlah_siswa,
+      (SELECT COUNT(*) FROM siswa s WHERE s.kelas_id = k.id AND s.status = 'Aktif' AND s.jk = 'L') AS jumlah_l,
+      (SELECT COUNT(*) FROM siswa s WHERE s.kelas_id = k.id AND s.status = 'Aktif' AND s.jk = 'P') AS jumlah_p
     FROM kelas k LEFT JOIN pengguna p ON p.id = k.guru_bk_id
-    WHERE ${f.sql} ORDER BY k.nama`).all(...f.arg);
+    WHERE k.status = 'Aktif' AND ${f.sql} ORDER BY k.nama`).all(...f.arg);
 }));
 
+const rapikanNamaKelas = nama => String(nama || '').trim().replace(/\s+/g, ' ');
+
 function pastikanKelas(nama) {
-  const bersih = String(nama || '').trim().replace(/\s+/g, ' ');
+  const bersih = rapikanNamaKelas(nama);
   if (!bersih) throw new GalatPengguna('Nama kelas wajib diisi.');
-  const ada = db.prepare('SELECT id FROM kelas WHERE nama = ?').get(bersih);
-  if (ada) return ada.id;
+  const ada = db.prepare('SELECT id, status FROM kelas WHERE nama = ?').get(bersih);
+  if (ada) {
+    if (ada.status !== 'Aktif') db.prepare(`UPDATE kelas SET status = 'Aktif' WHERE id = ?`).run(ada.id);
+    return ada.id;
+  }
   const tingkat = (bersih.match(/^(X{1,2}I{0,2}|\d{1,2})/) || [])[0] || null;
   return Number(db.prepare('INSERT INTO kelas (nama, tingkat) VALUES (?, ?)').run(bersih, tingkat).lastInsertRowid);
 }
@@ -234,9 +243,46 @@ app.put('/api/kelas/:id', perluKoordinator, rute(req => {
   const { nama, wali_kelas, guru_bk_id } = req.body;
   const k = db.prepare('SELECT * FROM kelas WHERE id = ?').get(req.params.id);
   if (!k) throw new GalatPengguna('Kelas tidak ditemukan.', 404);
+  const namaBaru = nama !== undefined ? rapikanNamaKelas(nama) : k.nama;
+  if (!namaBaru) throw new GalatPengguna('Nama kelas wajib diisi.');
+  const bentrok = db.prepare('SELECT id FROM kelas WHERE nama = ? AND id != ?').get(namaBaru, k.id);
+  if (bentrok) throw new GalatPengguna(`Kelas "${namaBaru}" sudah ada. Gunakan "Gabungkan" untuk menyatukan dua kelas.`);
   db.prepare('UPDATE kelas SET nama = ?, wali_kelas = ?, guru_bk_id = ? WHERE id = ?')
-    .run(String(nama ?? k.nama).trim(), wali_kelas ?? k.wali_kelas, guru_bk_id === '' ? null : (guru_bk_id ?? k.guru_bk_id), k.id);
-  catatAudit(req.pengguna.id, 'ubah_kelas', String(k.id));
+    .run(namaBaru, wali_kelas ?? k.wali_kelas, guru_bk_id === '' ? null : (guru_bk_id ?? k.guru_bk_id), k.id);
+  catatAudit(req.pengguna.id, namaBaru !== k.nama ? 'ganti_nama_kelas' : 'ubah_kelas', `${k.nama} → ${namaBaru}`);
+  return { ok: true };
+}));
+
+// Gabungkan kelas: semua siswa & asesmen pindah ke kelas tujuan, kelas asal diarsipkan (tidak dihapus)
+app.post('/api/kelas/:id/gabung', perluKoordinator, rute(req => {
+  const asal = db.prepare(`SELECT * FROM kelas WHERE id = ? AND status = 'Aktif'`).get(req.params.id);
+  const tujuan = db.prepare(`SELECT * FROM kelas WHERE id = ? AND status = 'Aktif'`).get(req.body.ke_id);
+  if (!asal || !tujuan) throw new GalatPengguna('Kelas asal atau tujuan tidak ditemukan.', 404);
+  if (asal.id === tujuan.id) throw new GalatPengguna('Pilih kelas tujuan yang berbeda.');
+  const pindah = transaksi(() => {
+    const n = db.prepare('UPDATE siswa SET kelas_id = ? WHERE kelas_id = ?').run(tujuan.id, asal.id).changes;
+    db.prepare('UPDATE asesmen SET kelas_id = ? WHERE kelas_id = ?').run(tujuan.id, asal.id);
+    db.prepare(`UPDATE kelas SET status = 'Arsip', guru_bk_id = NULL WHERE id = ?`).run(asal.id);
+    return n;
+  });
+  catatAudit(req.pengguna.id, 'gabung_kelas', `${asal.nama} → ${tujuan.nama}`);
+  return { siswaDipindah: Number(pindah) };
+}));
+
+// Penugasan: tetapkan daftar kelas binaan seorang guru BK sekaligus
+app.put('/api/penugasan/:penggunaId', perluKoordinator, rute(req => {
+  const guru = db.prepare(`SELECT id, nama FROM pengguna WHERE id = ? AND status = 'Aktif'`).get(req.params.penggunaId);
+  if (!guru) throw new GalatPengguna('Guru BK tidak ditemukan.', 404);
+  const ids = Array.isArray(req.body.kelas_ids) ? req.body.kelas_ids.map(Number) : [];
+  transaksi(() => {
+    db.prepare('UPDATE kelas SET guru_bk_id = NULL WHERE guru_bk_id = ?').run(guru.id);
+    const tetapkan = db.prepare(`UPDATE kelas SET guru_bk_id = ? WHERE id = ? AND status = 'Aktif'`);
+    ids.forEach(id => tetapkan.run(guru.id, id));
+  });
+  if (req.body.akses_bebas !== undefined) {
+    db.prepare('UPDATE pengguna SET akses_bebas = ? WHERE id = ?').run(req.body.akses_bebas ? 1 : 0, guru.id);
+  }
+  catatAudit(req.pengguna.id, 'ubah_penugasan', `${guru.nama}: ${ids.length} kelas`);
   return { ok: true };
 }));
 
@@ -250,9 +296,50 @@ app.get('/api/siswa', rute(req => {
   if (req.query.kelas_id) { syarat.push('s.kelas_id = ?'); arg.push(req.query.kelas_id); }
   syarat.push('s.status = ?'); arg.push(req.query.status || 'Aktif');
   if (req.query.q) { syarat.push('(s.nama LIKE ? OR s.nis LIKE ?)'); arg.push(`%${req.query.q}%`, `%${req.query.q}%`); }
-  return db.prepare(`SELECT s.nis, s.nama, s.jk, s.status, s.kelas_id, k.nama AS kelas
+  return db.prepare(`SELECT s.nis, s.nama, s.jk, s.status, s.keterangan, s.kelas_id, k.nama AS kelas
     FROM siswa s LEFT JOIN kelas k ON k.id = s.kelas_id
     WHERE ${syarat.join(' AND ')} ORDER BY k.nama, s.nama LIMIT 2000`).all(...arg);
+}));
+
+app.get('/api/siswa-statistik', rute(req => {
+  const f = filterKelas(req.pengguna);
+  const syarat = [f.sql];
+  const arg = [...f.arg];
+  if (req.query.kelas_id) { syarat.push('s.kelas_id = ?'); arg.push(req.query.kelas_id); }
+  return db.prepare(`SELECT COUNT(*) AS total,
+      SUM(s.status = 'Aktif' AND s.jk = 'L') AS laki,
+      SUM(s.status = 'Aktif' AND s.jk = 'P') AS perempuan,
+      SUM(s.status = 'Aktif') AS aktif,
+      SUM(s.status = 'Arsip') AS arsip
+    FROM siswa s LEFT JOIN kelas k ON k.id = s.kelas_id WHERE ${syarat.join(' AND ')}`).get(...arg);
+}));
+
+// Kenaikan kelas & mutasi untuk banyak siswa sekaligus
+const KETERANGAN_ARSIP = ['Lulus', 'Mutasi keluar', 'Mengundurkan diri', 'Lainnya'];
+
+app.post('/api/siswa/massal', perluKoordinator, rute(req => {
+  const { aksi, kelas, keterangan } = req.body;
+  const daftar = Array.isArray(req.body.nis) ? [...new Set(req.body.nis.map(String))] : [];
+  if (!daftar.length) throw new GalatPengguna('Pilih minimal satu siswa.');
+  const n = transaksi(() => {
+    if (aksi === 'pindah') {
+      const kelasId = pastikanKelas(kelas);
+      const ubah = db.prepare(`UPDATE siswa SET kelas_id = ?, status = 'Aktif', keterangan = NULL WHERE nis = ?`);
+      return daftar.reduce((s, nis) => s + Number(ubah.run(kelasId, nis).changes), 0);
+    }
+    if (aksi === 'arsip') {
+      if (!KETERANGAN_ARSIP.includes(keterangan)) throw new GalatPengguna('Pilih alasan: ' + KETERANGAN_ARSIP.join(', ') + '.');
+      const ubah = db.prepare(`UPDATE siswa SET status = 'Arsip', keterangan = ? WHERE nis = ?`);
+      return daftar.reduce((s, nis) => s + Number(ubah.run(keterangan, nis).changes), 0);
+    }
+    if (aksi === 'aktifkan') {
+      const ubah = db.prepare(`UPDATE siswa SET status = 'Aktif', keterangan = NULL WHERE nis = ?`);
+      return daftar.reduce((s, nis) => s + Number(ubah.run(nis).changes), 0);
+    }
+    throw new GalatPengguna('Aksi tidak dikenal.');
+  });
+  catatAudit(req.pengguna.id, 'siswa_massal_' + aksi, `${n} siswa${kelas ? ' → ' + kelas : ''}${keterangan ? ' (' + keterangan + ')' : ''}`);
+  return { diubah: n };
 }));
 
 function simpanSiswa({ nis, nama, jk, kelas, kontak_ortu }, penggunaId) {
@@ -353,6 +440,14 @@ app.post('/api/siswa/impor', perluKoordinator, express.raw({ type: () => true, l
 // ============================================================
 // Layanan BK
 // ============================================================
+/** Skala evaluasi kondisi 1–5 (opsional). */
+function bacaSkala(nilai) {
+  if (nilai === undefined || nilai === null || nilai === '') return null;
+  const n = Number(nilai);
+  if (!Number.isInteger(n) || n < 1 || n > 5) throw new GalatPengguna('Skala evaluasi harus angka 1–5.');
+  return n;
+}
+
 function buatKode(jenis, tanggal) {
   const awalan = `${JENIS_LAYANAN[jenis].awalan}-${tanggal.slice(0, 4)}-${tanggal.slice(5, 7)}-`;
   const terakhir = db.prepare('SELECT kode FROM layanan WHERE kode LIKE ? ORDER BY kode DESC LIMIT 1').get(awalan + '%');
@@ -396,14 +491,16 @@ app.post('/api/layanan', rute(req => {
     daftarNis.forEach(n => pastikanAksesSiswa(req.pengguna, n));
   }
 
+  const pra = bacaSkala(b.skala_pra);
+  const pasca = bacaSkala(b.skala_pasca);
   const id = transaksi(() => {
     const kode = buatKode(b.jenis, b.tanggal);
     const { lastInsertRowid } = db.prepare(`INSERT INTO layanan
-      (kode, jenis, tanggal, bidang, topik, kelas_id, kategori_kasus, catatan_enc, tindak_lanjut, status, pengguna_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+      (kode, jenis, tanggal, bidang, topik, kelas_id, kategori_kasus, catatan_enc, tindak_lanjut, status, pengguna_id, skala_pra, skala_pasca)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
       kode, b.jenis, b.tanggal, b.bidang, String(b.topik).trim(), kelasId,
       b.jenis === 'kasus' ? b.kategori_kasus : null,
-      keamanan.enkripsi(b.catatan), b.tindak_lanjut || null, status, req.pengguna.id);
+      keamanan.enkripsi(b.catatan), b.tindak_lanjut || null, status, req.pengguna.id, pra, pasca);
     const sisip = db.prepare('INSERT INTO layanan_siswa (layanan_id, nis) VALUES (?, ?)');
     daftarNis.forEach(n => sisip.run(lastInsertRowid, n));
     return Number(lastInsertRowid);
@@ -430,11 +527,13 @@ app.get('/api/layanan/:id', rute(req => {
 
 app.put('/api/layanan/:id', rute(req => {
   const l = ambilLayananBerhak(req.pengguna, req.params.id);
-  const { status, tindak_lanjut, catatan } = req.body;
+  const { status, tindak_lanjut, catatan, skala_pra, skala_pasca } = req.body;
   if (status && !STATUS.includes(status)) throw new GalatPengguna('Status tidak valid.');
-  db.prepare('UPDATE layanan SET status = ?, tindak_lanjut = ?, catatan_enc = ? WHERE id = ?').run(
+  db.prepare('UPDATE layanan SET status = ?, tindak_lanjut = ?, catatan_enc = ?, skala_pra = ?, skala_pasca = ? WHERE id = ?').run(
     status || l.status, tindak_lanjut ?? l.tindak_lanjut,
-    catatan !== undefined ? keamanan.enkripsi(catatan) : l.catatan_enc, l.id);
+    catatan !== undefined ? keamanan.enkripsi(catatan) : l.catatan_enc,
+    skala_pra !== undefined ? bacaSkala(skala_pra) : l.skala_pra,
+    skala_pasca !== undefined ? bacaSkala(skala_pasca) : l.skala_pasca, l.id);
   catatAudit(req.pengguna.id, 'ubah_layanan', l.kode);
   return { ok: true };
 }));
@@ -562,7 +661,7 @@ app.get('/api/beranda', rute(req => {
 
   // Cakupan (Koordinator: seluruh sekolah, Guru BK: kelas binaannya)
   const siswaTotal = satu(`SELECT COUNT(*) AS n FROM siswa s JOIN kelas k ON k.id = s.kelas_id WHERE s.status = 'Aktif' AND ${fk.sql}`, ...fk.arg);
-  const kelasTotal = satu(`SELECT COUNT(*) AS n FROM kelas k WHERE ${fk.sql}`, ...fk.arg);
+  const kelasTotal = satu(`SELECT COUNT(*) AS n FROM kelas k WHERE k.status = 'Aktif' AND ${fk.sql}`, ...fk.arg);
   const kelasKlasikal = satu(`SELECT COUNT(DISTINCT l.kelas_id) AS n FROM layanan l JOIN kelas k ON k.id = l.kelas_id
     WHERE l.jenis = 'bimbingan_klasikal' AND l.tanggal LIKE ? AND l.status != 'Arsip' AND ${fk.sql}`, `${bulan}-%`, ...fk.arg);
   const siswaTerlayani = satu(`SELECT COUNT(DISTINCT ls.nis) AS n FROM layanan_siswa ls JOIN layanan l ON l.id = ls.layanan_id
@@ -591,12 +690,12 @@ app.get('/api/beranda', rute(req => {
   const perluTindakan = [];
   const tambah = (teks, href, tingkat = 'sedang') => perluTindakan.push({ teks, href, tingkat });
   if (siswaTotal === 0) {
-    tambah(koor ? 'Belum ada data siswa. Impor dari Excel untuk mulai.' : 'Belum ada kelas binaan. Minta Koordinator menugaskan kelas.', koor ? '#siswa' : '#kelas', 'tinggi');
+    tambah(koor ? 'Belum ada data siswa. Impor dari Excel untuk mulai.' : 'Belum ada kelas binaan. Minta Koordinator menugaskan kelas.', koor ? '#siswa' : '#penugasan', 'tinggi');
   }
   if (koor && !ambilPengaturan().kepala_sekolah) tambah('Nama kepala sekolah belum diisi untuk tanda tangan laporan.', '#pengaturan');
   if (koor) {
-    const tanpaGuru = satu('SELECT COUNT(*) AS n FROM kelas WHERE guru_bk_id IS NULL');
-    if (tanpaGuru) tambah(`${tanpaGuru} kelas belum punya guru BK.`, '#kelas');
+    const tanpaGuru = satu(`SELECT COUNT(*) AS n FROM kelas WHERE guru_bk_id IS NULL AND status = 'Aktif'`);
+    if (tanpaGuru) tambah(`${tanpaGuru} kelas belum punya guru BK.`, '#penugasan');
   }
   if (siswaTotal > 0 && rLalu.total === 0) tambah(`Belum ada layanan tercatat di bulan lalu — laporan ${bulanLalu} akan kosong.`, `#laporan/${bulanLalu}`, 'tinggi');
   const kasusLama = satu(`SELECT COUNT(*) AS n FROM layanan l WHERE l.jenis = 'kasus' AND l.status = 'Baru' AND l.tanggal <= date(?, '-7 days') ${milikSaya}`, hariIni);
@@ -615,6 +714,66 @@ app.get('/api/beranda', rute(req => {
     tindakLanjut,
     aksesSiswa,
     tim,
+  };
+}));
+
+// ============================================================
+// Analitik siswa
+// ============================================================
+app.get('/api/analitik', rute(req => {
+  const f = filterKelas(req.pengguna);
+  const q = (sql, ...arg) => db.prepare(sql).all(...f.arg, ...arg);
+  const sumber = `FROM siswa s JOIN kelas k ON k.id = s.kelas_id WHERE s.status = 'Aktif' AND k.status = 'Aktif' AND ${f.sql}`;
+  const KONSELING = `('konseling_individu','konseling_kelompok')`;
+  // Layanan yang menyentuh siswa dalam lingkup akses
+  const layananLingkup = `FROM layanan l JOIN layanan_siswa ls ON ls.layanan_id = l.id JOIN siswa s ON s.nis = ls.nis
+    JOIN kelas k ON k.id = s.kelas_id WHERE l.status != 'Arsip' AND ${f.sql}`;
+
+  const perKelas = q(`SELECT k.nama AS kelas, COUNT(*) AS siswa, SUM(s.jk = 'L') AS l, SUM(s.jk = 'P') AS p ${sumber} GROUP BY k.id ORDER BY k.nama`);
+  const gender = db.prepare(`SELECT SUM(s.jk = 'L') AS l, SUM(s.jk = 'P') AS p ${sumber}`).get(...f.arg);
+
+  // AKPD: bidang prioritas per siswa (jawaban terbaru)
+  const akpd = q(`SELECT j.hasil FROM jawaban_asesmen j JOIN asesmen a ON a.id = j.asesmen_id
+    JOIN siswa s ON s.nis = j.nis JOIN kelas k ON k.id = s.kelas_id
+    WHERE a.instrumen = 'akpd' AND ${f.sql}
+    AND j.id = (SELECT MAX(j2.id) FROM jawaban_asesmen j2 JOIN asesmen a2 ON a2.id = j2.asesmen_id WHERE j2.nis = j.nis AND a2.instrumen = 'akpd')`);
+  const kategoriAkpd = Object.fromEntries(BIDANG.map(b => [b, 0]));
+  akpd.forEach(r => { kategoriAkpd[JSON.parse(r.hasil).bidangPrioritas]++; });
+
+  const topik = q(`SELECT l.topik, COUNT(DISTINCT l.id) AS n ${layananLingkup} AND l.jenis IN ${KONSELING}
+    GROUP BY lower(l.topik) ORDER BY n DESC LIMIT 8`);
+
+  // Tren 6 bulan terakhir
+  const bulan = [];
+  let b = hariIniIso().slice(0, 7);
+  for (let i = 0; i < 6; i++) { bulan.unshift(b); b = bulanSebelum(b); }
+  const tren = bulan.map(bl => ({
+    bulan: bl,
+    n: db.prepare(`SELECT COUNT(DISTINCT l.id) AS n ${layananLingkup} AND l.jenis IN ${KONSELING} AND l.tanggal LIKE ?`).get(...f.arg, `${bl}-%`).n,
+  }));
+
+  // Evaluasi pra/pasca per jenis layanan (klasikal dihitung lewat kelas)
+  const evaluasi = db.prepare(`SELECT l.jenis, COUNT(*) AS n, ROUND(AVG(l.skala_pra), 2) AS pra, ROUND(AVG(l.skala_pasca), 2) AS pasca
+    FROM layanan l LEFT JOIN kelas k ON k.id = l.kelas_id
+    WHERE l.status != 'Arsip' AND l.skala_pra IS NOT NULL AND l.skala_pasca IS NOT NULL
+    AND (l.kelas_id IS NULL OR ${f.sql})
+    ${aksesSemuaKelas(req.pengguna) ? '' : 'AND l.pengguna_id = ' + Number(req.pengguna.id)}
+    GROUP BY l.jenis`).all(...f.arg);
+
+  const ringkasKelas = q(`SELECT k.id, k.nama AS kelas, p.nama AS guru_bk,
+      (SELECT COUNT(*) FROM siswa s WHERE s.kelas_id = k.id AND s.status = 'Aktif') AS siswa,
+      (SELECT COUNT(DISTINCT ls.layanan_id) FROM layanan_siswa ls JOIN siswa s ON s.nis = ls.nis JOIN layanan l ON l.id = ls.layanan_id
+         WHERE s.kelas_id = k.id AND l.status != 'Arsip') AS layanan_individu,
+      (SELECT COUNT(*) FROM layanan l WHERE l.kelas_id = k.id AND l.jenis = 'bimbingan_klasikal' AND l.status != 'Arsip') AS klasikal,
+      (SELECT COUNT(DISTINCT j.nis) FROM jawaban_asesmen j JOIN siswa s ON s.nis = j.nis WHERE s.kelas_id = k.id) AS sudah_asesmen
+    FROM kelas k LEFT JOIN pengguna p ON p.id = k.guru_bk_id WHERE k.status = 'Aktif' AND ${f.sql} ORDER BY k.nama`);
+
+  return {
+    totalSiswa: (gender.l || 0) + (gender.p || 0),
+    jumlahKelas: ringkasKelas.length,
+    sesiKonseling: db.prepare(`SELECT COUNT(DISTINCT l.id) AS n ${layananLingkup} AND l.jenis IN ${KONSELING}`).get(...f.arg).n,
+    asesmenAkpd: akpd.length,
+    perKelas, gender: { L: gender.l || 0, P: gender.p || 0 }, kategoriAkpd, topik, tren, evaluasi, ringkasKelas,
   };
 }));
 

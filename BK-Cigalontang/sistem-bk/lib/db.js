@@ -102,6 +102,17 @@ CREATE INDEX IF NOT EXISTS idx_layanan_tanggal ON layanan(tanggal);
 CREATE INDEX IF NOT EXISTS idx_siswa_kelas ON siswa(kelas_id);
 `);
 
+// Migrasi ringan: tambah kolom baru pada database lama tanpa menghapus data
+function tambahKolom(tabel, kolom, definisi) {
+  const ada = db.prepare(`PRAGMA table_info(${tabel})`).all().some(k => k.name === kolom);
+  if (!ada) db.exec(`ALTER TABLE ${tabel} ADD COLUMN ${kolom} ${definisi}`);
+}
+tambahKolom('siswa', 'keterangan', 'TEXT');                         // alasan arsip: Lulus / Mutasi keluar / dll.
+tambahKolom('kelas', 'status', "TEXT NOT NULL DEFAULT 'Aktif'");    // 'Arsip' setelah digabung
+tambahKolom('pengguna', 'akses_bebas', 'INTEGER NOT NULL DEFAULT 0'); // 1 = Guru BK boleh akses semua kelas
+tambahKolom('layanan', 'skala_pra', 'INTEGER');                     // evaluasi kondisi 1–5 sebelum layanan
+tambahKolom('layanan', 'skala_pasca', 'INTEGER');                   // evaluasi kondisi 1–5 sesudah layanan
+
 const PENGATURAN_AWAL = {
   nama_sekolah: 'SMA Negeri 1 Cigalontang',
   alamat_sekolah: 'Kec. Cigalontang, Kab. Tasikmalaya, Jawa Barat',

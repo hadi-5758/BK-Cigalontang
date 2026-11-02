@@ -72,9 +72,11 @@ transaksi(() => {
     const awalan = { kasus: 'KS', konseling_individu: 'KN', konseling_kelompok: 'KN', bimbingan_klasikal: 'BL', kunjungan_rumah: 'KR' }[jenis];
     const prefiks = `${awalan}-${tanggal.slice(0, 4)}-${tanggal.slice(5, 7)}-`;
     urutKode[prefiks] = (urutKode[prefiks] || 0) + 1;
-    const r = db.prepare(`INSERT INTO layanan (kode, jenis, tanggal, bidang, topik, kelas_id, kategori_kasus, catatan_enc, status, pengguna_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(prefiks + String(urutKode[prefiks]).padStart(3, '0'), jenis, tanggal, bidang, topik, kelasId,
-      kategori, keamanan.enkripsi('Catatan contoh (data dummy).'), status, koordinator.id);
+    const dievaluasi = ['konseling_individu', 'konseling_kelompok', 'bimbingan_klasikal'].includes(jenis);
+    const pra = dievaluasi ? 2 + Math.floor(rnd() * 2) : null;
+    const r = db.prepare(`INSERT INTO layanan (kode, jenis, tanggal, bidang, topik, kelas_id, kategori_kasus, catatan_enc, status, pengguna_id, skala_pra, skala_pasca)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(prefiks + String(urutKode[prefiks]).padStart(3, '0'), jenis, tanggal, bidang, topik, kelasId,
+      kategori, keamanan.enkripsi('Catatan contoh (data dummy).'), status, koordinator.id, pra, pra && pra + 1);
     nisList.forEach(n => db.prepare('INSERT INTO layanan_siswa (layanan_id, nis) VALUES (?, ?)').run(r.lastInsertRowid, n));
   }
 
