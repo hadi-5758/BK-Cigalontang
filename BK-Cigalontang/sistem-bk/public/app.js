@@ -72,31 +72,52 @@ function layarMasuk(perluSetup) {
 // ============================================================
 // Kerangka & navigasi
 // ============================================================
-// Menu dikelompokkan per alur kerja BK
+// Menu dikelompokkan per alur kerja BK: [grup, [[rute, label, ikon], ...]]
 const MENU = [
-  ['Utama', [['beranda', 'Beranda']]],
-  ['Siswa & Kelas', [['siswa', 'Manajemen Siswa'], ['analitik', 'Analitik Siswa'], ['progres', 'Progres Siswa'], ['kelas', 'Manajemen Kelas'], ['penugasan', 'Penugasan Kelas BK']]],
-  ['Layanan BK', [['konseling-individu', 'Konseling Individual'], ['konseling-kelompok', 'Konseling Kelompok'], ['klasikal', 'Layanan Klasikal'],
-    ['perkembangan', 'Catatan Perkembangan'], ['anekdot', 'Catatan Anekdot'], ['layanan', 'Semua Catatan Layanan']]],
-  ['Asesmen', [['asesmen', 'Asesmen Siswa']]],
-  ['Program & Laporan', [['laporan', 'Laporan Bulanan']]],
-  ['Administrasi', [['pengaturan', 'Pengaturan']]],
+  ['Utama', [['beranda', 'Beranda', '🏠']]],
+  ['Siswa & Kelas', [['siswa', 'Manajemen Siswa', '👥'], ['analitik', 'Analitik Siswa', '📊'], ['progres', 'Progres Siswa', '📈'],
+    ['kelas', 'Manajemen Kelas', '🏫'], ['penugasan', 'Penugasan Kelas BK', '🧭']]],
+  ['Layanan BK', [['konseling-individu', 'Konseling Individual', '💬'], ['konseling-kelompok', 'Konseling Kelompok', '🗣️'], ['klasikal', 'Layanan Klasikal', '🧑‍🏫'],
+    ['perkembangan', 'Catatan Perkembangan', '⭐'], ['anekdot', 'Catatan Anekdot', '📝'], ['layanan', 'Semua Catatan Layanan', '🗂️']]],
+  ['Asesmen', [['asesmen', 'Asesmen Siswa', '📋']]],
+  ['Program & Laporan', [['laporan', 'Laporan Bulanan', '📄']]],
+  ['Administrasi', [['pengaturan', 'Pengaturan', '⚙️']]],
 ];
+
+// Preferensi tampilan menu (lipat grup & sidebar ciut) — hanya kenyamanan per browser
+const KUNCI_MENU = 'sistemBk.menu';
+function bacaPrefMenu() {
+  try { return { ciut: false, tutup: [], ...JSON.parse(localStorage.getItem(KUNCI_MENU) || '{}') }; }
+  catch { return { ciut: false, tutup: [] }; }
+}
+function simpanPrefMenu(pref) {
+  try { localStorage.setItem(KUNCI_MENU, JSON.stringify(pref)); } catch { /* penyimpanan tidak tersedia */ }
+}
+const prefMenu = bacaPrefMenu();
 
 // Navigasi bawah untuk layar HP
 const NAV_BAWAH = [['beranda', '⌂', 'Beranda'], ['layanan/baru', '✎', 'Catat'], ['siswa', '☺', 'Siswa'], ['asesmen', '✓', 'Asesmen'], ['laporan', '▤', 'Laporan']];
 
 function kerangka() {
   akar.innerHTML = `
-  <div class="tata">
-    <nav class="sisi" id="sisi">
-      <div class="merek">Sistem BK</div>
-      <div class="sekolah">${e(keadaan.sekolah)}</div>
-      ${MENU.map(([grup, isi]) => `<div class="grup-menu">${e(grup)}</div>${isi.map(([k, l]) => `<a href="#${k}" data-menu="${k}">${l}</a>`).join('')}`).join('')}
+  <div class="tata ${prefMenu.ciut ? 'ciut' : ''}" id="tata">
+    <nav class="sisi" id="sisi" aria-label="Menu utama">
+      <div class="kepala-sisi">
+        <div class="identitas"><div class="merek">Sistem BK</div><div class="sekolah">${e(keadaan.sekolah)}</div></div>
+        <button class="tombol-ciut" id="tombolCiut" title="${prefMenu.ciut ? 'Lebarkan menu' : 'Lipat menu'}" aria-label="Lipat atau lebarkan menu">${prefMenu.ciut ? '»' : '«'}</button>
+      </div>
+      <div class="aksi-grup"><button id="lipatSemua">Lipat semua</button> · <button id="bukaSemua">Buka semua</button></div>
+      ${MENU.map(([grup, isi]) => {
+        const tertutup = prefMenu.tutup.includes(grup);
+        return `<section class="grup ${tertutup ? 'tertutup' : ''}" data-grup="${e(grup)}">
+          <button class="grup-menu" aria-expanded="${!tertutup}"><span>${e(grup)}</span><span class="panah">▾</span></button>
+          <div class="isi-grup">${isi.map(([k, l, ikon]) => `<a href="#${k}" data-menu="${k}" title="${e(l)}"><span class="ikon">${ikon}</span><span class="teks">${e(l)}</span></a>`).join('')}</div>
+        </section>`;
+      }).join('')}
       <div class="bawah">
-        <div>${e(keadaan.pengguna.nama)}</div>
-        <div class="redup" style="color:#cfe0ee">${keadaan.pengguna.peran === 'koordinator' ? 'Koordinator BK' : 'Guru BK'}</div>
-        <p><a href="#" id="tombolKeluar">Keluar</a></p>
+        <div class="teks">${e(keadaan.pengguna.nama)}</div>
+        <div class="redup teks" style="color:#cfe0ee">${keadaan.pengguna.peran === 'koordinator' ? 'Koordinator BK' : 'Guru BK'}</div>
+        <p><a href="#" id="tombolKeluar" title="Keluar"><span class="ikon">🚪</span><span class="teks">Keluar</span></a></p>
       </div>
     </nav>
     <main class="isi">
@@ -113,6 +134,48 @@ function kerangka() {
     mulai();
   });
   document.getElementById('tombolMenu').addEventListener('click', () => document.getElementById('sisi').classList.toggle('buka'));
+
+  // Lipat/buka satu grup
+  const aturGrup = (sec, tutup) => {
+    sec.classList.toggle('tertutup', tutup);
+    sec.querySelector('.grup-menu').setAttribute('aria-expanded', String(!tutup));
+  };
+  const simpanGrup = () => {
+    prefMenu.tutup = [...document.querySelectorAll('.grup.tertutup')].map(s => s.dataset.grup);
+    simpanPrefMenu(prefMenu);
+  };
+  document.querySelectorAll('.grup').forEach(sec => sec.querySelector('.grup-menu').addEventListener('click', () => {
+    aturGrup(sec, !sec.classList.contains('tertutup'));
+    simpanGrup();
+  }));
+  document.getElementById('lipatSemua').addEventListener('click', () => {
+    // Grup halaman yang sedang dibuka tetap terlihat
+    document.querySelectorAll('.grup').forEach(sec => aturGrup(sec, !sec.querySelector('a.aktif')));
+    simpanGrup();
+  });
+  document.getElementById('bukaSemua').addEventListener('click', () => {
+    document.querySelectorAll('.grup').forEach(sec => aturGrup(sec, false));
+    simpanGrup();
+  });
+
+  // Ciutkan seluruh menu samping menjadi ikon saja
+  document.getElementById('tombolCiut').addEventListener('click', ev => {
+    prefMenu.ciut = !prefMenu.ciut;
+    document.getElementById('tata').classList.toggle('ciut', prefMenu.ciut);
+    ev.currentTarget.textContent = prefMenu.ciut ? '»' : '«';
+    ev.currentTarget.title = prefMenu.ciut ? 'Lebarkan menu' : 'Lipat menu';
+    simpanPrefMenu(prefMenu);
+  });
+}
+
+/** Pastikan grup berisi halaman aktif terbuka. */
+function bukaGrupAktif() {
+  const aktif = document.querySelector('.isi-grup a.aktif');
+  const sec = aktif?.closest('.grup');
+  if (sec?.classList.contains('tertutup')) {
+    sec.classList.remove('tertutup');
+    sec.querySelector('.grup-menu').setAttribute('aria-expanded', 'true');
+  }
 }
 
 const HALAMAN = {};
@@ -120,6 +183,7 @@ async function arahkan() {
   if (!keadaan.pengguna) return;
   const [nama, ...param] = (location.hash.slice(1) || 'beranda').split('/');
   document.querySelectorAll('[data-menu]').forEach(a => a.classList.toggle('aktif', a.dataset.menu === nama));
+  bukaGrupAktif();
   document.getElementById('sisi')?.classList.remove('buka');
   const wadah = document.getElementById('halaman');
   wadah.innerHTML = '<p class="redup">Memuat…</p>';

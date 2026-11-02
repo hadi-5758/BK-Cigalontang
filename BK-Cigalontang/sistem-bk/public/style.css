@@ -22,7 +22,7 @@ h2 { font-size: 1.1rem; margin: 0 0 12px; }
 .kecil { font-size: .82rem; }
 
 /* Tata letak */
-.tata { display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+.tata { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
 .sisi { background: var(--utama); color: #fff; padding: 18px 12px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .sisi .merek { font-weight: 700; font-size: 1.05rem; padding: 0 10px 4px; }
 .sisi .sekolah { font-size: .8rem; opacity: .75; padding: 0 10px 16px; }
@@ -81,8 +81,38 @@ textarea { min-height: 110px; resize: vertical; }
 .kotak-tautan { display: flex; gap: 8px; }
 .kotak-tautan input { font-family: ui-monospace, monospace; font-size: .85rem; }
 
-/* Menu samping berkelompok */
-.sisi .grup-menu { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; opacity: .6; padding: 14px 12px 4px; }
+/* Menu samping berkelompok & bisa dilipat */
+.tata { transition: grid-template-columns .2s; }
+.kepala-sisi { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+.kepala-sisi .identitas { min-width: 0; }
+.sisi .sekolah { padding-bottom: 8px; }
+.sisi button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.tombol-ciut { flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px; font-size: 1.1rem !important; line-height: 1; opacity: .8; }
+.tombol-ciut:hover { background: rgba(255,255,255,.15); opacity: 1; }
+.aksi-grup { font-size: .72rem; opacity: .65; padding: 0 12px 4px; }
+.aksi-grup button { padding: 0; font-size: .72rem; text-decoration: underline; }
+.aksi-grup button:hover { opacity: 1; }
+.sisi .grup-menu { width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: .7rem; text-transform: uppercase;
+  letter-spacing: .06em; opacity: .65; padding: 12px 12px 4px; border-radius: 6px; text-align: left; }
+.sisi .grup-menu:hover { opacity: 1; }
+.grup-menu .panah { transition: transform .15s; font-size: .8rem; }
+.grup.tertutup .panah { transform: rotate(-90deg); }
+.grup.tertutup .isi-grup { display: none; }
+.sisi a { display: flex; align-items: center; gap: 10px; }
+.sisi a .ikon { width: 20px; text-align: center; flex-shrink: 0; font-size: .95rem; }
+.sisi a .teks { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Mode ciut: hanya ikon */
+@media (min-width: 801px) {
+  .tata.ciut { grid-template-columns: 64px 1fr; }
+  .tata.ciut .sisi { padding: 14px 8px; }
+  .tata.ciut .identitas, .tata.ciut .aksi-grup, .tata.ciut .grup-menu, .tata.ciut .teks { display: none; }
+  .tata.ciut .kepala-sisi { justify-content: center; margin-bottom: 8px; }
+  .tata.ciut .isi-grup { display: block !important; border-top: 1px solid rgba(255,255,255,.12); padding-top: 4px; margin-top: 4px; }
+  .tata.ciut .sisi a { justify-content: center; padding: 9px 0; }
+  .tata.ciut .sisi a .ikon { font-size: 1.1rem; }
+  .tata.ciut .bawah { text-align: center; }
+}
 
 /* Beranda */
 .sambutan { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
