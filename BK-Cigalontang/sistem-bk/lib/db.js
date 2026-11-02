@@ -118,6 +118,12 @@ tambahKolom('layanan', 'teknik', 'TEXT');                           // pendekata
 tambahKolom('layanan', 'materi', 'TEXT');                           // materi bimbingan klasikal
 tambahKolom('layanan', 'tipe_klasikal', 'TEXT');
 tambahKolom('layanan', 'capaian', 'TEXT');                          // capaian / SKKPD
+tambahKolom('asesmen', 'mulai', 'TEXT');                            // tes baru bisa diisi mulai tanggal ini
+tambahKolom('asesmen', 'konteks', 'TEXT');                          // konteks pertanyaan sosiometri
+tambahKolom('asesmen', 'izinkan_negatif', 'INTEGER NOT NULL DEFAULT 0'); // sosiometri: pilihan negatif
+tambahKolom('jawaban_asesmen', 'sumber', "TEXT NOT NULL DEFAULT 'online'"); // online / unggah
+tambahKolom('jawaban_asesmen', 'status_lead', "TEXT NOT NULL DEFAULT 'Baru'"); // tindak lanjut lead karier
+tambahKolom('jawaban_asesmen', 'catatan_lead', 'TEXT');
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS catatan_perkembangan (

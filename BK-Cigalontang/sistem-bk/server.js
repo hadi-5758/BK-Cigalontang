@@ -11,7 +11,7 @@ const ExcelJS = require('exceljs');
 const { db, ambilPengaturan, catatAudit, transaksi } = require('./lib/db');
 const keamanan = require('./lib/keamanan');
 const { JENIS_LAYANAN, BIDANG, KATEGORI_KASUS, STATUS, POLA_NIS, TIPE_KLASIKAL, JENIS_PERKEMBANGAN, KATEGORI_PERKEMBANGAN, TEKNIK_KONSELING } = require('./lib/referensi');
-const { INSTRUMEN, TIPE_RIASEC, nilai } = require('./lib/instrumen');
+const { INSTRUMEN, TIPE_RIASEC, TIPE_GAYA, DCM_BIDANG, KONTEKS_SOSIOMETRI, ESKUL_BAWAAN, nilai, analisisSosiometri } = require('./lib/instrumen');
 const { rekapBulanan, buatPdfLaporanBulanan } = require('./lib/laporan');
 
 const PORT = process.env.PORT || 3100;
@@ -193,7 +193,7 @@ app.post('/api/pengguna', perluKoordinator, rute(req => {
 app.get('/api/pengaturan', rute(() => ambilPengaturan()));
 
 app.put('/api/pengaturan', perluKoordinator, rute(req => {
-  const boleh = ['nama_sekolah', 'alamat_sekolah', 'kepala_sekolah', 'nip_kepala_sekolah', 'tahun_pelajaran', 'semester'];
+  const boleh = ['nama_sekolah', 'alamat_sekolah', 'kepala_sekolah', 'nip_kepala_sekolah', 'tahun_pelajaran', 'semester', 'daftar_eskul'];
   const ubah = db.prepare('INSERT INTO pengaturan (kunci, nilai) VALUES (?, ?) ON CONFLICT(kunci) DO UPDATE SET nilai = excluded.nilai');
   transaksi(() => { for (const k of boleh) if (req.body[k] !== undefined) ubah.run(k, String(req.body[k]).trim()); });
   catatAudit(req.pengguna.id, 'ubah_pengaturan');
@@ -203,7 +203,7 @@ app.put('/api/pengaturan', perluKoordinator, rute(req => {
 app.get('/api/referensi', rute(() => ({
   jenisLayanan: JENIS_LAYANAN, bidang: BIDANG, kategoriKasus: KATEGORI_KASUS, status: STATUS, tipeKlasikal: TIPE_KLASIKAL, jenisPerkembangan: JENIS_PERKEMBANGAN, kategoriPerkembangan: KATEGORI_PERKEMBANGAN, teknikKonseling: TEKNIK_KONSELING,
   instrumen: Object.fromEntries(Object.entries(INSTRUMEN).map(([k, v]) => [k, v.nama])),
-  tipeRiasec: TIPE_RIASEC,
+  tipeRiasec: TIPE_RIASEC, tipeGaya: TIPE_GAYA, dcmBidang: DCM_BIDANG,
 })));
 
 // ============================================================
@@ -649,64 +649,377 @@ for (const [jalur, tabel] of [['perkembangan', 'catatan_perkembangan'], ['anekdo
 // ============================================================
 // Asesmen
 // ============================================================
+const daftarEskul = () => (ambilPengaturan().daftar_eskul || ESKUL_BAWAAN.join('\n'))
+  .split('\n').map(s => s.trim()).filter(Boolean);
+
+const rosterKelas = kelasId => db.prepare(`SELECT nis, nama, jk FROM siswa WHERE kelas_id = ? AND status = 'Aktif' ORDER BY nama`).all(kelasId);
+
+/** Isi instrumen yang aman diberikan ke halaman tes/cetak (tanpa kunci penilaian). */
+function isiInstrumen(kode, a = null) {
+  const ins = INSTRUMEN[kode];
+  if (!ins) throw new GalatPengguna('Instrumen tidak dikenal.', 404);
+  const dasar = { kode, nama: ins.nama, jenisInstrumen: ins.jenisInstrumen, petunjuk: ins.petunjuk };
+  if (kode === 'akpd') return { ...dasar, butir: ins.butir.map(({ no, teks, bidang }) => ({ no, teks, bidang })) };
+  if (kode === 'dcm') return { ...dasar, bidang: DCM_BIDANG, butir: ins.butir.map(({ no, teks, bidang }) => ({ no, teks, bidang })) };
+  if (kode === 'riasec') return { ...dasar, skala: ins.skala, butir: ins.butir.map(({ no, teks }) => ({ no, teks })) };
+  if (kode === 'gaya') {
+    // Urutan pilihan diacak tetap per nomor agar huruf tipe tidak berurutan D-I-S-C
+    const urutan = [['D', 'I', 'S', 'C'], ['S', 'C', 'D', 'I'], ['I', 'D', 'C', 'S'], ['C', 'S', 'I', 'D']];
+    return { ...dasar, set: ins.set.map(s => ({ no: s.no, pilihan: urutan[s.no % 4].map(t => ({ kode: t, teks: s.pilihan[t] })) })) };
+  }
+  if (kode === 'eskul') return { ...dasar, maksPilihan: ins.maksPilihan, daftar: daftarEskul() };
+  if (kode === 'sosiometri') {
+    const k = KONTEKS_SOSIOMETRI[a?.konteks] || KONTEKS_SOSIOMETRI.belajar;
+    return { ...dasar, maksPilihan: ins.maksPilihan, pertanyaan: k.pertanyaan, pertanyaanNegatif: a?.izinkan_negatif ? k.negatif : null, konteks: k.label };
+  }
+  return dasar;
+}
+
+app.get('/api/instrumen', rute(() => ({
+  instrumen: Object.keys(INSTRUMEN).map(k => {
+    const i = isiInstrumen(k);
+    return { kode: k, nama: i.nama, jenisInstrumen: i.jenisInstrumen, petunjuk: i.petunjuk,
+      jumlahButir: (i.butir || i.set || i.daftar || []).length };
+  }),
+  konteksSosiometri: Object.fromEntries(Object.entries(KONTEKS_SOSIOMETRI).map(([k, v]) => [k, v.label])),
+  dcmBidang: DCM_BIDANG, tipeGaya: TIPE_GAYA, tipeRiasec: TIPE_RIASEC, daftarEskul: daftarEskul(),
+})));
+
+app.get('/api/instrumen/:kode', rute(req => isiInstrumen(req.params.kode)));
+
+function ambilAsesmenBerhak(pengguna, id) {
+  const a = db.prepare('SELECT a.*, k.nama AS kelas, k.guru_bk_id FROM asesmen a JOIN kelas k ON k.id = a.kelas_id WHERE a.id = ?').get(id);
+  if (!a) throw new GalatPengguna('Asesmen tidak ditemukan.', 404);
+  if (!aksesSemuaKelas(pengguna) && a.guru_bk_id !== pengguna.id) throw new GalatPengguna('Kelas ini bukan binaan Anda.', 403);
+  return a;
+}
+
+/** Rekap sekumpulan hasil satu instrumen (non-sosiometri). */
+function rekapHasil(instrumen, daftarHasil) {
+  const n = daftarHasil.length;
+  if (instrumen === 'akpd' || instrumen === 'dcm') {
+    const ins = INSTRUMEN[instrumen];
+    const kunciBidang = instrumen === 'akpd' ? BIDANG : Object.keys(DCM_BIDANG);
+    const perBidang = Object.fromEntries(kunciBidang.map(b => [b, 0]));
+    const frek = {};
+    const kategori = {};
+    let konsultasi = 0;
+    for (const h of daftarHasil) {
+      kunciBidang.forEach(b => { perBidang[b] += h.perBidang[b]?.persen || 0; });
+      h.butir.forEach(no => { frek[no] = (frek[no] || 0) + 1; });
+      if (h.kategori) kategori[h.kategori] = (kategori[h.kategori] || 0) + 1;
+      if (h.ingin_konsultasi) konsultasi++;
+    }
+    kunciBidang.forEach(b => { perBidang[b] = n ? Math.round(perBidang[b] / n) : 0; });
+    const butirTeratas = Object.entries(frek).sort((x, y) => y[1] - x[1]).slice(0, 10).map(([no, j]) => {
+      const b = ins.butir[Number(no) - 1];
+      return { no: Number(no), teks: b.teks, bidang: instrumen === 'dcm' ? DCM_BIDANG[b.bidang] : b.bidang, jumlah: j, persen: Math.round((j / n) * 100) };
+    });
+    return { jumlah: n, perBidang, butirTeratas, kategori, inginKonsultasi: konsultasi };
+  }
+  if (instrumen === 'riasec' || instrumen === 'gaya') {
+    const dominan = Object.fromEntries(Object.keys(instrumen === 'riasec' ? TIPE_RIASEC : TIPE_GAYA).map(t => [t, 0]));
+    daftarHasil.forEach(h => { dominan[h.dominan]++; });
+    return { jumlah: n, dominan };
+  }
+  if (instrumen === 'eskul') {
+    const peminat = {};
+    const utama = {};
+    daftarHasil.forEach(h => {
+      h.pilihan.forEach(p => { peminat[p] = (peminat[p] || 0) + 1; });
+      utama[h.utama] = (utama[h.utama] || 0) + 1;
+    });
+    const urut = Object.entries(peminat).sort((x, y) => y[1] - x[1]).map(([nama, j]) => ({ nama, peminat: j, utama: utama[nama] || 0 }));
+    return { jumlah: n, eskul: urut };
+  }
+  return { jumlah: n };
+}
+
+function analisisSesiSosiometri(a) {
+  const roster = rosterKelas(a.kelas_id);
+  const jawaban = db.prepare('SELECT nis, hasil FROM jawaban_asesmen WHERE asesmen_id = ?').all(a.id).map(r => ({ nis: r.nis, hasil: JSON.parse(r.hasil) }));
+  return analisisSosiometri(roster, jawaban);
+}
+
 app.get('/api/asesmen', rute(req => {
   const f = filterKelas(req.pengguna);
-  return db.prepare(`SELECT a.id, a.instrumen, a.token, a.tenggat, a.aktif, a.dibuat, k.nama AS kelas,
+  const syarat = [f.sql];
+  const arg = [...f.arg];
+  if (req.query.instrumen) { syarat.push('a.instrumen = ?'); arg.push(req.query.instrumen); }
+  if (req.query.kelas_id) { syarat.push('a.kelas_id = ?'); arg.push(req.query.kelas_id); }
+  return db.prepare(`SELECT a.id, a.instrumen, a.token, a.tenggat, a.mulai, a.konteks, a.izinkan_negatif, a.aktif, a.dibuat, a.kelas_id, k.nama AS kelas,
       (SELECT COUNT(*) FROM siswa s WHERE s.kelas_id = a.kelas_id AND s.status = 'Aktif') AS jumlah_siswa,
       (SELECT COUNT(*) FROM jawaban_asesmen j WHERE j.asesmen_id = a.id) AS jumlah_jawaban
-    FROM asesmen a JOIN kelas k ON k.id = a.kelas_id WHERE ${f.sql} ORDER BY a.dibuat DESC`).all(...f.arg);
+    FROM asesmen a JOIN kelas k ON k.id = a.kelas_id WHERE ${syarat.join(' AND ')} ORDER BY a.dibuat DESC, a.id DESC`).all(...arg);
 }));
 
 app.post('/api/asesmen', rute(req => {
-  wajib(req.body, ['instrumen', 'kelas_id']);
-  if (!INSTRUMEN[req.body.instrumen]) throw new GalatPengguna('Instrumen tidak dikenal.');
+  const b = req.body;
+  wajib(b, ['instrumen', 'kelas_id']);
+  if (!INSTRUMEN[b.instrumen]) throw new GalatPengguna('Instrumen tidak dikenal.');
   const f = filterKelas(req.pengguna);
-  if (!db.prepare(`SELECT 1 FROM kelas k WHERE k.id = ? AND ${f.sql}`).get(req.body.kelas_id, ...f.arg)) {
+  if (!db.prepare(`SELECT 1 FROM kelas k WHERE k.id = ? AND k.status = 'Aktif' AND ${f.sql}`).get(b.kelas_id, ...f.arg)) {
     throw new GalatPengguna('Kelas tidak ditemukan atau bukan binaan Anda.', 403);
   }
+  for (const t of ['mulai', 'tenggat']) if (b[t] && !/^\d{4}-\d{2}-\d{2}$/.test(b[t])) throw new GalatPengguna(`Format tanggal ${t} tidak valid.`);
+  if (b.mulai && b.tenggat && b.mulai > b.tenggat) throw new GalatPengguna('Tanggal mulai tidak boleh setelah tenggat.');
+  const konteks = b.instrumen === 'sosiometri' ? (KONTEKS_SOSIOMETRI[b.konteks] ? b.konteks : 'belajar') : null;
   const token = keamanan.tokenAcak();
-  const { lastInsertRowid } = db.prepare('INSERT INTO asesmen (instrumen, kelas_id, token, tenggat, pengguna_id) VALUES (?, ?, ?, ?, ?)')
-    .run(req.body.instrumen, req.body.kelas_id, token, req.body.tenggat || null, req.pengguna.id);
+  const { lastInsertRowid } = db.prepare(`INSERT INTO asesmen (instrumen, kelas_id, token, tenggat, mulai, konteks, izinkan_negatif, pengguna_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(b.instrumen, b.kelas_id, token, b.tenggat || null, b.mulai || null, konteks,
+    b.instrumen === 'sosiometri' && b.izinkan_negatif ? 1 : 0, req.pengguna.id);
   catatAudit(req.pengguna.id, 'buat_asesmen', String(lastInsertRowid));
   return { id: Number(lastInsertRowid), token };
 }));
 
 app.put('/api/asesmen/:id', rute(req => {
-  db.prepare('UPDATE asesmen SET aktif = ? WHERE id = ?').run(req.body.aktif ? 1 : 0, req.params.id);
+  const a = ambilAsesmenBerhak(req.pengguna, req.params.id);
+  db.prepare('UPDATE asesmen SET aktif = ? WHERE id = ?').run(req.body.aktif ? 1 : 0, a.id);
   return { ok: true };
 }));
 
 app.get('/api/asesmen/:id/hasil', rute(req => {
-  const a = db.prepare('SELECT a.*, k.nama AS kelas, k.guru_bk_id FROM asesmen a JOIN kelas k ON k.id = a.kelas_id WHERE a.id = ?').get(req.params.id);
-  if (!a) throw new GalatPengguna('Asesmen tidak ditemukan.', 404);
-  if (req.pengguna.peran !== 'koordinator' && a.guru_bk_id !== req.pengguna.id) throw new GalatPengguna('Kelas ini bukan binaan Anda.', 403);
-  const jawaban = db.prepare(`SELECT j.nis, s.nama, j.hasil, j.setuju_dibagikan, j.dikirim FROM jawaban_asesmen j
+  const a = ambilAsesmenBerhak(req.pengguna, req.params.id);
+  const jawaban = db.prepare(`SELECT j.id, j.nis, s.nama, j.hasil, j.setuju_dibagikan, j.dikirim, j.sumber FROM jawaban_asesmen j
     JOIN siswa s ON s.nis = j.nis WHERE j.asesmen_id = ? ORDER BY s.nama`).all(a.id).map(r => ({ ...r, hasil: JSON.parse(r.hasil) }));
   const belum = db.prepare(`SELECT nis, nama FROM siswa WHERE kelas_id = ? AND status = 'Aktif'
     AND nis NOT IN (SELECT nis FROM jawaban_asesmen WHERE asesmen_id = ?) ORDER BY nama`).all(a.kelas_id, a.id);
-
-  // Rekap kelas
-  let rekap = {};
-  if (a.instrumen === 'akpd') {
-    const perBidang = Object.fromEntries(BIDANG.map(b => [b, 0]));
-    const frekuensiButir = {};
-    for (const j of jawaban) {
-      for (const b of BIDANG) perBidang[b] += j.hasil.perBidang[b]?.persen || 0;
-      for (const no of j.hasil.butir) frekuensiButir[no] = (frekuensiButir[no] || 0) + 1;
-    }
-    for (const b of BIDANG) perBidang[b] = jawaban.length ? Math.round(perBidang[b] / jawaban.length) : 0;
-    const butirTeratas = Object.entries(frekuensiButir).sort((x, y) => y[1] - x[1]).slice(0, 10).map(([no, n]) => {
-      const butir = INSTRUMEN.akpd.butir[Number(no) - 1];
-      return { no: Number(no), teks: butir.teks, bidang: butir.bidang, jumlah: n, persen: Math.round((n / jawaban.length) * 100) };
-    });
-    rekap = { perBidang, butirTeratas };
-  } else {
-    const dominan = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
-    jawaban.forEach(j => dominan[j.hasil.dominan]++);
-    rekap = { dominan };
-  }
+  const rekap = a.instrumen === 'sosiometri' ? analisisSesiSosiometri(a) : rekapHasil(a.instrumen, jawaban.map(j => j.hasil));
   catatAudit(req.pengguna.id, 'lihat_hasil_asesmen', String(a.id));
-  return { asesmen: { id: a.id, instrumen: a.instrumen, kelas: a.kelas, token: a.token, aktif: a.aktif, tenggat: a.tenggat }, jawaban, belum, rekap };
+  return {
+    asesmen: { id: a.id, instrumen: a.instrumen, kelas: a.kelas, kelas_id: a.kelas_id, token: a.token, aktif: a.aktif, tenggat: a.tenggat, mulai: a.mulai,
+      konteks: a.konteks ? KONTEKS_SOSIOMETRI[a.konteks]?.label : null, izinkan_negatif: a.izinkan_negatif },
+    jawaban, belum, rekap,
+  };
+}));
+
+// ---------- Input massal: template & unggah rekap jawaban ----------
+function kolomTemplate(a) {
+  const ins = isiInstrumen(a.instrumen, a);
+  if (a.instrumen === 'akpd' || a.instrumen === 'dcm') return ins.butir.map(b => `B${b.no}`);
+  if (a.instrumen === 'riasec') return ins.butir.map(b => `B${b.no}`);
+  if (a.instrumen === 'gaya') return GAYA_NOMOR().map(no => `No${no}`);
+  if (a.instrumen === 'eskul') return ['Pilihan 1', 'Pilihan 2', 'Pilihan 3'];
+  if (a.instrumen === 'sosiometri') return ['Positif 1 (NIS)', 'Positif 2 (NIS)', 'Positif 3 (NIS)', ...(a.izinkan_negatif ? ['Negatif 1 (NIS)', 'Negatif 2 (NIS)', 'Negatif 3 (NIS)'] : [])];
+  return [];
+}
+const GAYA_NOMOR = () => INSTRUMEN.gaya.set.map(s => s.no);
+
+const PETUNJUK_TEMPLATE = {
+  akpd: 'Isi 1 pada butir yang dicentang siswa, kosongkan jika tidak.',
+  dcm: 'Isi 1 pada butir yang dicentang siswa, kosongkan jika tidak. Kolom Konsultasi: Y jika siswa ingin konsultasi.',
+  riasec: 'Isi 1 (tidak suka), 2 (biasa saja), atau 3 (suka) untuk setiap butir.',
+  gaya: 'Isi huruf D, I, S, atau C sesuai pilihan siswa di setiap nomor (lihat lembar soal cetak).',
+  eskul: 'Tulis nama eskul persis seperti daftar di lembar soal.',
+  sosiometri: 'Tulis NIS teman yang dipilih siswa.',
+};
+
+app.get('/api/asesmen/:id/template.xlsx', async (req, res) => {
+  try {
+    const a = ambilAsesmenBerhak(req.pengguna, req.params.id);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Jawaban');
+    const kolom = kolomTemplate(a);
+    const ekstra = a.instrumen === 'dcm' ? ['Konsultasi (Y/T)'] : [];
+    ws.addRow(['NIS*', 'Nama', ...kolom, ...ekstra, 'Setuju dibagikan (Y/T)']);
+    ws.getRow(1).font = { bold: true };
+    rosterKelas(a.kelas_id).forEach(s => ws.addRow([s.nis, s.nama]));
+    ws.getColumn(1).numFmt = '@';
+    ws.getColumn(1).width = 13; ws.getColumn(2).width = 28;
+    const info = wb.addWorksheet('Petunjuk');
+    info.addRow([`${INSTRUMEN[a.instrumen].nama} — kelas ${a.kelas}`]);
+    info.addRow([PETUNJUK_TEMPLATE[a.instrumen]]);
+    info.addRow(['Kolom "Setuju dibagikan": Y jika siswa bersedia hasilnya dipakai untuk diskusi lanjutan.']);
+    if (a.instrumen === 'eskul') daftarEskul().forEach(e => info.addRow(['', e]));
+    res.set({ 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="template-${a.instrumen}-${a.kelas.replace(/\W+/g, '_')}.xlsx"` });
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (e) {
+    if (e instanceof GalatPengguna) return res.status(e.kode).json({ galat: e.message });
+    console.error(e);
+    res.status(500).json({ galat: 'Template gagal dibuat.' });
+  }
+});
+
+/** Ubah satu baris Excel menjadi jawaban sesuai format instrumen. */
+function jawabanDariBaris(a, nilaiSel) {
+  const kolom = kolomTemplate(a);
+  const v = kolom.map((_, i) => nilaiSel[i]);
+  if (a.instrumen === 'akpd') return INSTRUMEN.akpd.butir.filter((b, i) => String(v[i]).trim() === '1').map(b => b.no);
+  if (a.instrumen === 'dcm') return { butir: INSTRUMEN.dcm.butir.filter((b, i) => String(v[i]).trim() === '1').map(b => b.no), konsultasi: /^y/i.test(nilaiSel[kolom.length] || '') };
+  if (a.instrumen === 'riasec') return Object.fromEntries(INSTRUMEN.riasec.butir.map((b, i) => [b.no, Number(v[i])]));
+  if (a.instrumen === 'gaya') return Object.fromEntries(GAYA_NOMOR().map((no, i) => [no, String(v[i] || '').trim().toUpperCase()]));
+  if (a.instrumen === 'eskul') return { pilihan: v.map(x => String(x || '').trim()).filter(Boolean) };
+  if (a.instrumen === 'sosiometri') {
+    const nisSel = arr => arr.map(x => String(x || '').trim()).filter(Boolean).map(x => (/^\d{8,9}$/.test(x) ? x.padStart(10, '0') : x));
+    return { positif: nisSel(v.slice(0, 3)), negatif: nisSel(v.slice(3, 6)) };
+  }
+  return null;
+}
+
+function simpanJawaban(a, nis, jawaban, setuju, sumber) {
+  const roster = a.instrumen === 'sosiometri' ? rosterKelas(a.kelas_id).map(s => s.nis) : null;
+  const hasil = nilai(a.instrumen, jawaban, { daftarEskul: daftarEskul(), rosterNis: roster, nis, izinkanNegatif: !!a.izinkan_negatif });
+  db.prepare(`INSERT INTO jawaban_asesmen (asesmen_id, nis, jawaban, hasil, setuju_dibagikan, sumber) VALUES (?, ?, ?, ?, ?, ?)`)
+    .run(a.id, nis, JSON.stringify(jawaban), JSON.stringify(hasil), setuju ? 1 : 0, sumber);
+  return hasil;
+}
+
+app.post('/api/asesmen/:id/unggah', express.raw({ type: () => true, limit: '10mb' }), async (req, res) => {
+  try {
+    const a = ambilAsesmenBerhak(req.pengguna, req.params.id);
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(req.body);
+    const ws = wb.worksheets[0];
+    if (!ws) throw new GalatPengguna('Berkas Excel kosong.');
+    const teksSel = v => (v && typeof v === 'object' ? (v.text ?? v.result ?? '') : (v ?? '')).toString().trim();
+    const nisKelas = new Set(rosterKelas(a.kelas_id).map(s => s.nis));
+    const sudah = new Set(db.prepare('SELECT nis FROM jawaban_asesmen WHERE asesmen_id = ?').all(a.id).map(r => r.nis));
+    const jumlahKolom = kolomTemplate(a).length + (a.instrumen === 'dcm' ? 1 : 0);
+    const siap = [];
+    const galat = [];
+    let dilewati = 0;
+    ws.eachRow((row, no) => {
+      if (no === 1) return;
+      const sel = [];
+      for (let i = 1; i <= jumlahKolom + 3; i++) sel.push(teksSel(row.getCell(i).value));
+      let nis = sel[0];
+      if (typeof row.getCell(1).value === 'number' && nis.length >= 8) nis = nis.padStart(10, '0');
+      const isian = sel.slice(2, 2 + jumlahKolom);
+      if (!nis || isian.every(x => x === '')) { dilewati++; return; }
+      if (!nisKelas.has(nis)) return galat.push(`Baris ${no}: NIS ${nis} bukan siswa aktif kelas ${a.kelas}.`);
+      if (sudah.has(nis)) return galat.push(`Baris ${no}: NIS ${nis} sudah punya jawaban di sesi ini.`);
+      try {
+        const jawaban = jawabanDariBaris(a, isian);
+        // Validasi lewat penilaian; simpan nanti dalam satu transaksi
+        nilai(a.instrumen, jawaban, { daftarEskul: daftarEskul(), rosterNis: [...nisKelas], nis, izinkanNegatif: !!a.izinkan_negatif });
+        siap.push({ nis, jawaban, setuju: /^y/i.test(sel[2 + jumlahKolom] || '') });
+        sudah.add(nis);
+      } catch (e) { galat.push(`Baris ${no}: ${e.message}`); }
+    });
+    if (galat.length) return res.status(400).json({ galat: 'Data belum bisa diunggah. Perbaiki baris berikut lalu unggah ulang.', rincian: galat.slice(0, 50) });
+    if (!siap.length) throw new GalatPengguna('Tidak ada baris jawaban yang terisi.');
+    transaksi(() => siap.forEach(s => simpanJawaban(a, s.nis, s.jawaban, s.setuju, 'unggah')));
+    catatAudit(req.pengguna.id, 'unggah_asesmen', `${a.id}: ${siap.length} jawaban`);
+    res.json({ disimpan: siap.length, dilewati });
+  } catch (e) {
+    if (e instanceof GalatPengguna) return res.status(e.kode).json({ galat: e.message });
+    console.error(e);
+    res.status(400).json({ galat: 'Berkas tidak bisa dibaca. Pastikan memakai template .xlsx dari aplikasi.' });
+  }
+});
+
+// ---------- Ringkasan per instrumen & laporan per kelas ----------
+/** Hasil terbaru tiap siswa untuk satu instrumen, dalam lingkup akses. */
+function hasilTerbaru(req, instrumen, kelasId = null) {
+  const f = filterKelas(req.pengguna);
+  return db.prepare(`SELECT j.id, j.nis, s.nama, k.nama AS kelas, k.id AS kelas_id, j.hasil, j.dikirim, j.setuju_dibagikan, j.asesmen_id
+    FROM jawaban_asesmen j JOIN asesmen a ON a.id = j.asesmen_id JOIN siswa s ON s.nis = j.nis JOIN kelas k ON k.id = s.kelas_id
+    WHERE a.instrumen = ? AND s.status = 'Aktif' AND ${f.sql} ${kelasId ? 'AND k.id = ?' : ''}
+    AND j.id = (SELECT MAX(j2.id) FROM jawaban_asesmen j2 JOIN asesmen a2 ON a2.id = j2.asesmen_id WHERE j2.nis = j.nis AND a2.instrumen = ?)
+    ORDER BY k.nama, s.nama`).all(instrumen, ...f.arg, ...(kelasId ? [kelasId] : []), instrumen).map(r => ({ ...r, hasil: JSON.parse(r.hasil) }));
+}
+
+/** Analisis sosiometri sesi terbaru tiap kelas. */
+function sosiometriTerbaru(req, kelasId = null) {
+  const f = filterKelas(req.pengguna);
+  const sesi = db.prepare(`SELECT a.*, k.nama AS kelas FROM asesmen a JOIN kelas k ON k.id = a.kelas_id
+    WHERE a.instrumen = 'sosiometri' AND k.status = 'Aktif' AND ${f.sql} ${kelasId ? 'AND k.id = ?' : ''}
+    AND a.id = (SELECT MAX(a2.id) FROM asesmen a2 WHERE a2.kelas_id = a.kelas_id AND a2.instrumen = 'sosiometri'
+      AND EXISTS (SELECT 1 FROM jawaban_asesmen j WHERE j.asesmen_id = a2.id))
+    ORDER BY k.nama`).all(...f.arg, ...(kelasId ? [kelasId] : []));
+  return sesi.map(a => ({ asesmen_id: a.id, kelas: a.kelas, konteks: KONTEKS_SOSIOMETRI[a.konteks]?.label, ...analisisSesiSosiometri(a) }));
+}
+
+app.get('/api/asesmen-ringkasan/:instrumen', rute(req => {
+  const ins = req.params.instrumen;
+  if (!INSTRUMEN[ins]) throw new GalatPengguna('Instrumen tidak dikenal.', 404);
+  const kelasId = req.query.kelas_id || null;
+  if (ins === 'sosiometri') {
+    const kelasList = sosiometriTerbaru(req, kelasId);
+    const siswa = kelasList.flatMap(k => k.siswa.map(s => ({ nis: s.nis, nama: s.nama, kelas: k.kelas, asesmen_id: k.asesmen_id,
+      hasil: { P: s.P, N: s.N, status: s.status, indeks: s.indeks, mengisi: s.mengisi } })));
+    return { jumlah: siswa.filter(s => s.hasil.mengisi).length, rekap: { kelas: kelasList.map(({ siswa: _, ...k }) => k) }, siswa };
+  }
+  const daftar = hasilTerbaru(req, ins, kelasId);
+  return { jumlah: daftar.length, rekap: rekapHasil(ins, daftar.map(d => d.hasil)), siswa: daftar };
+}));
+
+app.get('/api/asesmen-kelas/:kelasId', rute(req => {
+  const f = filterKelas(req.pengguna);
+  const k = db.prepare(`SELECT k.* FROM kelas k WHERE k.id = ? AND k.status = 'Aktif' AND ${f.sql}`).get(req.params.kelasId, ...f.arg);
+  if (!k) throw new GalatPengguna('Kelas tidak ditemukan atau bukan binaan Anda.', 404);
+  const jumlahSiswa = rosterKelas(k.id).length;
+  const instrumen = Object.keys(INSTRUMEN).map(kode => {
+    if (kode === 'sosiometri') {
+      const s = sosiometriTerbaru(req, k.id)[0];
+      return { kode, sudah: s ? s.jumlahMengisi : 0, rekap: s ? { asesmen_id: s.asesmen_id, timbalBalik: s.timbalBalik.length,
+        belumTerpilih: s.siswa.filter(x => x.status === 'Belum terpilih' || x.status === 'Kurang diterima').map(x => x.nama),
+        bintang: s.siswa.filter(x => x.status === 'Bintang').map(x => x.nama) } : null };
+    }
+    const daftar = hasilTerbaru(req, kode, k.id);
+    return { kode, sudah: daftar.length, rekap: daftar.length ? rekapHasil(kode, daftar.map(d => d.hasil)) : null };
+  });
+  const sesi = db.prepare(`SELECT a.id, a.instrumen, a.aktif, a.dibuat, (SELECT COUNT(*) FROM jawaban_asesmen j WHERE j.asesmen_id = a.id) AS jumlah_jawaban
+    FROM asesmen a WHERE a.kelas_id = ? ORDER BY a.dibuat DESC`).all(k.id);
+  return { kelas: { id: k.id, nama: k.nama, wali_kelas: k.wali_kelas }, jumlahSiswa, instrumen, sesi };
+}));
+
+// ---------- Lead Karier (hasil RIASEC yang diizinkan siswa) ----------
+const STATUS_LEAD = ['Baru', 'Dihubungi', 'Konseling karier', 'Selesai'];
+
+function daftarLead(req) {
+  const semua = hasilTerbaru(req, 'riasec', req.query.kelas_id || null);
+  return { semua, lead: semua.filter(r => r.setuju_dibagikan) };
+}
+
+app.get('/api/lead-karier', rute(req => {
+  const { semua, lead } = daftarLead(req);
+  const status = Object.fromEntries(db.prepare(`SELECT id, status_lead, catatan_lead FROM jawaban_asesmen WHERE id IN (${lead.map(() => '?').join(',') || 'NULL'})`)
+    .all(...lead.map(l => l.id)).map(r => [r.id, r]));
+  let daftar = lead.map(l => ({ id: l.id, nis: l.nis, nama: l.nama, kelas: l.kelas, kelas_id: l.kelas_id, dikirim: l.dikirim,
+    kodeHolland: l.hasil.kodeHolland, dominan: l.hasil.dominan, skor: l.hasil.skor,
+    status: status[l.id]?.status_lead || 'Baru', catatan: status[l.id]?.catatan_lead || '' }));
+  const frek = {};
+  semua.forEach(r => { frek[r.hasil.dominan] = (frek[r.hasil.dominan] || 0) + 1; });
+  const minatTeratas = Object.entries(frek).sort((x, y) => y[1] - x[1])[0]?.[0] || null;
+  const statistik = {
+    hasil: semua.length, optIn: lead.length,
+    ditindaklanjuti: daftar.filter(d => d.status !== 'Baru').length,
+    minatTeratas, sebaran: frek,
+  };
+  if (req.query.tipe) daftar = daftar.filter(d => d.dominan === req.query.tipe);
+  if (req.query.status) daftar = daftar.filter(d => d.status === req.query.status);
+  const urut = { nama: (x, y) => x.nama.localeCompare(y.nama), kelas: (x, y) => x.kelas.localeCompare(y.kelas) || x.nama.localeCompare(y.nama),
+    terbaru: (x, y) => y.dikirim.localeCompare(x.dikirim) }[req.query.urut || 'terbaru'];
+  daftar.sort(urut);
+  catatAudit(req.pengguna.id, 'lihat_lead_karier');
+  return { statistik, daftar, statusLead: STATUS_LEAD };
+}));
+
+app.put('/api/lead-karier/:id', rute(req => {
+  const j = db.prepare(`SELECT j.id, j.nis, j.setuju_dibagikan, a.instrumen FROM jawaban_asesmen j JOIN asesmen a ON a.id = j.asesmen_id WHERE j.id = ?`).get(req.params.id);
+  if (!j || j.instrumen !== 'riasec' || !j.setuju_dibagikan) throw new GalatPengguna('Lead tidak ditemukan.', 404);
+  pastikanAksesSiswa(req.pengguna, j.nis);
+  if (req.body.status && !STATUS_LEAD.includes(req.body.status)) throw new GalatPengguna('Status tidak valid.');
+  db.prepare('UPDATE jawaban_asesmen SET status_lead = COALESCE(?, status_lead), catatan_lead = COALESCE(?, catatan_lead) WHERE id = ?')
+    .run(req.body.status || null, req.body.catatan ?? null, j.id);
+  catatAudit(req.pengguna.id, 'ubah_lead_karier', String(j.id));
+  return { ok: true };
+}));
+
+app.get('/api/lead-karier.csv', rute((req, res) => {
+  const { lead } = daftarLead(req);
+  const status = Object.fromEntries(db.prepare(`SELECT id, status_lead FROM jawaban_asesmen WHERE id IN (${lead.map(() => '?').join(',') || 'NULL'})`)
+    .all(...lead.map(l => l.id)).map(r => [r.id, r.status_lead]));
+  const sel = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const baris = [['NIS', 'Nama', 'Kelas', 'Kode Holland', 'Tipe Dominan', 'R', 'I', 'A', 'S', 'E', 'C', 'Tanggal', 'Status']]
+    .concat(lead.map(l => [l.nis, l.nama, l.kelas, l.hasil.kodeHolland, TIPE_RIASEC[l.hasil.dominan].nama,
+      ...['R', 'I', 'A', 'S', 'E', 'C'].map(t => l.hasil.skor[t]), l.dikirim.slice(0, 10), status[l.id] || 'Baru']));
+  catatAudit(req.pengguna.id, 'ekspor_lead_karier', `${lead.length} baris`);
+  res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="lead-karier-${hariIniIso()}.csv"` });
+  res.send('﻿' + baris.map(b => b.map(sel).join(',')).join('\r\n'));
 }));
 
 // ---------- Pengisian tes oleh siswa (tanpa login) ----------
@@ -714,35 +1027,51 @@ function ambilAsesmenAktif(token) {
   const a = db.prepare('SELECT a.*, k.nama AS kelas FROM asesmen a JOIN kelas k ON k.id = a.kelas_id WHERE a.token = ?').get(token);
   if (!a) throw new GalatPengguna('Tautan tes tidak ditemukan. Tanyakan tautan yang benar kepada guru BK.', 404);
   if (!a.aktif) throw new GalatPengguna('Tes ini sudah ditutup oleh guru BK.', 410);
+  if (a.mulai && a.mulai > hariIniIso()) throw new GalatPengguna(`Tes ini baru dibuka pada ${a.mulai.split('-').reverse().join('/')}.`, 403);
   if (a.tenggat && a.tenggat < hariIniIso()) throw new GalatPengguna('Batas waktu pengisian tes sudah lewat.', 410);
   return a;
 }
 
-app.get('/api/tes/:token', rute(req => {
-  const a = ambilAsesmenAktif(req.params.token);
-  const ins = INSTRUMEN[a.instrumen];
-  return { sekolah: ambilPengaturan().nama_sekolah, kelas: a.kelas, tenggat: a.tenggat, instrumen: { kode: ins.kode, nama: ins.nama, petunjuk: ins.petunjuk, skala: ins.skala, butir: ins.butir.map(({ no, teks }) => ({ no, teks })) } };
-}));
-
-app.post('/api/tes/:token', rute(req => {
-  batasiPercobaan('tes:' + req.ip, 30);
-  const a = ambilAsesmenAktif(req.params.token);
-  const nis = String(req.body.nis || '').trim();
-  const namaDepan = String(req.body.nama_depan || '').trim().toLowerCase();
+/** Verifikasi identitas siswa: NIS terdaftar di kelas + nama depan cocok. */
+function verifikasiSiswa(a, body) {
+  const nis = String(body.nis || '').trim();
+  const namaDepan = String(body.nama_depan || '').trim().toLowerCase();
   const s = db.prepare(`SELECT nis, nama FROM siswa WHERE nis = ? AND kelas_id = ? AND status = 'Aktif'`).get(nis, a.kelas_id);
-  // Verifikasi sederhana: NIS terdaftar di kelas ini + nama depan cocok
   if (!s || s.nama.trim().split(/\s+/)[0].toLowerCase() !== namaDepan) {
     throw new GalatPengguna(`NIS dan nama depan tidak cocok dengan data siswa kelas ${a.kelas}. Periksa kembali atau hubungi guru BK.`);
   }
   if (db.prepare('SELECT 1 FROM jawaban_asesmen WHERE asesmen_id = ? AND nis = ?').get(a.id, nis)) {
     throw new GalatPengguna('Kamu sudah mengisi tes ini. Terima kasih!', 409);
   }
+  return s;
+}
+
+app.get('/api/tes/:token', rute(req => {
+  const a = ambilAsesmenAktif(req.params.token);
+  return { sekolah: ambilPengaturan().nama_sekolah, kelas: a.kelas, tenggat: a.tenggat, instrumen: isiInstrumen(a.instrumen, a) };
+}));
+
+// Langkah identitas: wajib sebelum sosiometri agar daftar nama teman hanya terlihat oleh siswa kelas itu
+app.post('/api/tes/:token/identitas', rute(req => {
+  batasiPercobaan('tes:' + req.ip, 30);
+  const a = ambilAsesmenAktif(req.params.token);
+  const s = verifikasiSiswa(a, req.body);
+  const teman = a.instrumen === 'sosiometri' ? rosterKelas(a.kelas_id).filter(t => t.nis !== s.nis).map(t => ({ nis: t.nis, nama: t.nama })) : undefined;
+  return { nama: s.nama, teman };
+}));
+
+app.post('/api/tes/:token', rute(req => {
+  batasiPercobaan('tes:' + req.ip, 30);
+  const a = ambilAsesmenAktif(req.params.token);
+  const s = verifikasiSiswa(a, req.body);
   let hasil;
-  try { hasil = nilai(a.instrumen, req.body.jawaban); } catch (e) { throw new GalatPengguna(e.message); }
-  db.prepare('INSERT INTO jawaban_asesmen (asesmen_id, nis, jawaban, hasil, setuju_dibagikan) VALUES (?, ?, ?, ?, ?)')
-    .run(a.id, nis, JSON.stringify(req.body.jawaban), JSON.stringify(hasil), req.body.setuju_dibagikan ? 1 : 0);
+  try { hasil = simpanJawaban(a, s.nis, req.body.jawaban, !!req.body.setuju_dibagikan, 'online'); }
+  catch (e) { throw new GalatPengguna(e.message); }
   if (a.instrumen === 'riasec') {
     return { hasil: { kodeHolland: hasil.kodeHolland, tipe: hasil.kodeHolland.split('').map(t => ({ kode: t, ...TIPE_RIASEC[t] })) } };
+  }
+  if (a.instrumen === 'gaya') {
+    return { hasil: { gaya: [hasil.dominan, hasil.kedua].map(t => ({ kode: t, ...TIPE_GAYA[t] })) } };
   }
   return { hasil: { selesai: true } };
 }));

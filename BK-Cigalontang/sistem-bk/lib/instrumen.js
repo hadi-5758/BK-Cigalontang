@@ -143,12 +143,242 @@ function nilaiRiasec(jawaban) {
   return { skor, kodeHolland, dominan: urut[0][0] };
 }
 
-const INSTRUMEN = { akpd: AKPD, riasec: RIASEC };
+// ---------- Daftar Cek Masalah (DCM versi sekolah) ----------
+// Butir disusun sendiri; siswa mencentang masalah yang sedang dialami.
+const DCM_BIDANG = {
+  KES: 'Kesehatan & Kondisi Fisik',
+  EKO: 'Ekonomi & Keuangan',
+  KEL: 'Keluarga & Rumah',
+  AGM: 'Agama, Nilai & Moral',
+  SOS: 'Hubungan Sosial',
+  PRI: 'Pribadi & Emosi',
+  SEK: 'Penyesuaian terhadap Sekolah',
+  KUR: 'Pelajaran & Kurikulum',
+  BLJ: 'Kebiasaan Belajar',
+  KAR: 'Masa Depan & Karier',
+  WLG: 'Waktu Luang & Gawai',
+};
 
-function nilai(instrumen, jawaban) {
+const DCM = {
+  kode: 'dcm',
+  nama: 'Daftar Cek Masalah (DCM)',
+  jenisInstrumen: 'Non-tes',
+  petunjuk: 'Bacalah setiap pernyataan. Centang yang benar-benar sedang kamu alami. Jawabanmu rahasia dan hanya dibaca guru BK untuk membantumu.',
+  butir: [
+    ['KES', 'Saya sering merasa lelah atau mengantuk di sekolah.'], ['KES', 'Saya sering sakit kepala atau sakit perut.'],
+    ['KES', 'Saya jarang sarapan sebelum berangkat sekolah.'], ['KES', 'Saya punya gangguan kesehatan yang mengganggu kegiatan.'],
+    ['KES', 'Saya kurang berolahraga.'],
+    ['EKO', 'Uang saku saya sering tidak cukup.'], ['EKO', 'Saya khawatir dengan biaya sekolah.'],
+    ['EKO', 'Saya harus bekerja untuk membantu keluarga.'], ['EKO', 'Saya tidak punya perlengkapan belajar yang memadai.'],
+    ['EKO', 'Ongkos ke sekolah memberatkan saya.'],
+    ['KEL', 'Orang tua saya sering bertengkar.'], ['KEL', 'Saya jarang berbicara dengan orang tua.'],
+    ['KEL', 'Saya merasa dibanding-bandingkan dengan saudara.'], ['KEL', 'Saya tinggal jauh dari orang tua.'],
+    ['KEL', 'Suasana rumah membuat saya tidak nyaman.'],
+    ['AGM', 'Saya sering lalai menjalankan ibadah.'], ['AGM', 'Saya bingung membedakan yang benar dan salah dalam pergaulan.'],
+    ['AGM', 'Saya pernah melakukan hal yang membuat saya merasa bersalah.'], ['AGM', 'Saya mudah terpengaruh ajakan yang kurang baik.'],
+    ['AGM', 'Saya ingin belajar agama lebih dalam tetapi bingung mulai dari mana.'],
+    ['SOS', 'Saya merasa sulit diterima teman-teman.'], ['SOS', 'Saya pernah diejek atau dirundung.'],
+    ['SOS', 'Saya sering merasa kesepian.'], ['SOS', 'Saya punya masalah dengan pacar atau teman dekat.'],
+    ['SOS', 'Saya canggung berbicara dengan lawan jenis.'],
+    ['PRI', 'Saya mudah tersinggung.'], ['PRI', 'Saya sering merasa minder.'], ['PRI', 'Saya sulit tidur karena banyak pikiran.'],
+    ['PRI', 'Saya pernah merasa sangat sedih dalam waktu lama.'], ['PRI', 'Saya sulit mengungkapkan perasaan.'],
+    ['SEK', 'Saya kurang nyaman dengan suasana sekolah.'], ['SEK', 'Saya sering terlambat datang ke sekolah.'],
+    ['SEK', 'Saya takut atau segan kepada guru tertentu.'], ['SEK', 'Saya sulit mematuhi tata tertib sekolah.'],
+    ['SEK', 'Saya merasa tidak dihargai di kelas.'],
+    ['KUR', 'Ada mata pelajaran yang sangat sulit saya pahami.'], ['KUR', 'Beban tugas terasa terlalu banyak.'],
+    ['KUR', 'Saya merasa salah memilih mata pelajaran pilihan.'], ['KUR', 'Saya sulit mengikuti cara mengajar guru tertentu.'],
+    ['KUR', 'Nilai rapor saya menurun.'],
+    ['BLJ', 'Saya tidak punya jadwal belajar yang teratur.'], ['BLJ', 'Saya sulit berkonsentrasi lebih dari 15 menit.'],
+    ['BLJ', 'Saya baru belajar ketika akan ujian.'], ['BLJ', 'Saya tidak tahu cara meringkas materi.'],
+    ['BLJ', 'Saya sering menyontek atau ingin menyontek.'],
+    ['KAR', 'Saya belum tahu cita-cita saya.'], ['KAR', 'Saya bingung memilih jurusan kuliah.'],
+    ['KAR', 'Saya ragu bisa melanjutkan kuliah.'], ['KAR', 'Saya belum tahu keterampilan yang dibutuhkan dunia kerja.'],
+    ['KAR', 'Rencana saya berbeda dengan harapan orang tua.'],
+    ['WLG', 'Saya bermain gawai lebih dari 5 jam sehari.'], ['WLG', 'Saya sulit berhenti bermain gim.'],
+    ['WLG', 'Saya tidak punya kegiatan positif di waktu luang.'], ['WLG', 'Saya sering begadang.'],
+    ['WLG', 'Saya merasa cemas jika tidak memegang ponsel.'],
+  ].map(([bidang, teks], i) => ({ no: i + 1, bidang, teks })),
+};
+
+function kategoriDcm(persen) {
+  if (persen === 0) return 'Tidak ada masalah';
+  if (persen <= 20) return 'Ringan';
+  if (persen <= 40) return 'Sedang';
+  return 'Perlu perhatian';
+}
+
+function nilaiDcm(jawaban) {
+  // jawaban: { butir: [no...], konsultasi: bool }
+  const dipilih = new Set((jawaban?.butir || []).map(Number));
+  const perBidang = {};
+  for (const b of DCM.butir) {
+    perBidang[b.bidang] ??= { jumlah: 0, total: 0 };
+    perBidang[b.bidang].total++;
+    if (dipilih.has(b.no)) perBidang[b.bidang].jumlah++;
+  }
+  for (const v of Object.values(perBidang)) {
+    v.persen = Math.round((v.jumlah / v.total) * 100);
+    v.kategori = kategoriDcm(v.persen);
+  }
+  const persenTotal = Math.round((dipilih.size / DCM.butir.length) * 100);
+  const prioritas = Object.entries(perBidang).sort((a, b) => b[1].persen - a[1].persen)[0][0];
+  return { perBidang, totalDicentang: dipilih.size, persenTotal, kategori: kategoriDcm(persenTotal),
+    bidangPrioritas: prioritas, butir: [...dipilih], ingin_konsultasi: !!jawaban?.konsultasi };
+}
+
+// ---------- Gaya Perilaku (model 4 gaya ala DISC, butir sendiri) ----------
+const TIPE_GAYA = {
+  D: { nama: 'Dominan (Tegas)', ciri: 'Suka tantangan, cepat mengambil keputusan, berorientasi hasil.', saran: 'Latih kesabaran dan mendengarkan pendapat orang lain.' },
+  I: { nama: 'Interaktif (Ekspresif)', ciri: 'Ramah, antusias, senang bergaul dan meyakinkan orang.', saran: 'Latih fokus menyelesaikan tugas sampai tuntas.' },
+  S: { nama: 'Stabil (Suportif)', ciri: 'Sabar, setia, tenang, dan senang membantu tim.', saran: 'Latih keberanian menyampaikan pendapat dan menghadapi perubahan.' },
+  C: { nama: 'Cermat (Teliti)', ciri: 'Teliti, sistematis, menyukai aturan dan kualitas.', saran: 'Latih fleksibilitas dan tidak terlalu keras pada diri sendiri.' },
+};
+
+const GAYA = {
+  kode: 'gaya',
+  nama: 'Gaya Perilaku (D-I-S-C)',
+  jenisInstrumen: 'Asesmen tes',
+  petunjuk: 'Setiap nomor berisi empat pernyataan. Pilih SATU yang paling menggambarkan dirimu. Tidak ada gaya yang lebih baik atau lebih buruk.',
+  set: [
+    { D: 'Saya suka memimpin kelompok', I: 'Saya mudah akrab dengan orang baru', S: 'Saya senang membantu tanpa diminta', C: 'Saya suka mengerjakan sesuatu dengan rapi' },
+    { D: 'Saya cepat mengambil keputusan', I: 'Saya suka bercerita di depan teman', S: 'Saya sabar menunggu giliran', C: 'Saya memeriksa ulang pekerjaan saya' },
+    { D: 'Saya berani menghadapi tantangan', I: 'Saya senang suasana ramai dan ceria', S: 'Saya menjaga suasana tetap damai', C: 'Saya mengikuti petunjuk dengan tepat' },
+    { D: 'Saya ingin hasil yang cepat', I: 'Saya pandai menyemangati teman', S: 'Saya pendengar yang baik', C: 'Saya suka merencanakan sebelum bertindak' },
+    { D: 'Saya terus terang menyampaikan pendapat', I: 'Saya senang mencoba hal baru bersama teman', S: 'Saya setia pada teman dan kelompok', C: 'Saya teliti terhadap detail' },
+    { D: 'Saya tidak mudah menyerah ketika ditolak', I: 'Saya mudah membuat orang tertawa', S: 'Saya nyaman dengan rutinitas yang teratur', C: 'Saya suka mencari data sebelum memutuskan' },
+    { D: 'Saya suka bersaing untuk menang', I: 'Saya senang tampil dan dikenal banyak orang', S: 'Saya tidak suka konflik', C: 'Saya menjaga kualitas walau butuh waktu lama' },
+    { D: 'Saya mengambil alih saat tim kebingungan', I: 'Saya pandai meyakinkan orang', S: 'Saya membantu teman yang tertinggal', C: 'Saya membuat daftar langkah kerja' },
+    { D: 'Saya suka menentukan target sendiri', I: 'Saya mudah bersemangat', S: 'Saya tenang menghadapi masalah', C: 'Saya berhati-hati agar tidak salah' },
+    { D: 'Saya tidak sabar dengan proses yang lambat', I: 'Saya suka bekerja sambil mengobrol', S: 'Saya mau mengalah demi kebersamaan', C: 'Saya kurang nyaman jika aturan tidak jelas' },
+    { D: 'Saya senang diberi tanggung jawab besar', I: 'Saya punya banyak teman di berbagai kelompok', S: 'Saya dapat diandalkan untuk tugas rutin', C: 'Saya suka menganalisis masalah secara logis' },
+    { D: 'Saya berani mengambil risiko', I: 'Saya optimis dalam situasi apa pun', S: 'Saya konsisten dalam bersikap', C: 'Saya menyukai ketepatan dan keakuratan' },
+  ].map((s, i) => ({ no: i + 1, pilihan: s })),
+};
+
+function nilaiGaya(jawaban) {
+  // jawaban: { [no]: 'D'|'I'|'S'|'C' }
+  const skor = { D: 0, I: 0, S: 0, C: 0 };
+  for (const s of GAYA.set) {
+    const t = jawaban?.[s.no];
+    if (!skor.hasOwnProperty(t)) throw new Error(`Nomor ${s.no} belum dijawab.`);
+    skor[t]++;
+  }
+  const urut = Object.entries(skor).sort((a, b) => b[1] - a[1]);
+  return { skor, dominan: urut[0][0], kedua: urut[1][0], pola: urut[0][0] + urut[1][0] };
+}
+
+// ---------- Peminatan Ekstrakurikuler ----------
+const ESKUL_BAWAAN = ['Pramuka', 'PMR', 'Paskibra', 'OSIS/MPK', 'Rohis', 'Futsal', 'Bola Voli', 'Basket', 'Bulu Tangkis', 'Pencak Silat',
+  'Seni Tari', 'Musik & Paduan Suara', 'Teater', 'Jurnalistik', 'Karya Ilmiah Remaja', 'English Club', 'Pecinta Alam', 'Kewirausahaan', 'TIK & Robotik', 'Literasi'];
+
+const ESKUL = {
+  kode: 'eskul',
+  nama: 'Peminatan Ekstrakurikuler',
+  jenisInstrumen: 'Non-tes',
+  petunjuk: 'Pilih paling banyak 3 ekstrakurikuler yang paling ingin kamu ikuti, urut dari yang paling diminati.',
+  maksPilihan: 3,
+};
+
+function nilaiEskul(jawaban, daftarEskul) {
+  // jawaban: { pilihan: [nama eskul, ...] }
+  const pilihan = [...new Set((jawaban?.pilihan || []).map(String))];
+  if (!pilihan.length) throw new Error('Pilih minimal satu ekstrakurikuler.');
+  if (pilihan.length > ESKUL.maksPilihan) throw new Error(`Pilih paling banyak ${ESKUL.maksPilihan} ekstrakurikuler.`);
+  const salah = pilihan.find(p => !daftarEskul.includes(p));
+  if (salah) throw new Error(`Ekstrakurikuler "${salah}" tidak ada di daftar.`);
+  return { pilihan, utama: pilihan[0] };
+}
+
+// ---------- Sosiometri ----------
+const KONTEKS_SOSIOMETRI = {
+  belajar: { label: 'Kelompok belajar', pertanyaan: 'Siapa teman yang paling kamu inginkan menjadi anggota kelompok belajarmu?', negatif: 'Siapa teman yang kurang kamu inginkan dalam kelompok belajar?' },
+  bergaul: { label: 'Teman bergaul', pertanyaan: 'Siapa teman yang paling sering dan paling nyaman kamu ajak bergaul?', negatif: 'Siapa teman yang kurang nyaman kamu ajak bergaul?' },
+  curhat: { label: 'Teman bercerita', pertanyaan: 'Kepada siapa kamu paling nyaman bercerita tentang masalahmu?', negatif: 'Kepada siapa kamu kurang nyaman bercerita?' },
+  pemimpin: { label: 'Tim & pemimpin', pertanyaan: 'Siapa teman yang paling kamu inginkan memimpin tim kelasmu?', negatif: 'Siapa teman yang kurang kamu inginkan memimpin tim?' },
+  sebangku: { label: 'Teman sebangku', pertanyaan: 'Dengan siapa kamu paling ingin duduk sebangku?', negatif: 'Dengan siapa kamu kurang ingin duduk sebangku?' },
+};
+
+const SOSIOMETRI = {
+  kode: 'sosiometri',
+  nama: 'Sosiometri Kelas',
+  jenisInstrumen: 'Non-tes',
+  petunjuk: 'Pilih teman sekelas sesuai pertanyaan. Pilihanmu RAHASIA: tidak akan diberitahukan kepada siapa pun selain guru BK.',
+  maksPilihan: 3,
+};
+
+function nilaiSosiometri(jawaban, rosterNis, nisPengisi, izinkanNegatif) {
+  const bersihkan = arr => [...new Set((arr || []).map(String))];
+  const positif = bersihkan(jawaban?.positif);
+  const negatif = izinkanNegatif ? bersihkan(jawaban?.negatif) : [];
+  if (!positif.length) throw new Error('Pilih minimal satu teman.');
+  for (const daftar of [positif, negatif]) {
+    if (daftar.length > SOSIOMETRI.maksPilihan) throw new Error(`Pilih paling banyak ${SOSIOMETRI.maksPilihan} teman.`);
+    if (daftar.includes(nisPengisi)) throw new Error('Kamu tidak dapat memilih dirimu sendiri.');
+    if (daftar.some(n => !rosterNis.includes(n))) throw new Error('Ada pilihan yang bukan teman sekelasmu.');
+  }
+  if (positif.some(n => negatif.includes(n))) throw new Error('Satu teman tidak boleh dipilih di dua pertanyaan sekaligus.');
+  return { positif, negatif, jumlahPositif: positif.length, jumlahNegatif: negatif.length };
+}
+
+/**
+ * Analisis sosiometri satu kelas.
+ * roster: [{nis, nama, jk}], jawaban: [{nis, hasil:{positif,negatif}}]
+ */
+function analisisSosiometri(roster, jawaban) {
+  const n = roster.length;
+  const data = Object.fromEntries(roster.map(s => [s.nis, { ...s, P: 0, N: 0, pilihPositif: [], pilihNegatif: [], mengisi: false }]));
+  for (const j of jawaban) {
+    const d = data[j.nis];
+    if (!d) continue;
+    d.mengisi = true;
+    d.pilihPositif = j.hasil.positif;
+    d.pilihNegatif = j.hasil.negatif || [];
+    j.hasil.positif.forEach(t => { if (data[t]) data[t].P++; });
+    (j.hasil.negatif || []).forEach(t => { if (data[t]) data[t].N++; });
+  }
+  const daftar = Object.values(data);
+  const rataP = daftar.reduce((s, d) => s + d.P, 0) / (n || 1);
+  const sdP = Math.sqrt(daftar.reduce((s, d) => s + (d.P - rataP) ** 2, 0) / (n || 1));
+  const timbalBalik = [];
+  for (const d of daftar) {
+    d.indeks = n > 1 ? Math.round(((d.P - d.N) / (n - 1)) * 100) / 100 : 0;
+    // Status deskriptif (bukan label untuk siswa) — dipakai guru BK untuk menentukan siapa yang layak disapa
+    if (d.P >= rataP + sdP && d.P > 0) d.status = 'Bintang';
+    else if (d.P === 0 && d.N > 0) d.status = 'Kurang diterima';
+    else if (d.P === 0) d.status = 'Belum terpilih';
+    else if (d.N > d.P) d.status = 'Perlu perhatian';
+    else d.status = 'Rata-rata';
+    for (const t of d.pilihPositif) {
+      if (d.nis < t && data[t]?.pilihPositif.includes(d.nis)) timbalBalik.push([d.nis, t]);
+    }
+  }
+  return {
+    jumlahSiswa: n, jumlahMengisi: daftar.filter(d => d.mengisi).length,
+    siswa: daftar.sort((a, b) => b.P - a.P || a.N - b.N || a.nama.localeCompare(b.nama)),
+    timbalBalik, rataP: Math.round(rataP * 100) / 100,
+  };
+}
+
+const INSTRUMEN = {
+  akpd: { ...AKPD, jenisInstrumen: 'Non-tes' },
+  dcm: DCM,
+  sosiometri: SOSIOMETRI,
+  gaya: GAYA,
+  riasec: { ...RIASEC, jenisInstrumen: 'Asesmen tes' },
+  eskul: ESKUL,
+};
+
+/** Nilai jawaban; konteks berisi data tambahan (daftar eskul, roster sosiometri). */
+function nilai(instrumen, jawaban, konteks = {}) {
   if (instrumen === 'akpd') return nilaiAkpd(jawaban);
   if (instrumen === 'riasec') return nilaiRiasec(jawaban);
+  if (instrumen === 'dcm') return nilaiDcm(jawaban);
+  if (instrumen === 'gaya') return nilaiGaya(jawaban);
+  if (instrumen === 'eskul') return nilaiEskul(jawaban, konteks.daftarEskul || ESKUL_BAWAAN);
+  if (instrumen === 'sosiometri') return nilaiSosiometri(jawaban, konteks.rosterNis || [], konteks.nis, konteks.izinkanNegatif);
   throw new Error('Instrumen tidak dikenal.');
 }
 
-module.exports = { INSTRUMEN, TIPE_RIASEC, nilai };
+module.exports = {
+  INSTRUMEN, TIPE_RIASEC, TIPE_GAYA, DCM_BIDANG, KONTEKS_SOSIOMETRI, ESKUL_BAWAAN, nilai, analisisSosiometri,
+};

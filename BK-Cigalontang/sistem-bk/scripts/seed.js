@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const { db, transaksi } = require('../lib/db');
 const keamanan = require('../lib/keamanan');
-const { INSTRUMEN, nilai } = require('../lib/instrumen');
+const { INSTRUMEN, nilai, ESKUL_BAWAAN } = require('../lib/instrumen');
 
 if (db.prepare('SELECT COUNT(*) AS n FROM siswa').get().n > 0) {
   console.error('Database sudah berisi siswa. Seed dibatalkan agar data tidak tercampur.');
@@ -91,18 +91,44 @@ transaksi(() => {
   db.prepare(`INSERT INTO catatan_anekdot (nis, tanggal, waktu, tempat, deskripsi_enc, pengguna_id) VALUES (?, ?, ?, ?, ?, ?)`)
     .run(siswa[16].nis, '2026-10-27', '07:20', 'Gerbang sekolah', keamanan.enkripsi('Siswa tiba pukul 07.20 setelah gerbang ditutup, berjalan sambil membawa kantong plastik berisi sarapan.'), koordinator.id);
 
-  // Asesmen: AKPD kelas X-1, RIASEC kelas XI-1 (sebagian siswa sudah mengisi)
-  const buatAsesmen = (instrumen, kelasId) => Number(db.prepare('INSERT INTO asesmen (instrumen, kelas_id, token, pengguna_id) VALUES (?, ?, ?, ?)')
-    .run(instrumen, kelasId, keamanan.tokenAcak(), koordinator.id).lastInsertRowid);
+  // Asesmen: satu sesi per instrumen, sebagian siswa sudah mengisi
+  const buatAsesmen = (instrumen, kelasId, konteks = null) => Number(db.prepare('INSERT INTO asesmen (instrumen, kelas_id, token, pengguna_id, konteks) VALUES (?, ?, ?, ?, ?)')
+    .run(instrumen, kelasId, keamanan.tokenAcak(), koordinator.id, konteks).lastInsertRowid);
+  const simpanJawaban = (asesmenId, instrumen, nis, jawaban, konteks = {}) => db.prepare('INSERT INTO jawaban_asesmen (asesmen_id, nis, jawaban, hasil, setuju_dibagikan) VALUES (?, ?, ?, ?, ?)')
+    .run(asesmenId, nis, JSON.stringify(jawaban), JSON.stringify(nilai(instrumen, jawaban, konteks)), rnd() > 0.3 ? 1 : 0);
+  const siswaKelas = i => siswa.filter(s => s.kelasId === kelasIds[i]);
+
   const akpd = buatAsesmen('akpd', kelasIds[0]);
+  siswaKelas(0).slice(0, 9).forEach(s => simpanJawaban(akpd, 'akpd', s.nis, INSTRUMEN.akpd.butir.filter(() => rnd() < 0.25).map(b => b.no)));
+
   const riasec = buatAsesmen('riasec', kelasIds[2]);
-  const simpanJawaban = (asesmenId, instrumen, nis, jawaban) => db.prepare('INSERT INTO jawaban_asesmen (asesmen_id, nis, jawaban, hasil, setuju_dibagikan) VALUES (?, ?, ?, ?, ?)')
-    .run(asesmenId, nis, JSON.stringify(jawaban), JSON.stringify(nilai(instrumen, jawaban)), rnd() > 0.3 ? 1 : 0);
-  siswa.filter(s => s.kelasId === kelasIds[0]).slice(0, 9).forEach(s =>
-    simpanJawaban(akpd, 'akpd', s.nis, INSTRUMEN.akpd.butir.filter(() => rnd() < 0.25).map(b => b.no)));
-  siswa.filter(s => s.kelasId === kelasIds[2]).slice(0, 8).forEach(s =>
+  siswaKelas(2).slice(0, 8).forEach(s =>
     simpanJawaban(riasec, 'riasec', s.nis, Object.fromEntries(INSTRUMEN.riasec.butir.map(b => [b.no, 1 + Math.floor(rnd() * 3)]))));
+
+  const dcm = buatAsesmen('dcm', kelasIds[1]);
+  siswaKelas(1).slice(0, 10).forEach(s =>
+    simpanJawaban(dcm, 'dcm', s.nis, { butir: INSTRUMEN.dcm.butir.filter(() => rnd() < 0.18).map(b => b.no), konsultasi: rnd() < 0.2 }));
+
+  const gaya = buatAsesmen('gaya', kelasIds[2]);
+  siswaKelas(2).slice(0, 10).forEach(s =>
+    simpanJawaban(gaya, 'gaya', s.nis, Object.fromEntries(INSTRUMEN.gaya.set.map(x => [x.no, 'DISC'[Math.floor(rnd() * 4)]]))));
+
+  const eskul = buatAsesmen('eskul', kelasIds[1]);
+  siswaKelas(1).slice(0, 11).forEach(s => {
+    const pilihan = [...new Set([0, 1, 2].map(() => ESKUL_BAWAAN[Math.floor(rnd() * 8)]))];
+    simpanJawaban(eskul, 'eskul', s.nis, { pilihan });
+  });
+
+  // Sosiometri X-1: setiap siswa memilih 2–3 teman; satu siswa sengaja tidak dipilih siapa pun
+  const sosio = buatAsesmen('sosiometri', kelasIds[0], 'belajar');
+  const rosterX1 = siswaKelas(0).map(s => s.nis);
+  const tidakDipilih = rosterX1[rosterX1.length - 1];
+  rosterX1.slice(0, 11).forEach((nis, i) => {
+    const calon = rosterX1.filter(t => t !== nis && t !== tidakDipilih);
+    const positif = [calon[(i * 3) % calon.length], calon[(i * 3 + 1) % calon.length], calon[(i + 5) % calon.length]].filter((v, j, arr) => arr.indexOf(v) === j);
+    simpanJawaban(sosio, 'sosiometri', nis, { positif, negatif: [] }, { rosterNis: rosterX1, nis });
+  });
 });
 
-console.log('✅ Data dummy dibuat: 3 kelas, 36 siswa fiktif, 10 layanan, 2 asesmen.');
+console.log('✅ Data dummy dibuat: 3 kelas, 36 siswa fiktif, 10 layanan, 6 sesi asesmen.');
 console.log('   Akun demo tersimpan di data/akun-demo.txt');

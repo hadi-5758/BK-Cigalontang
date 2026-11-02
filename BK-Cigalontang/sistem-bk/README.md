@@ -34,7 +34,8 @@ sudah berisi siswa. Untuk mulai bersih, hentikan server lalu hapus `data/bk.db*`
 | Catatan Layanan | 8 jenis layanan (Buku Kasus, Konseling Individu/Kelompok, Bimbingan Kelompok/Klasikal, Kunjungan Rumah, Konferensi Kasus, Alih Tangan Kasus). Nomor otomatis `KS/KN/KR/BL/BG/KF/AT-YYYY-MM-XXX` |
 | Data Siswa | Impor Excel (template tersedia), tambah manual, riwayat layanan & asesmen per siswa, arsip (tidak ada hapus) |
 | Kelas & Penugasan | Wali kelas, penugasan guru BK per kelas, beban siswa binaan (acuan ABKIN 1:150) |
-| Asesmen | Angket Kebutuhan Siswa (gaya AKPD, 40 butir, 4 bidang) dan Minat Karier RIASEC (36 butir). Siswa mengisi lewat tautan dengan NIS + nama depan; rekap kelas otomatis |
+| Pusat Asesmen | 6 instrumen: AKPD (40 butir), DCM versi sekolah (55 butir, 11 bidang), Sosiometri (5 konteks, sosiogram), Gaya Perilaku 4 tipe, Minat Karier RIASEC (36 butir), Peminatan Eskul. Tab Ringkasan / Hasil siswa / Kelola, saran tindak lanjut (kelas-kelompok-pribadi), laporan per kelas. Siswa mengisi lewat tautan (NIS + nama depan) atau lewat kertas: cetak soal → template Excel per kelas → unggah |
+| Lead Karier | Hasil RIASEC siswa yang memberi izin: statistik, filter tipe/status/kelas, status tindak lanjut, ekspor CSV |
 | Laporan Bulanan | Rekap per jenis, bidang, kategori kasus, daftar bimbingan klasikal → PDF berkop dengan kolom tanda tangan |
 | Pengaturan | Identitas sekolah untuk kop, tim BK, ganti password, unduh cadangan Excel |
 

@@ -185,6 +185,43 @@ details.lipat textarea { margin-top: 6px; }
 .pilih-jenis .cek-kelas { flex: 1; }
 .anekdot { border-left: 4px solid #8e44ad; background: #fbf8fd; border-radius: 6px; padding: 10px 14px; margin-bottom: 10px; }
 .anekdot p { margin: 6px 0 0; white-space: pre-wrap; }
+/* Asesmen */
+.tab a { padding: 8px 12px; border-bottom: 3px solid transparent; white-space: nowrap; font-size: .9rem; color: var(--teks-2); text-decoration: none; }
+.tab a.aktif { color: var(--utama); border-bottom-color: var(--utama); font-weight: 600; }
+.kartu-instrumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.kartu-instrumen a { display: flex; flex-direction: column; gap: 2px; padding: 12px; background: #fff; border: 1px solid var(--garis); border-radius: var(--radius); text-decoration: none; color: var(--teks); }
+.kartu-instrumen a:hover { border-color: var(--utama-2); }
+.kartu-instrumen a.aktif { border-color: var(--utama); background: var(--utama-muda); box-shadow: inset 0 -3px 0 var(--utama); }
+.kartu-instrumen .angka-kecil { font-size: 1.4rem; font-weight: 700; color: var(--utama); }
+.kisi-instrumen { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.daftar-saran { list-style: none; padding: 0; margin: 0; }
+.daftar-saran li { padding: 8px 0; border-bottom: 1px solid var(--garis); font-size: .9rem; }
+.daftar-saran li:last-child { border-bottom: 0; }
+ol.langkah { padding-left: 18px; }
+ol.langkah li { margin-bottom: 8px; }
+.sosiogram { width: 100%; max-width: 560px; display: block; margin: 0 auto; }
+.sg-positif { stroke: #5d8aa8; stroke-width: 1.2; opacity: .7; }
+.sg-saling { stroke: #1e8449; stroke-width: 3; opacity: .85; }
+.sg-negatif { stroke: #c0392b; stroke-width: 1.2; stroke-dasharray: 5 4; opacity: .7; }
+.sg-label { font-size: 11px; fill: var(--teks); }
+.legenda { text-align: center; color: var(--teks-2); }
+.kode-holland { font-family: ui-monospace, monospace; font-size: 1rem; letter-spacing: .1em; color: var(--utama); }
+.kosong { text-align: center; padding: 24px 8px; }
+select.tersimpan { outline: 2px solid var(--sukses); }
+.skala.kolom { flex-direction: column; align-items: stretch; }
+
+/* Lembar cetak */
+.halaman-cetak { background: #fff; }
+.kotak-cek { display: inline-block; width: 13px; height: 13px; border: 1.5px solid #333; vertical-align: -2px; margin-right: 4px; }
+ol.soal { padding-left: 24px; }
+ol.soal li { margin: 4px 0; }
+.tabel-cetak td, .tabel-cetak th { border: 1px solid #999; padding: 4px 6px; font-size: .85rem; }
+.set-cetak { margin: 8px 0; break-inside: avoid; }
+.kolom-cetak { columns: 2; }
+.identitas-cetak td { border: 0; padding: 2px 6px 2px 0; }
+.garis-isi { border-bottom: 1px solid #999; margin: 14px 0; }
+@media print { .tanpa-cetak { display: none; } .panel-tes { max-width: none; padding: 0; } }
+
 details.panduan summary { cursor: pointer; }
 details.panduan ul { margin: 10px 0 0; padding-left: 20px; }
 
