@@ -75,6 +75,11 @@
   .k-lama .h { color: var(--abu); } .k-lama { color: var(--abu); }
   .k-hots { border: 4px solid var(--toska); } .k-hots .h { color: var(--toska); }
 
+  .gel-guru { position: absolute; left: 400px; top: 940px; z-index: 2; background: #fff; border-radius: 34px; padding: 22px 30px;
+              font-size: 36px; font-weight: 700; line-height: 1.3; color: var(--tinta); box-shadow: 0 12px 28px rgba(15,23,42,.12); }
+  .gel-guru small { display: block; font-size: 22px; font-weight: 800; letter-spacing: 2px; color: var(--emas-tua); }
+  .gel-guru::after { content: ""; position: absolute; left: -30px; top: 60px; border: 16px solid transparent; border-right-color: #fff; border-left: 0; }
+
   /* contoh soal */
   .soal { margin-top: 30px; width: 660px; font-size: 32px; line-height: 1.4; }
   .soal .lbl { font-size: 22px; font-weight: 800; letter-spacing: 2px; color: var(--abu); margin-bottom: 8px; }
@@ -147,13 +152,14 @@
   <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">2 / 7</div></div>
   <h2 style="margin-top:50px">Soal HOTS itu<br><em>bukan soal hafalan.</em></h2>
   <div class="garis"></div>
-  <div class="bukan">
+  <div class="bukan" style="width:928px">
     <div class="kartu k-lama"><div class="h">Soal hafalan</div>"Apa ibu kota provinsi Jawa Barat?"</div>
     <div class="kartu k-hots"><div class="h">Soal HOTS</div>Kamu diminta <b>menganalisis, menilai,</b> atau <b>menyimpulkan</b> dari teks, grafik, atau data.</div>
   </div>
-  <div class="isi" style="width:640px">Kuncinya bukan cepat, tapi <b>teliti dan punya strategi.</b> Ini 3 langkahnya 👉</div>
-  <img class="tokoh" src="../brand/karakter/3d/guru-bk-putri/pose-menjelaskan.png" alt="" style="height:520px;right:30px">
-  <div class="foot">Geser →</div>
+  <div class="isi" style="width:928px">Kuncinya bukan cepat, tapi <b>teliti dan punya strategi.</b> Ini 3 langkahnya 👉</div>
+  <img class="tokoh" src="../brand/karakter/3d/guru-bk-putri/pose-memberi-arahan.png" alt="" style="height:560px;left:60px">
+  <div class="gel-guru"><small>BU GURU BK</small>Tenang, soal HOTS<br>ada triknya, kok! 😉</div>
+  <div class="foot" style="justify-content:flex-end">Geser →</div>
 </section></div>
 
 <!-- 3 · BACA -->
