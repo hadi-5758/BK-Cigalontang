@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sistem-bk",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["BK-Cigalontang/sistem-bk/server.js"],
+      "port": 3100
+    }
+  ]
+}
