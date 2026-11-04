@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carousel — Cemas Wajar vs Cemas Berlebihan | BK SMANRICI</title>
+<style>
+  /* Rabu, 4 November 2026 · #RabuRuangAman · Pribadi · karakter 3D (brand/karakter/3d/) */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --toska: #0D9488; --toska-tua: #0F766E; --toska-muda: #CCFBF1;
+    --zamrud: #10B981; --zamrud-tua: #059669; --zamrud-muda: #D1FAE5;
+    --emas: #F59E0B; --emas-tua: #D97706; --emas-muda: #FEF3C7;
+    --mint: #F0FDF4; --tinta: #0F172A; --teks: #1E293B; --abu: #64748B;
+  }
+  @font-face {
+    font-family: 'Plus Jakarta Sans';
+    src: url('../brand/font/PlusJakartaSans-latin.woff2') format('woff2');
+    font-weight: 200 800;
+  }
+  body { font-family: 'Inter', sans-serif; background: #d9dee5; padding: 40px 20px; color: var(--teks); }
+  .grid { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; }
+  .wrap { width: 540px; height: 675px; }
+  .wrap .slide { transform: scale(.5); transform-origin: top left; }
+  body.render { padding: 0; background: none; }
+  body.render .wrap { width: auto; height: auto; }
+  body.render .wrap .slide { transform: none; }
+
+  .slide { width: 1080px; height: 1350px; position: relative; overflow: hidden;
+           display: flex; flex-direction: column; padding: 64px 76px 56px;
+           background: linear-gradient(180deg, var(--mint) 0%, #E3F7EE 100%); }
+  h1, h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; color: var(--tinta); letter-spacing: -1.5px; position: relative; z-index: 2; }
+  h2 { font-size: 76px; line-height: 1.05; margin-top: 18px; }
+  h2 em, h1 em { font-style: normal; color: var(--toska); }
+  .bar { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 3;
+         font-size: 26px; font-weight: 800; letter-spacing: 2px; color: var(--toska-tua); }
+  .bar .logo { display: flex; align-items: center; gap: 14px; }
+  .bar img { width: 68px; height: 68px; border-radius: 50%; background: #fff; }
+  .bar .hal { font-size: 24px; opacity: .7; letter-spacing: 1px; }
+  .gelap .bar { color: #fff; }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 3;
+          font-size: 24px; font-weight: 700; color: var(--toska-tua); opacity: .85; }
+  .gelap .foot { color: #fff; }
+  .garis { width: 110px; height: 10px; border-radius: 5px; background: var(--zamrud); margin-top: 20px; position: relative; z-index: 2; }
+  .isi { font-size: 38px; line-height: 1.38; margin-top: 26px; position: relative; z-index: 2; }
+  .isi b { color: var(--tinta); }
+  .tokoh { position: absolute; bottom: 0; z-index: 1; filter: drop-shadow(0 14px 18px rgba(15,23,42,.18)); }
+  .label { margin-top: 44px; display: inline-flex; align-self: flex-start; align-items: center; gap: 14px; font-size: 30px; font-weight: 800;
+           letter-spacing: 3px; padding: 10px 24px; border-radius: 999px; position: relative; z-index: 2; }
+  .tip { position: relative; z-index: 2; margin-top: 26px; background: #fff; border-radius: 30px; padding: 22px 28px;
+         border-left: 12px solid var(--zamrud); box-shadow: 0 10px 24px rgba(15,23,42,.07); font-size: 32px; line-height: 1.35; }
+  .tip .lbl { font-size: 24px; font-weight: 800; letter-spacing: 3px; color: var(--zamrud-tua); display: block; margin-bottom: 4px; }
+  .tip b { color: var(--toska-tua); }
+  .gel { position: absolute; z-index: 2; background: #fff; border-radius: 34px; padding: 22px 30px; font-size: 34px; font-weight: 700;
+         line-height: 1.3; color: var(--tinta); box-shadow: 0 12px 28px rgba(15,23,42,.12); }
+  .gel small { display: block; font-size: 22px; font-weight: 800; letter-spacing: 2px; color: var(--emas-tua); }
+  .gel.kiri::after { content: ""; position: absolute; left: -30px; top: 56px; border: 16px solid transparent; border-right-color: #fff; border-left: 0; }
+
+  /* daftar ciri */
+  .ciri { margin-top: 28px; display: flex; flex-direction: column; gap: 16px; width: 680px; position: relative; z-index: 2; }
+  .ciri div { display: flex; gap: 20px; align-items: center; background: #fff; border-radius: 28px; padding: 20px 26px;
+              font-size: 33px; line-height: 1.3; box-shadow: 0 8px 20px rgba(15,23,42,.06); }
+  .ciri .ik { width: 66px; height: 66px; border-radius: 20px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+  .ciri b { color: var(--tinta); }
+  .wajar .ik { background: var(--zamrud-muda); }
+  .lebih .ik { background: var(--emas-muda); }
+  .contoh { position: relative; z-index: 2; margin-top: 24px; width: 680px; font-size: 30px; line-height: 1.35; color: var(--abu); font-style: italic; }
+
+  /* 1 · sampul */
+  .s1 { background: linear-gradient(160deg, var(--toska) 0%, var(--toska-tua) 100%); }
+  .s1 .pre { margin-top: 56px; font-size: 30px; font-weight: 800; letter-spacing: 5px; color: #FDE68A; position: relative; z-index: 2; }
+  .s1 h1 { font-size: 104px; line-height: 1.02; color: #fff; margin-top: 18px; }
+  .s1 h1 em { color: #FDE68A; }
+  .s1 .sub { font-size: 40px; color: var(--toska-muda); margin-top: 24px; line-height: 1.3; position: relative; z-index: 2; width: 560px; }
+  .s1 .sub b { color: #fff; }
+  .s1 .lantai { position: absolute; left: 0; right: 0; bottom: 0; height: 160px; background: rgba(255,255,255,.12); }
+  .meter { position: absolute; left: 76px; top: 860px; width: 440px; z-index: 2; }
+  .meter .bar2 { height: 34px; border-radius: 999px; background: linear-gradient(90deg, #6EE7B7 0%, #FDE68A 55%, #FB923C 100%); }
+  .meter .jarum { position: absolute; top: -14px; left: 42%; width: 12px; height: 62px; border-radius: 6px; background: #fff;
+                  box-shadow: 0 4px 10px rgba(0,0,0,.25); }
+  .meter .ket { display: flex; justify-content: space-between; margin-top: 14px; font-size: 26px; font-weight: 800; color: #fff; }
+
+  /* 5 · tabel */
+  .tabel { margin-top: 34px; position: relative; z-index: 2; border-radius: 34px; overflow: hidden; box-shadow: 0 12px 30px rgba(15,23,42,.08); }
+  .tabel .baris { display: grid; grid-template-columns: 220px 1fr 1fr; }
+  .tabel .baris > div { padding: 20px 22px; font-size: 29px; line-height: 1.3; background: #fff; border-bottom: 2px solid #EEF2F1; }
+  .tabel .kepala > div { font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 30px; border-bottom: none; }
+  .tabel .kepala .w { background: var(--zamrud); color: #fff; } .tabel .kepala .l { background: var(--emas); color: var(--tinta); }
+  .tabel .kepala .k { background: var(--toska-tua); color: #fff; }
+  .tabel .k { font-weight: 800; color: var(--toska-tua); background: #F8FAFC !important; }
+  .tabel .baris:last-child > div { border-bottom: none; }
+
+  /* 6 · tolong diri */
+  .bantu { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; position: relative; z-index: 2; }
+  .bantu > div { background: #fff; border-radius: 30px; padding: 24px 24px; box-shadow: 0 8px 20px rgba(15,23,42,.06); }
+  .bantu .em { font-size: 52px; line-height: 1; }
+  .bantu h3 { font-family: 'Plus Jakarta Sans'; font-size: 32px; font-weight: 800; color: var(--tinta); margin-top: 10px; }
+  .bantu p { font-size: 25px; line-height: 1.32; color: var(--abu); margin-top: 6px; }
+
+  /* 7 · kapan minta bantuan */
+  .s7 { background: linear-gradient(160deg, var(--toska) 0%, var(--toska-tua) 100%); }
+  .s7 h2 { color: #fff; font-size: 74px; margin-top: 46px; }
+  .s7 h2 em { color: #FDE68A; }
+  .s7 .ciri div { background: rgba(255,255,255,.95); }
+  .s7 .ciri .ik { background: var(--toska-muda); }
+  .darurat { position: relative; z-index: 2; margin-top: 22px; width: 680px; background: #FEF3C7; border-radius: 28px; padding: 20px 26px;
+             font-size: 28px; line-height: 1.35; color: var(--tinta); border-left: 12px solid var(--emas); }
+  .darurat b { color: #B45309; }
+  .ajak { position: relative; z-index: 2; margin-top: 22px; align-self: flex-start; background: var(--emas); color: var(--tinta);
+          font-weight: 800; font-size: 28px; padding: 14px 28px; border-radius: 999px; }
+</style>
+</head>
+<body>
+<div class="grid">
+
+<!-- 1 · SAMPUL -->
+<div class="wrap"><section class="slide s1 gelap" id="slide-1">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">#RabuRuangAman</div></div>
+  <div class="pre">KENALI DIRIMU</div>
+  <h1>Cemas wajar<br>vs cemas<br><em>berlebihan</em></h1>
+  <div class="sub">Kenali bedanya, biar tahu <b>kapan cukup ditenangkan</b> dan <b>kapan perlu bantuan.</b> 🤍</div>
+  <div class="meter"><div class="bar2"></div><div class="jarum"></div><div class="ket"><span>wajar 🙂</span><span>berlebihan 😣</span></div></div>
+  <div class="lantai"></div>
+  <img class="tokoh" src="../brand/karakter/3d/siswi/utama.png" alt="" style="height:700px;left:620px">
+  <img class="tokoh" src="../brand/karakter/3d/siswa/tampak-depan.png" alt="" style="height:600px;left:840px">
+  <div class="foot" style="width:440px">Geser →</div>
+</section></div>
+
+<!-- 2 · CEMAS ITU NORMAL -->
+<div class="wrap"><section class="slide" id="slide-2">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">2 / 7</div></div>
+  <h2 style="margin-top:50px">Cemas itu<br><em>normal, kok.</em></h2>
+  <div class="garis"></div>
+  <div class="isi" style="width:928px">Cemas itu seperti <b>alarm tubuh</b>: bikin kita siaga sebelum ujian, tampil, atau hal baru.</div>
+  <div class="isi" style="width:928px">Yang perlu diperhatikan: <b>alarmnya bunyi sebentar, atau nggak mau mati?</b> 🔔</div>
+  <img class="tokoh" src="../brand/karakter/3d/guru-bk-putri/pose-memberi-arahan.png" alt="" style="height:560px;left:60px">
+  <div class="gel kiri" style="left:400px;top:960px"><small>BU GURU BK</small>Perasaanmu valid.<br>Yuk, kenali bedanya. 🤍</div>
+  <div class="foot" style="justify-content:flex-end">Geser →</div>
+</section></div>
+
+<!-- 3 · CEMAS WAJAR -->
+<div class="wrap"><section class="slide" id="slide-3">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">3 / 7</div></div>
+  <div class="label" style="background:var(--zamrud-muda);color:var(--zamrud-tua)">🙂 CEMAS WAJAR</div>
+  <h2>Datang sebentar,<br><em>lalu reda.</em></h2>
+  <div class="ciri wajar">
+    <div><span class="ik">🎯</span><span>Ada <b>pemicu yang jelas</b> (ujian, tampil, hal baru)</span></div>
+    <div><span class="ik">⏳</span><span><b>Sementara:</b> lega setelah momennya lewat</span></div>
+    <div><span class="ik">💪</span><span>Malah bikin <b>terdorong siap-siap</b></span></div>
+    <div><span class="ik">🍽️</span><span>Tidur, makan, dan aktivitas <b>tetap jalan</b></span></div>
+  </div>
+  <div class="contoh">Contoh: deg-degan sebelum TKA, lalu lega setelah selesai.</div>
+  <img class="tokoh" src="../brand/karakter/3d/siswi/pose-semangat.png" alt="" style="height:500px;right:40px">
+  <div class="foot">Geser →</div>
+</section></div>
+
+<!-- 4 · CEMAS BERLEBIHAN -->
+<div class="wrap"><section class="slide" id="slide-4">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">4 / 7</div></div>
+  <div class="label" style="background:var(--emas-muda);color:var(--emas-tua)">😣 CEMAS BERLEBIHAN</div>
+  <h2>Datang terus,<br><em style="color:var(--emas-tua)">susah reda.</em></h2>
+  <div class="ciri lebih">
+    <div><span class="ik">🔁</span><span>Muncul terus, <b>berminggu-minggu</b>, kadang tanpa pemicu jelas</span></div>
+    <div><span class="ik">😴</span><span><b>Tidur &amp; makan terganggu</b></span></div>
+    <div><span class="ik">🧠</span><span><b>Sulit konsentrasi</b>, pikiran terus berputar</span></div>
+    <div><span class="ik">🚪</span><span>Mulai <b>menghindari</b> sekolah, teman, atau kegiatan</span></div>
+    <div><span class="ik">💓</span><span>Ada <b>keluhan fisik</b>: berdebar, sakit perut, sesak</span></div>
+  </div>
+  <img class="tokoh" src="../brand/karakter/3d/siswa/pose-menyilangkan-tangan.png" alt="" style="height:500px;right:40px">
+  <div class="foot">Geser →</div>
+</section></div>
+
+<!-- 5 · BANDINGKAN -->
+<div class="wrap"><section class="slide" id="slide-5">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">5 / 7</div></div>
+  <h2 style="margin-top:50px">Cek cepat:<br><em>yang mana kamu?</em></h2>
+  <div class="tabel">
+    <div class="baris kepala"><div class="k">&nbsp;</div><div class="w">🙂 Wajar</div><div class="l">😣 Berlebihan</div></div>
+    <div class="baris"><div class="k">Lamanya</div><div>Reda setelah momennya lewat</div><div>Berminggu-minggu</div></div>
+    <div class="baris"><div class="k">Efeknya</div><div>Bikin siap-siap</div><div>Bikin lumpuh / menghindar</div></div>
+    <div class="baris"><div class="k">Tidur &amp; makan</div><div>Tetap normal</div><div>Terganggu</div></div>
+    <div class="baris"><div class="k">Bisa diatur?</div><div>Umumnya bisa</div><div>Sulit, walau sudah dicoba</div></div>
+  </div>
+  <div class="tip" style="width:928px"><span class="lbl">INGAT</span>Ini bukan alat diagnosis. Kalau ragu, <b>ngobrol saja dulu dengan guru BK.</b></div>
+  <div class="foot">Geser →</div>
+</section></div>
+
+<!-- 6 · MENOLONG DIRI -->
+<div class="wrap"><section class="slide" id="slide-6">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">6 / 7</div></div>
+  <h2 style="margin-top:50px">Saat cemas datang,<br><em>coba ini:</em></h2>
+  <div class="bantu">
+    <div><div class="em">🌬️</div><h3>Napas kotak</h3><p>Tarik 4 · tahan 4 · hembus 4 · tahan 4</p></div>
+    <div><div class="em">🖐️</div><h3>Grounding 5-4-3-2-1</h3><p>Sebut 5 yang dilihat, 4 disentuh, 3 didengar…</p></div>
+    <div><div class="em">📝</div><h3>Tulis kekhawatiran</h3><p>Pisahkan yang bisa dan tidak bisa kamu kendalikan</p></div>
+    <div><div class="em">🏃</div><h3>Gerak &amp; tidur cukup</h3><p>Kurangi kopi dan scroll larut malam</p></div>
+  </div>
+  <div class="tip" style="width:928px"><span class="lbl">YANG PALING PENTING</span><b>Cerita ke orang yang kamu percaya.</b> Cemas terasa lebih ringan kalau nggak dipikul sendiri.</div>
+  <div class="foot">Geser →</div>
+</section></div>
+
+<!-- 7 · KAPAN MINTA BANTUAN -->
+<div class="wrap"><section class="slide s7 gelap" id="slide-7">
+  <div class="bar"><div class="logo"><img src="../brand/logo-bk-smanrici.png" alt="">BK SMANRICI</div><div class="hal">7 / 7</div></div>
+  <h2>Kapan perlu<br><em>minta bantuan?</em></h2>
+  <div class="ciri">
+    <div><span class="ik">📅</span><span>Cemas <b>berminggu-minggu</b> dan nggak membaik</span></div>
+    <div><span class="ik">🏫</span><span>Mulai <b>mengganggu</b> sekolah, tidur, atau makan</span></div>
+    <div><span class="ik">🫂</span><span>Sudah coba sendiri, tapi <b>tetap berat</b></span></div>
+  </div>
+  <div class="darurat">Kalau sampai muncul <b>pikiran untuk menyakiti diri</b>, jangan dipendam sendiri. Segera cerita ke orang dewasa yang kamu percaya atau Ruang BK, atau hubungi <b>119 ext 8</b>.</div>
+  <div class="ajak">Butuh cerita? DM atau datang ke Ruang BK 🤍</div>
+  <img class="tokoh" src="../brand/karakter/3d/guru-bk-putri/tampak-depan.png" alt="" style="height:460px;right:100px">
+  <img class="tokoh" src="../brand/karakter/3d/siswi/tampak-depan.png" alt="" style="height:400px;right:10px">
+  <div class="foot" style="width:560px">@bksmanrici</div>
+</section></div>
+
+</div>
+</body>
+</html>
