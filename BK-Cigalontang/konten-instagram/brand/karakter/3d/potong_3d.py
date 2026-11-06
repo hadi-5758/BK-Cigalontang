@@ -28,7 +28,7 @@ LEMBAR = {
              ["terkejut", "sedih", "marah", "malu"]),
         ],
         "pose": {"salam": (275, 655, 372, 952), "memegang-buku": (372, 655, 467, 952),
-                 "menunjuk": (467, 655, 558, 952), "semangat": (558, 655, 651, 952),
+                 "menunjuk": (467, 655, 558, 952), "semangat": (548, 650, 654, 958),
                  "membawa-tas": (651, 655, 758, 952), "mempresentasikan": (758, 655, 872, 952),
                  "berjalan": (865, 655, 982, 952)},
     },

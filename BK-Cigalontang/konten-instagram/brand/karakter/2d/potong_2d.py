@@ -116,6 +116,26 @@ def potong(img, kotak, benih=None):
         dekat = np.asarray(Image.fromarray(np.isin(lab, simpan).astype("uint8") * 255)
                            .filter(ImageFilter.MaxFilter(5))) > 0
         a = np.where(dekat, a, 0).astype("uint8")
+    # tutup lubang kecil yang terkurung benda gelap (mis. kaus kaki putih di lubang tali sepatu hitam,
+    # yang ikut terhapus karena warnanya mirip latar). Lubang yang dikelilingi warna terang
+    # (celah antara kaki, sela lengan) memang latar, jadi dibiarkan. Warna diambil dari gambar asli.
+    a = np.array(a)
+    asli = np.asarray(potongan).astype(float)
+    terang = asli.mean(axis=2)
+    lab, ukuran = label_komponen(a < 128)
+    tepi = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]])))
+    maks = max(40, int(a.size * .0015))
+    rgb = np.array(hasil.convert("RGB"))
+    for i, u in enumerate(ukuran):
+        if not i or i in tepi or u > maks:
+            continue
+        lubang = lab == i
+        lebar = np.asarray(Image.fromarray(lubang.astype("uint8") * 255).filter(ImageFilter.MaxFilter(5))) > 0
+        cincin = lebar & ~lubang & (a >= 128)
+        if cincin.any() and terang[cincin].mean() < 90:
+            a[lebar & (a < 255)] = 255
+            rgb[lebar] = asli[lebar].astype("uint8")
+    hasil = Image.fromarray(rgb).convert("RGBA")
     hasil.putalpha(Image.fromarray(a))
     return hasil.crop(hasil.getbbox())
 
